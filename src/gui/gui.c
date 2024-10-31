@@ -165,17 +165,21 @@ struct List* CreateInitialList(void) {
 void SaveSingleStation(struct ExtNode *station) {
     struct FileRequester *fileReq;
     char filepath[256];
+    char sanitized_name[20];  // Max 20 chars for AmigaOS
+    // Sanitize the station name for use as filename
+    SanitizeAmigaFilename(station->displayText, sanitized_name, 15);  // 15 chars + ".pls"
+    strcat(sanitized_name, ".pls");
     
     fileReq = AllocAslRequest(ASL_FileRequest, NULL);
     if (!fileReq) return;
     
     if (AslRequestTags(fileReq,
-        ASLFR_DrawersOnly,    FALSE,
-        ASLFR_InitialFile,    "single_station.pls",
-        ASLFR_DoPatterns,     TRUE,
+        ASLFR_DrawersOnly, FALSE,
+        ASLFR_InitialFile, sanitized_name,
+        ASLFR_DoPatterns, TRUE,
         ASLFR_InitialPattern, "#?.pls",
         TAG_DONE)) {
-        
+
         strcpy(filepath, fileReq->rf_Dir);
         AddPart(filepath, fileReq->rf_File, sizeof(filepath));
         
@@ -191,11 +195,9 @@ void SaveSingleStation(struct ExtNode *station) {
             fprintf(fp, "Title1=%s\n", station->displayText);
             fprintf(fp, "Length1=-1\n");
             fclose(fp);
-            
             DisplayBeep(NULL);
         }
     }
-    
     FreeAslRequest(fileReq);
 }
 
