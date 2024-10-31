@@ -16,13 +16,17 @@
 #include <proto/graphics.h>
 #include <intuition/screens.h>
 #include <intuition/gadgetclass.h>
-
-#include "../include/config.h"
-#include "../include/network.h"
-#include "../include/utils.h"
-#include "../include/data.h"
+#include <libraries/gadtools.h>
+#include <proto/gadtools.h>
+#include <libraries/asl.h>
+#include <proto/asl.h>
+#include "../../include/config.h"
+#include "../../include/network.h"
+#include "../../include/utils.h"
+#include "../../include/data.h"
 
 // Global variables
+BOOL running = FALSE;
 struct Window *window = NULL;
 struct List *browserList = NULL;
 struct Library *IntuitionBase = NULL;
@@ -32,7 +36,14 @@ struct Library *SocketBase = NULL;
 struct GfxBase *GfxBase = NULL;
 struct Library *AslBase = NULL;
 void *visualInfo = NULL;
+#define MENU_PROJECT     0   // Menu number for Project menu
+#define ITEM_SETTINGS    0   // for Settings
+#define ITEM_ABOUT       1   // for About
+#define ITEM_QUIT        3   // for Quit (after separator)
 
+
+struct Menu *menuStrip = NULL;
+struct APISettings currentSettings;
 // GUI Elements
 struct Gadget *nameStrGad;
 struct Gadget *countryCodeCycle;
@@ -49,26 +60,59 @@ struct Gadget *statusMsgGad;
 // Choices for dropdowns
 const char *codecChoices[] = {"","MP3","AAC", "FLAC", NULL};
 const char *countryChoices[] = {"","PL", "US", "GB", "DE", "FR", "JP", "RU", NULL};
-const char *limitChoises[] = {"", "10", "25", "50","100",NULL};
+
+static struct Menu *CreateAppMenus(void) {
+    struct NewMenu newMenu[] = {
+        { NM_TITLE, "Project",     0 , 0, 0, 0 },
+        { NM_ITEM,  "Settings...", "S", 0, 0, 0 }, 
+        { NM_ITEM,  "About...",    "?", 0, 0, 0 },
+        { NM_ITEM,  NM_BARLABEL,   0 , 0, 0, 0 },
+        { NM_ITEM,  "Quit",        "Q", 0, 0, 0 },
+        { NM_END,   NULL,          0 , 0, 0, 0 }
+    };
+    
+    return CreateMenusA(newMenu, NULL);
+}
+
+
+static void ShowAboutWindow(void) {
+    struct EasyStruct es = {
+        sizeof(struct EasyStruct),
+        0,
+        "About TuneFinder",
+        "TuneFinder v1.0\n\n"
+        "Created by sandlbn\n"
+        "An Internet radio browser for AmigaOS 3.x\n"
+        "\n"
+        "Current API: %s:%ld",
+        "OK"
+    };
+    
+    char message[512];
+    snprintf(message, sizeof(message), es.es_TextFormat, currentSettings.host, currentSettings.port);
+    es.es_TextFormat = message;
+    
+    EasyRequest(window, &es, NULL, NULL);
+}
 
 BOOL InitLibraries(void) {
-    IntuitionBase = OpenLibrary("intuition.library", 0);
+    IntuitionBase = OpenLibrary("intuition.library", 40);
     if (!IntuitionBase) return FALSE;
     
-    GfxBase = (struct GfxBase *)OpenLibrary("graphics.library", 0);
+    GfxBase = (struct GfxBase *)OpenLibrary("graphics.library", 40);
     if (!GfxBase) {
         CloseLibrary(IntuitionBase);
         return FALSE;
     }
     
-    GadToolsBase = OpenLibrary("gadtools.library", 0);
+    GadToolsBase = OpenLibrary("gadtools.library", 40);
     if (!GadToolsBase) {
         CloseLibrary(IntuitionBase);
         CloseLibrary((struct Library *)GfxBase);
         return FALSE;
     }
     
-    AslBase = OpenLibrary("asl.library", 37);
+    AslBase = OpenLibrary("asl.library", 40);
     if (!AslBase) {
         CloseLibrary(GadToolsBase);
         CloseLibrary(IntuitionBase);
@@ -76,7 +120,7 @@ BOOL InitLibraries(void) {
         return FALSE;
     }
     
-    DOSBase = OpenLibrary("dos.library", 0);
+    DOSBase = OpenLibrary("dos.library", 40);
     if (!DOSBase) {
         CloseLibrary(AslBase);
         CloseLibrary(GadToolsBase);
@@ -98,6 +142,9 @@ BOOL InitLibraries(void) {
     return TRUE;
 }
 
+
+
+
 void CleanupLibraries(void) {
     if (DOSBase) CloseLibrary(DOSBase);
     if (AslBase) CloseLibrary(AslBase);
@@ -106,6 +153,8 @@ void CleanupLibraries(void) {
     if (SocketBase) CloseLibrary(SocketBase);
     if (GfxBase) CloseLibrary((struct Library *)GfxBase);
 }
+
+
 
 struct List* CreateInitialList(void) {
     struct List* l = (struct List *)allocate(sizeof(struct List), V_List);
@@ -395,7 +444,7 @@ void HandleSearch(void) {
         return;
     }
     
-    response = make_http_request(API_HOST, urlPath);
+    response = make_http_request(&currentSettings, urlPath);
     free(urlPath);
     
     if (!response) {
@@ -460,7 +509,6 @@ void HandleSearch(void) {
         UpdateStatusMessage(msg);
     }
 }
-
 void HandleGadgetUp(struct IntuiMessage *imsg) {
     UWORD gadgetID = ((struct Gadget *)imsg->IAddress)->GadgetID;
     
@@ -479,6 +527,66 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
     }
 }
 
+void HandleMenuPick(UWORD menuNumber) {
+    struct MenuItem *item;
+    UWORD menuNum, itemNum;
+    
+    item = ItemAddress(menuStrip, menuNumber);
+    if (!item) return;
+    
+    menuNum = MENUNUM(menuNumber);
+    itemNum = ITEMNUM(menuNumber);
+    
+    DEBUG("Menu selected: menu=%d, item=%d", menuNum, itemNum);
+    
+    if (menuNum == MENU_PROJECT) {
+        switch (itemNum) {
+            case ITEM_SETTINGS:
+                DEBUG("Settings selected");
+                if (CreateSettingsWindow(&currentSettings, window)) {
+                    char msg[MAX_STATUS_MSG_LEN];
+                    snprintf(msg, MAX_STATUS_MSG_LEN, "Settings saved: %s:%d", 
+                        currentSettings.host, currentSettings.port);
+                    UpdateStatusMessage(msg);
+                }
+                break;
+                
+            case ITEM_ABOUT:
+                DEBUG("About selected");
+                {
+                    struct EasyStruct es = {
+                        sizeof(struct EasyStruct),
+                        0,
+                        "About TuneFinder",
+                        "TuneFinder v1.0\n\n"
+                        "Created by sandlbn\n"
+                        "An Internet radio browser for AmigaOS 3.x",
+                        "OK"
+                    };
+                    EasyRequest(window, &es, NULL, NULL);
+                }
+                break;
+                
+            case ITEM_QUIT:
+                DEBUG("Quit selected");
+                // Signal the main loop to quit
+                if (window) {
+                    // Post a CLOSEWINDOW message to the window
+                    struct IntuiMessage *msg = (struct IntuiMessage *)
+                        AllocMem(sizeof(struct IntuiMessage), MEMF_CLEAR);
+                    if (msg) {
+                        msg->Class = IDCMP_CLOSEWINDOW;
+                        msg->IDCMPWindow = window;
+                        PutMsg(window->UserPort, (struct Message *)msg);
+                    } else {
+                        // If we can't allocate memory, close window directly
+                        CloseWindow(window);
+                    }
+                }
+                break;
+        }
+    }
+}
 BOOL OpenGUI(void) {
     struct Gadget *glist = NULL, *gad;
     struct NewGadget ng;
@@ -592,7 +700,7 @@ BOOL OpenGUI(void) {
     ng.ng_Width = 120;
     ng.ng_Height = 20;
     ng.ng_GadgetText = "HTTPS Only";
-ng.ng_GadgetID = 6;
+    ng.ng_GadgetID = 6;
     ng.ng_Flags = PLACETEXT_RIGHT;
     
     gad = CreateGadget(CHECKBOX_KIND, gad, &ng,
@@ -691,7 +799,7 @@ ng.ng_GadgetID = 6;
         WA_Top, 10,
         WA_Width, WINDOW_WIDTH,
         WA_Height, WINDOW_HEIGHT,
-        WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_REFRESHWINDOW | IDCMP_GADGETUP | CYCLEIDCMP | LISTVIEWIDCMP,
+        WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_REFRESHWINDOW | IDCMP_GADGETUP | CYCLEIDCMP | IDCMP_MENUPICK | LISTVIEWIDCMP,
         WA_Gadgets, glist,
         WA_DragBar, TRUE,
         WA_DepthGadget, TRUE,
@@ -713,6 +821,16 @@ ng.ng_GadgetID = 6;
     GT_RefreshWindow(window, NULL);
     
     UnlockPubScreen(NULL, s);
+        menuStrip = CreateAppMenus();
+    if (menuStrip) {
+        if (LayoutMenus(menuStrip, vi, TAG_DONE)) {
+            SetMenuStrip(window, menuStrip);
+        }
+    }
+    
+    // Load settings
+    LoadSettings(&currentSettings);
+    
     return TRUE;
 
 cleanup:
@@ -720,6 +838,7 @@ cleanup:
     if (site_labels) free_labels(site_labels);
     if (vi) FreeVisualInfo(vi);
     if (s) UnlockPubScreen(NULL, s);
+    if (menuStrip) FreeMenus(menuStrip);
     return FALSE;
 }
     

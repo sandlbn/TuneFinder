@@ -11,13 +11,17 @@
 #include <proto/intuition.h>
 #include <proto/gadtools.h>
 #include <exec/ports.h>
-#include "include/gui.h"
-#include "include/network.h"
-#include "include/utils.h"
-#include "include/data.h"
-#include "include/config.h"
+#include <libraries/asl.h>
+#include <proto/asl.h>
+#include "../include/gui.h"
+#include "../include/network.h"
+#include "../include/utils.h"
+#include "../include/data.h"
+#include "../include/config.h"
 
 int main(void) {
+    struct IntuiMessage *imsg;
+    
     if (!InitLibraries()) {
         DEBUG("Failed to open libraries");
         return 20;
@@ -29,17 +33,16 @@ int main(void) {
         return 20;
     }
     
-    BOOL done = FALSE;
-    struct IntuiMessage *imsg;
+    running = TRUE;  // Initialize running flag
     
-    while (!done) {
+    while (running) {
         WaitPort(window->UserPort);
         
         while ((imsg = GT_GetIMsg(window->UserPort))) {
             switch (imsg->Class) {
                 case IDCMP_CLOSEWINDOW:
                     GT_ReplyIMsg(imsg);
-                    done = TRUE;
+                    running = FALSE;  
                     break;
                     
                 case IDCMP_REFRESHWINDOW:
@@ -48,6 +51,16 @@ int main(void) {
                     GT_ReplyIMsg(imsg);
                     break;
                     
+                case IDCMP_MENUPICK: {
+                    UWORD menuNumber = imsg->Code;
+                    while (menuNumber != MENUNULL) {
+                        HandleMenuPick(menuNumber);
+                        menuNumber = ItemAddress(menuStrip, menuNumber)->NextSelect;
+                    }
+                    GT_ReplyIMsg(imsg);
+                    break;
+                }
+                
                 case IDCMP_GADGETUP:
                     HandleGadgetUp(imsg);
                     GT_ReplyIMsg(imsg);

@@ -9,9 +9,9 @@
 #include <proto/intuition.h>
 #include <intuition/gadgetclass.h>
 #include <clib/alib_protos.h>
-#include "../include/utils.h"
-#include "../include/config.h"
-#include "../include/gui.h"
+#include "../../include/utils.h"
+#include "../../include/config.h"
+#include "../../include/gui.h"
 
 void UpdateStatusMessage(const char *message) {
     if (window && statusMsgGad) {

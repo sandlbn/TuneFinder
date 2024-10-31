@@ -2,8 +2,8 @@
 #include <string.h>
 #include <exec/memory.h>
 #include <clib/exec_protos.h>
-#include "../include/data.h"
-#include "../include/config.h"
+#include "../../include/data.h"
+#include "../../include/config.h"
 
 void *allocate(size_t size, int type) {
     return AllocVec(size, MEMF_CLEAR);

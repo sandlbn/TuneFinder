@@ -3,12 +3,20 @@
 
 #include <exec/types.h>
 #include <intuition/intuition.h>
+#include <libraries/gadtools.h>
+#include <proto/intuition.h>
+#include <proto/gadtools.h>
+#include <proto/exec.h>
 #include "data.h"
+#include "settings.h"
 
 extern struct Window *window;
 extern struct List *browserList;
 extern struct Gadget *statusMsgGad;
-extern void *visualInfo; 
+extern void *visualInfo;
+extern struct Menu *menuStrip;
+extern struct APISettings currentSettings;
+extern BOOL running;  // Add this line
 
 BOOL InitLibraries(void);
 void CleanupLibraries(void);
@@ -17,6 +25,6 @@ void HandleSearch(void);
 void HandleSave(void);
 void HandleGadgetUp(struct IntuiMessage *imsg);
 void HandleListSelect(struct IntuiMessage *imsg);
-struct Window* OpenDetailsWindow(struct ExtNode *station);
+void HandleMenuPick(UWORD menuNumber);
 
 #endif /* GUI_H */

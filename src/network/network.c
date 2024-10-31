@@ -9,10 +9,10 @@
 #include <exec/types.h>
 #include <exec/memory.h>
 #include <proto/exec.h>
-#include "../include/network.h"
-#include "../include/config.h"
-#include "../include/gui.h"
-#include "../include/utils.h"
+#include "../../include/network.h"
+#include "../../include/config.h"
+#include "../../include/gui.h"
+#include "../../include/utils.h"
 
 char* url_encode(const char *str) {
     if (!str) return NULL;
@@ -126,7 +126,7 @@ char* build_search_url(const struct SearchParams *params) {
     return url;
 }
 
-char* make_http_request(const char *host, const char *path) {
+char* make_http_request(const struct APISettings *settings, const char *path) {
     int sockfd = -1;
     char *response = NULL;
     struct sockaddr_in server_addr;
@@ -145,9 +145,11 @@ char* make_http_request(const char *host, const char *path) {
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        UpdateStatusMessage("Failed to create socket");
+        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to create socket");
+        UpdateStatusMessage(msg);
         return NULL;
     }
+    
     
     chunk_buffer = malloc(READ_CHUNK_SIZE);
     response_buffer = malloc(INITIAL_BUFFER_SIZE);
@@ -156,31 +158,25 @@ char* make_http_request(const char *host, const char *path) {
         goto cleanup;
     }
 
-    UpdateStatusMessage("Resolving host...");
-    server = gethostbyname(host);
+    snprintf(msg, MAX_STATUS_MSG_LEN, "Resolving host: %s", settings->host);
+    UpdateStatusMessage(msg);
+    DEBUG("Resolving host: %s", settings->host);
+    
+    server = gethostbyname(settings->host);
     if (!server) {
-        UpdateStatusMessage("Failed to resolve host");
+        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to resolve host");
+        UpdateStatusMessage(msg);
         goto cleanup;
-        }
+    }
     
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     memcpy(&server_addr.sin_addr.s_addr, server->h_addr, server->h_length);
-    server_addr.sin_port = htons(API_PORT);
+    server_addr.sin_port = htons(settings->port);
 
     struct timeval timeout;
     timeout.tv_sec = 30;
     timeout.tv_usec = 0;
-    
-    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
-        DEBUG("Failed to set receive timeout");
-        goto cleanup;
-    }
-    
-    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
-        DEBUG("Failed to set send timeout");
-        goto cleanup;
-    }
     
     DEBUG("Connecting to server");
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
@@ -195,7 +191,7 @@ char* make_http_request(const char *host, const char *path) {
             "Accept: application/json\r\n"
             "Connection: close\r\n"
             "\r\n",
-            path, host);
+            path, settings->host);
     
     DEBUG("Sending request");
     if (send(sockfd, request, strlen(request), 0) < 0) {
