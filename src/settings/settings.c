@@ -187,10 +187,10 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     ng.ng_TopEdge = 20;
     ng.ng_Width = 250;
     ng.ng_Height = 15;
-    ng.ng_GadgetText = "Host:";
+    ng.ng_GadgetText = "API Host";
     ng.ng_TextAttr = screen->Font;
     ng.ng_GadgetID = 1;
-    ng.ng_Flags = PLACETEXT_LEFT;
+    ng.ng_Flags = PLACETEXT_RIGHT;
     ng.ng_VisualInfo = vi;
     
     gad = CreateGadget(STRING_KIND, gad, &ng,
@@ -203,7 +203,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     // Port input
     ng.ng_TopEdge += 30;
     ng.ng_Width = 100;
-    ng.ng_GadgetText = "Port:";
+    ng.ng_GadgetText = "API Port";
     ng.ng_GadgetID = 2;
     
     snprintf(currentPortStr, sizeof(currentPortStr), "%u", settings->port);
@@ -238,7 +238,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
         WA_Title, "API Settings",
         WA_Left, parent->LeftEdge + 50,
         WA_Top, parent->TopEdge + 50,
-        WA_Width, 300,
+        WA_Width, 350,
         WA_Height, 120,
         WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP,
         WA_Gadgets, glist,
