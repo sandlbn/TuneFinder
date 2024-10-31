@@ -10,6 +10,11 @@ INCDIR = /opt/amiga/m68k-amigaos/include
 SRCDIR = src
 BUILDDIR = build/os3/obj
 OUTDIR = out
+AMINET_NAME = TuneFinder
+ASSETS_DIR = assets
+AMINET_DIR = $(ASSETS_DIR)/aminet
+ICON_DIR = $(ASSETS_DIR)/icon
+RELEASE_DIR = release
 
 # Program settings
 CC = m68k-amigaos-gcc
@@ -24,7 +29,6 @@ SOURCES = $(SRCDIR)/settings/settings.c \
           $(SRCDIR)/main.c
 
 # Object files
-#OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
 OBJECTS = \
     $(BUILDDIR)/settings/settings.o \
     $(BUILDDIR)/data/data.o \
@@ -51,9 +55,22 @@ endif
 LDFLAGS = -Wl,-Map=$(OUTDIR)/$(PROGRAM_NAME).map,-L$(LIBDIR),-ljson-c,-lamiga,-lm
 
 # Targets
-.PHONY: all clean debug release dirs
+.PHONY: all clean debug release dirs aminet-release aminet-clean
 
 all: release
+aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
+	$(info Creating Aminet release...)
+	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)
+	cp $(OUTDIR)/$(PROGRAM_NAME) $(RELEASE_DIR)/$(AMINET_NAME)/
+	cp $(AMINET_DIR)/$(PROGRAM_NAME).README $(RELEASE_DIR)/$(AMINET_NAME)/
+	cp $(ICON_DIR)/$(PROGRAM_NAME).info $(RELEASE_DIR)/$(AMINET_NAME)/
+	cd $(RELEASE_DIR) && lha -ao5 ../$(AMINET_NAME).lha $(AMINET_NAME)
+	$(info Aminet release created: $(AMINET_NAME).lha)
+
+aminet-clean:
+	$(info Cleaning Aminet release files...)
+	$(RM) -rf $(RELEASE_DIR)
+	$(RM) -f $(AMINET_NAME).lha
 
 debug:
 	@echo "Building debug version..."

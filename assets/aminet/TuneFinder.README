@@ -1,0 +1,32 @@
+Short:        Search and display online radio stations
+Author:       marcin@spoczynski.com (Marcin Spoczynski)
+Uploader:     marcin spoczynski com (Marcin Spoczynski)
+Type:         comm/misc
+Version:      0.2 (beta release)
+Architecture: m68k-amigaos >= 3.1
+Distribution: Aminet
+Replaces: comm/misc/TuneFinder.lha 
+
+Description:
+TuneFinder enables users to search and display online radio stations with
+various filter options, including country, codec, tags stream filters. Results
+are displayed in a list with detailed station information, and the app
+includes options to save selections as either a complete playlist or
+individual station files.
+
+Main features:
+
+- GUI with filterable search
+- PLS playlist compatible with AmigaAMP for seamless playback
+- Options to save results as a PLS playlist or individual station files for
+  compatible media players
+- Native AmigaOS GUI interface
+
+Release 0.2 (beta release)
+
+- Fixed bsdsocket.library handling in UAE, which doesn't support timeouts.
+- Added configuration for API host.
+- Source code released on https://github.com/sandlbn/TuneFinder 
+
+
+
