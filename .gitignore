@@ -1,0 +1,52 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS resource fork files
+Icon?
+._*
+
+# macOS metadata files
+.Spotlight-V100
+.Trashes
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# macOS Finder attribute files
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+Desktop.ini
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore build directories
+build/
+out/
+
+# Ignore compiled object files
+*.o
+*.obj
+
+# Ignore temporary files and swap files
+*.swp
+*~
+*.bak
+*.tmp
+
+# Ignore log files
+*.log
+
+# Ignore core dump files
+core.*
+
+# Ignore binaries and executables
+$(OUTDIR)/
+$(BUILDDIR)/
+
