@@ -1,7 +1,7 @@
 # Makefile for Radio Browser
 OS := $(shell uname)
-CPU_FLAGS = -m68020-60 -mnobitfield -fno-peephole2
-
+#CPU_FLAGS = -m68000 -mnobitfield -fno-peephole2
+CPU_FLAGS = 
 # Directories
 LIBDIR = /opt/amiga/m68k-amigaos/lib
 SDKDIR = /opt/amiga/m68k-amigaos/sys-include
@@ -22,6 +22,7 @@ PROGRAM_NAME = TuneFinder
 
 # Source files
 SOURCES = $(SRCDIR)/settings/settings.c \
+		  $(SRCDIR)/settings/country_config.c \
           $(SRCDIR)/data/data.c \
           $(SRCDIR)/network/network.c \
           $(SRCDIR)/utils/utils.c \
@@ -31,6 +32,7 @@ SOURCES = $(SRCDIR)/settings/settings.c \
 # Object files
 OBJECTS = \
     $(BUILDDIR)/settings/settings.o \
+	$(BUILDDIR)/settings/country_config.o \
     $(BUILDDIR)/data/data.o \
     $(BUILDDIR)/network/network.o \
     $(BUILDDIR)/utils/utils.o \
@@ -43,7 +45,7 @@ BASE_CCFLAGS = -MP -MMD -Wextra -Wno-unused-function \
  -Wno-volatile-register-var -fno-lto -noixemul \
  -fbaserel -lamiga -lm -D__AMIGAOS3__ $(CPU_FLAGS) \
  -I$(INCDIR) -I$(SDKDIR) -I$(NDKDIR) -Iinclude
-
+ 
 ifdef DEBUG
 CCFLAGS = $(BASE_CCFLAGS) -DDEBUG_BUILD -O0 -g
 BUILD_TYPE = debug

@@ -24,7 +24,10 @@
 #include "../../include/network.h"
 #include "../../include/utils.h"
 #include "../../include/data.h"
+#include "../../include/country_config.h"
+
 static struct TextAttr topaz8 = { "topaz.font", 8, 0, 0 };
+struct CountryConfig countryConfig;
 
 // Global variables
 BOOL running = FALSE;
@@ -178,7 +181,9 @@ void CleanupGUI(void) {
         FreeVisualInfo(visualInfo);
         visualInfo = NULL;
     }
-    
+    if (&countryConfig) {
+        FreeCountryConfig(&countryConfig);
+    }
     DEBUG("GUI cleanup completed");
 }
 
@@ -438,8 +443,8 @@ void HandleSearch(void) {
     GT_GetGadgetAttrs(countryCodeCycle, window, NULL,
         GTCY_Active, &country,
         TAG_DONE);
-    if (country >= 0 && countryChoices[country]) {
-        params.country_code = countryChoices[country];
+    if (country > 0 && country < countryConfig.count) {
+        params.country_code = countryConfig.entries[country].code;
     }
     
     GT_GetGadgetAttrs(codecCycle, window, NULL,
@@ -694,7 +699,11 @@ BOOL OpenGUI(void) {
     }
     if (!gad) goto cleanup;
     tagsStrGad = gad;
-    
+    // Load country configuration
+    if (!LoadCountryConfig(COUNTRY_CONFIG_FILE, &countryConfig)) {
+        DEBUG("Failed to load country configuration");
+        goto cleanup;
+    }
     // Country dropdown
     ng.ng_LeftEdge = leftEdge;
     ng.ng_TopEdge += 30;
@@ -703,9 +712,10 @@ BOOL OpenGUI(void) {
     ng.ng_Flags = PLACETEXT_ABOVE;
     
     gad = CreateGadget(CYCLE_KIND, gad, &ng,
-        GTCY_Labels, (STRPTR *)countryChoices,
+        GTCY_Labels, countryConfig.choices,  
         GTCY_Active, 0,
         TAG_DONE);
+    
     if (!gad) {
         DEBUG("Failed to create Country gadget");
     }
