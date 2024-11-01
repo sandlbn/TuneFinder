@@ -9,6 +9,7 @@
 #include <proto/exec.h>
 #include "data.h"
 #include "settings.h"
+#include "country_config.h"
 
 extern struct Window *window;
 extern struct List *browserList;
@@ -17,6 +18,7 @@ extern void *visualInfo;
 extern struct Menu *menuStrip;
 extern struct APISettings currentSettings;
 extern BOOL running;  // Add this line
+extern struct CountryConfig countryConfig;
 
 BOOL InitLibraries(void);
 void CleanupLibraries(void);

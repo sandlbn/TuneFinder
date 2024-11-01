@@ -163,3 +163,39 @@ BOOL SaveToPLS(const char *filename)
     fclose(fp);
     return TRUE;
 }
+BOOL EnsureSettingsPath(void) {
+    BPTR lock;
+    char msg[MAX_STATUS_MSG_LEN];
+    const char *ENV_ROOT = "ENVARC:";
+    
+    lock = Lock(ENV_ROOT, ACCESS_READ);
+    if (!lock) {
+        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to access %s", ENV_ROOT);
+        UpdateStatusMessage(msg);
+        DEBUG("%s", msg);
+        return FALSE;
+    }
+    UnLock(lock);
+    
+    // Check if settings directory exists
+    lock = Lock(ENV_PATH, ACCESS_READ);
+    if (lock) {
+        UnLock(lock);
+        return TRUE;
+    }
+    
+    // Try to create settings directory
+    lock = CreateDir(ENV_PATH);
+    if (lock) {
+        UnLock(lock);
+        snprintf(msg, MAX_STATUS_MSG_LEN, "Created settings directory: %s", ENV_PATH);
+        UpdateStatusMessage(msg);
+        DEBUG("%s", msg);
+        return TRUE;
+    }
+    
+    snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to create directory: %s", ENV_PATH);
+    UpdateStatusMessage(msg);
+    DEBUG("%s", msg);
+    return FALSE;
+}
