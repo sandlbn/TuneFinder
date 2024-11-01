@@ -24,6 +24,7 @@
 #include "../../include/network.h"
 #include "../../include/utils.h"
 #include "../../include/data.h"
+static struct TextAttr topaz8 = { "topaz.font", 8, 0, 0 };
 
 // Global variables
 BOOL running = FALSE;
@@ -59,21 +60,19 @@ struct Gadget *statusMsgGad;
 
 // Choices for dropdowns
 const char *codecChoices[] = {"","MP3","AAC", "FLAC", NULL};
-const char *countryChoices[] = {"","PL", "US", "GB", "DE", "FR", "JP", "RU", NULL};
-
+const char *countryChoices[] = {"","PL", "US", "GB", "DE", "FR", "ES", "AT", "CZ", "JP", "RU", NULL};
 static struct Menu *CreateAppMenus(void) {
     struct NewMenu newMenu[] = {
-        { NM_TITLE, "Project",     0 , 0, 0, 0 },
-        { NM_ITEM,  "Settings...", "S", 0, 0, 0 }, 
-        { NM_ITEM,  "About...",    "?", 0, 0, 0 },
-        { NM_ITEM,  NM_BARLABEL,   0 , 0, 0, 0 },
-        { NM_ITEM,  "Quit",        "Q", 0, 0, 0 },
-        { NM_END,   NULL,          0 , 0, 0, 0 }
+        { NM_TITLE,  "Project",     NULL,     0, 0L, NULL },
+        { NM_ITEM,   "Settings...", "S",      0, 0L, NULL },
+        { NM_ITEM,   "About...",    "?",      0, 0L, NULL },
+        { NM_ITEM,   NM_BARLABEL,   NULL,     0, 0L, NULL },
+        { NM_ITEM,   "Quit",        "Q",      0, 0L, NULL },
+        { NM_END,    NULL,          NULL,     0, 0L, NULL }
     };
     
     return CreateMenusA(newMenu, NULL);
 }
-
 
 static void ShowAboutWindow(void) {
     struct EasyStruct es = {
@@ -142,9 +141,6 @@ BOOL InitLibraries(void) {
     return TRUE;
 }
 
-
-
-
 void CleanupLibraries(void) {
     if (DOSBase) CloseLibrary(DOSBase);
     if (AslBase) CloseLibrary(AslBase);
@@ -152,6 +148,38 @@ void CleanupLibraries(void) {
     if (IntuitionBase) CloseLibrary(IntuitionBase);
     if (SocketBase) CloseLibrary(SocketBase);
     if (GfxBase) CloseLibrary((struct Library *)GfxBase);
+}
+
+void CleanupGUI(void) {
+    DEBUG("Starting GUI cleanup...");
+    
+    if (window) {
+        if (menuStrip) {
+            ClearMenuStrip(window);
+            FreeMenus(menuStrip);
+            menuStrip = NULL;
+        }
+        
+        struct Gadget *glist = (struct Gadget *)window->UserData;
+        CloseWindow(window);
+        window = NULL;
+        
+        if (glist) {
+            FreeGadgets(glist);
+        }
+    }
+    
+    if (browserList) {
+        free_labels(browserList);
+        browserList = NULL;
+    }
+    
+    if (visualInfo) {
+        FreeVisualInfo(visualInfo);
+        visualInfo = NULL;
+    }
+    
+    DEBUG("GUI cleanup completed");
 }
 
 
@@ -590,7 +618,7 @@ void HandleMenuPick(UWORD menuNumber) {
     }
 }
 BOOL OpenGUI(void) {
-    struct Gadget *glist = NULL, *gad;
+   struct Gadget *glist = NULL, *gad;
     struct NewGadget ng;
     struct Screen *s;
     void *vi;
@@ -598,17 +626,24 @@ BOOL OpenGUI(void) {
     WORD leftEdge = 30;
     WORD topEdge = 30;
     
+    DEBUG("Starting GUI initialization...");
+    
     s = LockPubScreen(NULL);
-    if (!s) return FALSE;
+    if (!s) {
+        DEBUG("Failed to lock public screen");
+        return FALSE;
+    }
     
     vi = GetVisualInfo(s, TAG_END);
     if (!vi) {
+        DEBUG("Failed to get visual info");
         UnlockPubScreen(NULL, s);
         return FALSE;
     }
     
     site_labels = CreateInitialList();
     if (!site_labels) {
+        DEBUG("Failed to create initial list");
         FreeVisualInfo(vi);
         UnlockPubScreen(NULL, s);
         return FALSE;
@@ -616,14 +651,14 @@ BOOL OpenGUI(void) {
     
     gad = CreateContext(&glist);
     if (!gad) {
+        DEBUG("Failed to create gadget context");
         free_labels(site_labels);
         FreeVisualInfo(vi);
         UnlockPubScreen(NULL, s);
         return FALSE;
     }
     
-    // Create all gadgets...
-    // Name input field
+     // Name input field
     ng.ng_LeftEdge = leftEdge;
     ng.ng_TopEdge = topEdge + 5;
     ng.ng_Width = (WINDOW_WIDTH - 80) / 2;
@@ -637,12 +672,11 @@ BOOL OpenGUI(void) {
     gad = CreateGadget(STRING_KIND, gad, &ng,
         GTST_MaxChars, 40,
         GTST_String, "",
-        //GA_Immediate, TRUE,
         TAG_DONE);
     if (!gad) {
         DEBUG("Failed to create Name gadget");
+        goto cleanup;
     }
-    if (!gad) goto cleanup;
     nameStrGad = gad;
     
     // Tags input
@@ -801,46 +835,94 @@ BOOL OpenGUI(void) {
         WA_Top, 10,
         WA_Width, WINDOW_WIDTH,
         WA_Height, WINDOW_HEIGHT,
-        WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_REFRESHWINDOW | IDCMP_GADGETUP | CYCLEIDCMP | IDCMP_MENUPICK | LISTVIEWIDCMP,
+        WA_IDCMP, IDCMP_CLOSEWINDOW | 
+                  IDCMP_REFRESHWINDOW | 
+                  IDCMP_GADGETUP | 
+                  IDCMP_MENUPICK |  // Make sure this is included
+                  CYCLEIDCMP | 
+                  LISTVIEWIDCMP,
+        WA_Flags, WFLG_DRAGBAR |
+                  WFLG_DEPTHGADGET |
+                  WFLG_CLOSEGADGET |
+                  WFLG_ACTIVATE |
+                  WFLG_NOCAREREFRESH |
+                  WFLG_SMART_REFRESH |
+                  WFLG_MENUSTATE,   // Add this flag
         WA_Gadgets, glist,
-        WA_DragBar, TRUE,
-        WA_DepthGadget, TRUE,
-        WA_CloseGadget, TRUE,
-        WA_Activate, TRUE,
-        WA_SmartRefresh, TRUE,
         WA_Title, "TuneFinder by sandlbn",
         WA_PubScreen, s,
         TAG_DONE);
+        
     if (!window) {
         DEBUG("Failed to create Window");
+        goto cleanup;
     }
-    if (!window) goto cleanup;
+    if (!window) {
+        DEBUG("Failed to create Window");
+        goto cleanup;
+    }
+
+    // Create and set up menus after window creation
+    menuStrip = CreateAppMenus();
+    if (menuStrip) {
+        // Make sure to enable menus
+        ModifyIDCMP(window, window->IDCMPFlags | IDCMP_MENUPICK);
+        if (!SetMenuStrip(window, menuStrip)) {
+            DEBUG("Failed to set menu strip");
+            FreeMenus(menuStrip);
+            menuStrip = NULL;
+        }
+    }
     
     browserList = site_labels;
     window->UserData = (void *)glist;
+    visualInfo = vi;  
     
+    // Initialize window
     RefreshGList(glist, window, NULL, -1);
     GT_RefreshWindow(window, NULL);
     
-    UnlockPubScreen(NULL, s);
-        menuStrip = CreateAppMenus();
+    // Add menu strip after window creation
+    menuStrip = CreateAppMenus();
     if (menuStrip) {
-        if (LayoutMenus(menuStrip, vi, TAG_DONE)) {
-            SetMenuStrip(window, menuStrip);
+        if (!LayoutMenus(menuStrip, vi, TAG_DONE)) {
+            DEBUG("Failed to layout menus");
+            FreeMenus(menuStrip);
+            menuStrip = NULL;
+        } else if (!SetMenuStrip(window, menuStrip)) {
+            DEBUG("Failed to set menu strip");
+            FreeMenus(menuStrip);
+            menuStrip = NULL;
         }
     }
+
     
     // Load settings
     LoadSettings(&currentSettings);
     
+    UnlockPubScreen(NULL, s);
+    
+    DEBUG("GUI initialization completed successfully");
     return TRUE;
 
 cleanup:
-    if (glist) FreeGadgets(glist);
-    if (site_labels) free_labels(site_labels);
-    if (vi) FreeVisualInfo(vi);
-    if (s) UnlockPubScreen(NULL, s);
-    if (menuStrip) FreeMenus(menuStrip);
+    if (menuStrip) {
+        FreeMenus(menuStrip);
+        menuStrip = NULL;
+    }
+    if (glist) {
+        FreeGadgets(glist);
+    }
+    if (site_labels) {
+        free_labels(site_labels);
+    }
+    if (vi) {
+        FreeVisualInfo(vi);
+    }
+    if (s) {
+        UnlockPubScreen(NULL, s);
+    }
+    DEBUG("GUI initialization failed");
     return FALSE;
 }
     
