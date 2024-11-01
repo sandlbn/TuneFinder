@@ -28,5 +28,17 @@ Release 0.2 (beta release)
 - Added configuration for API host.
 - Source code released on https://github.com/sandlbn/TuneFinder 
 
+TuneFinder 0.3 (03.11.2024)
+
+New features:
+- Add user-configurable country list via ENVARC:config/countries.cfg
+- Add menu support with Settings, About and Quit options
+
+Fixes:
+- Fix GUI stability issues on different Amiga systems
+- Fix window initialization for AmigaOS 3.0
+- Improve menu handling and visibility
+- Add proper cleanup of GUI resources
+- Add better error handling and debugging messages
 
 

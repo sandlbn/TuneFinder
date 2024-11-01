@@ -39,6 +39,12 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
         AddCountry(config, "US", "United States");
         AddCountry(config, "GB", "United Kingdom");
         AddCountry(config, "DE", "Germany");
+        AddCountry(config, "CZ", "Czech");
+        AddCountry(config, "JP", "Japan");
+        AddCountry(config, "AT", "Austria");
+        AddCountry(config, "FR", "France");  
+        AddCountry(config, "CA", "Canada");  
+        AddCountry(config, "ES", "Spain");  
         SaveCountryConfig(filename, config);
         return TRUE;
     }
