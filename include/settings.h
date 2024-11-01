@@ -3,7 +3,7 @@
 
 #include <exec/types.h>
 
-#define ENV_PATH "ENVARC:TuneFinder"
+#define ENV_PATH "ENVARC:TuneFinder/"
 #define ENV_HOST "apihost"
 #define ENV_PORT "apiport"
 #define MAX_HOST_LEN 256

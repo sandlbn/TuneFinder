@@ -2,7 +2,7 @@ Short:        Search and display online radio stations
 Author:       marcin@spoczynski.com (Marcin Spoczynski)
 Uploader:     marcin spoczynski com (Marcin Spoczynski)
 Type:         comm/misc
-Version:      0.2 (beta release)
+Version:      0.3 (beta release)
 Architecture: m68k-amigaos >= 3.1
 Distribution: Aminet
 Replaces: comm/misc/TuneFinder.lha 
@@ -22,6 +22,28 @@ Main features:
   compatible media players
 - Native AmigaOS GUI interface
 
+ADDING NEW COUNTRIES
+-------------------
+
+To add new countries to TuneFinder:
+
+1. Navigate to "ENVARC:TuneFinder/countries.cfg"
+2. Edit the file with any text editor
+3. Add each country on a new line using format:  CODE:Name
+   For example:
+   PL:Poland
+   US:United States
+   GB:United Kingdom
+   SE:Sweden
+   NO:Norway
+   DK:Denmark
+
+The code must be a 2-letter country code according to ISO 3166-1 alpha-2 standard.
+Changes will take effect after restarting TuneFinder.
+
+Default entries will be created automatically if the file doesn't exist.
+
+
 Release 0.2 (beta release)
 
 - Fixed bsdsocket.library handling in UAE, which doesn't support timeouts.
@@ -32,7 +54,7 @@ TuneFinder 0.3 (03.11.2024)
 
 New features:
 - Add user-configurable country list via ENVARC:config/countries.cfg
-- Add menu support with Settings, About and Quit options
+- Add better menu support with Settings, About and Quit options
 
 Fixes:
 - Fix GUI stability issues on different Amiga systems
