@@ -623,7 +623,7 @@ void HandleMenuPick(UWORD menuNumber) {
     }
 }
 BOOL OpenGUI(void) {
-   struct Gadget *glist = NULL, *gad;
+    struct Gadget *glist = NULL, *gad;
     struct NewGadget ng;
     struct Screen *s;
     void *vi;
@@ -657,11 +657,11 @@ BOOL OpenGUI(void) {
     gad = CreateContext(&glist);
     if (!gad) {
         DEBUG("Failed to create gadget context");
-        free_labels(site_labels);
         FreeVisualInfo(vi);
         UnlockPubScreen(NULL, s);
         return FALSE;
     }
+
     
      // Name input field
     ng.ng_LeftEdge = leftEdge;
@@ -848,7 +848,7 @@ BOOL OpenGUI(void) {
         WA_IDCMP, IDCMP_CLOSEWINDOW | 
                   IDCMP_REFRESHWINDOW | 
                   IDCMP_GADGETUP | 
-                  IDCMP_MENUPICK |  // Make sure this is included
+                  IDCMP_MENUPICK | 
                   CYCLEIDCMP | 
                   LISTVIEWIDCMP,
         WA_Flags, WFLG_DRAGBAR |
@@ -857,8 +857,7 @@ BOOL OpenGUI(void) {
                   WFLG_ACTIVATE |
                   WFLG_NOCAREREFRESH |
                   WFLG_SMART_REFRESH |
-                  WFLG_MENUSTATE,   // Add this flag
-        WA_Gadgets, glist,
+                  WFLG_MENUSTATE,  
         WA_Title, "TuneFinder by sandlbn",
         WA_PubScreen, s,
         TAG_DONE);
@@ -867,10 +866,7 @@ BOOL OpenGUI(void) {
         DEBUG("Failed to create Window");
         goto cleanup;
     }
-    if (!window) {
-        DEBUG("Failed to create Window");
-        goto cleanup;
-    }
+
 
     // Create and set up menus after window creation
     menuStrip = CreateAppMenus();
@@ -884,13 +880,16 @@ BOOL OpenGUI(void) {
         }
     }
     
+
+    
+    // Initialize window
+    AddGList(window, glist, (UWORD)~0, (UWORD)~0, NULL);
+    RefreshGList(glist, window, NULL, -1);
+    GT_RefreshWindow(window, NULL);
+
     browserList = site_labels;
     window->UserData = (void *)glist;
     visualInfo = vi;  
-    
-    // Initialize window
-    RefreshGList(glist, window, NULL, -1);
-    GT_RefreshWindow(window, NULL);
     
     // Add menu strip after window creation
     menuStrip = CreateAppMenus();
