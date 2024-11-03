@@ -28,6 +28,8 @@
 
 static struct TextAttr topaz8 = { "topaz.font", 8, 0, 0 };
 struct CountryConfig countryConfig;
+struct RastPort *RastPort;
+struct MsgPort *WindowPort;
 
 // Global variables
 BOOL running = FALSE;
@@ -653,17 +655,18 @@ BOOL OpenGUI(void) {
         UnlockPubScreen(NULL, s);
         return FALSE;
     }
-    
+
+    // Create gadget context
     gad = CreateContext(&glist);
     if (!gad) {
         DEBUG("Failed to create gadget context");
+        free_labels(site_labels);
         FreeVisualInfo(vi);
         UnlockPubScreen(NULL, s);
         return FALSE;
     }
 
-    
-     // Name input field
+    // Name input field  
     ng.ng_LeftEdge = leftEdge;
     ng.ng_TopEdge = topEdge + 5;
     ng.ng_Width = (WINDOW_WIDTH - 80) / 2;
@@ -674,73 +677,56 @@ BOOL OpenGUI(void) {
     ng.ng_Flags = PLACETEXT_ABOVE;
     ng.ng_VisualInfo = vi;
     
-    gad = CreateGadget(STRING_KIND, gad, &ng,
+    nameStrGad = CreateGadget(STRING_KIND, gad, &ng,
         GTST_MaxChars, 40,
         GTST_String, "",
         TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create Name gadget");
-        goto cleanup;
-    }
-    nameStrGad = gad;
+    if (!nameStrGad) goto cleanup;
     
-    // Tags input
+    // Tags input  
     ng.ng_LeftEdge = leftEdge + ng.ng_Width + 40;
     ng.ng_GadgetText = "Tags";
     ng.ng_GadgetID = 5;
     ng.ng_Flags = PLACETEXT_ABOVE;
     
-    gad = CreateGadget(STRING_KIND, gad, &ng,
+    tagsStrGad = CreateGadget(STRING_KIND, nameStrGad, &ng,
         GTST_MaxChars, 100,
         GTTX_Text, "",
         TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create Tags gadget");
-    }
-    if (!gad) goto cleanup;
-    tagsStrGad = gad;
+    if (!tagsStrGad) goto cleanup;
+
     // Load country configuration
     if (!LoadCountryConfig(COUNTRY_CONFIG_FILE, &countryConfig)) {
         DEBUG("Failed to load country configuration");
         goto cleanup;
     }
-    // Country dropdown
+
+    // Country dropdown  
     ng.ng_LeftEdge = leftEdge;
     ng.ng_TopEdge += 30;
     ng.ng_GadgetText = "Country";
     ng.ng_GadgetID = 2;
     ng.ng_Flags = PLACETEXT_ABOVE;
     
-    gad = CreateGadget(CYCLE_KIND, gad, &ng,
-        GTCY_Labels, countryConfig.choices,  
+    countryCodeCycle = CreateGadget(CYCLE_KIND, tagsStrGad, &ng,
+        GTCY_Labels, countryConfig.choices,
         GTCY_Active, 0,
         TAG_DONE);
+    if (!countryCodeCycle) goto cleanup;
     
-    if (!gad) {
-        DEBUG("Failed to create Country gadget");
-    }
-    if (!gad) goto cleanup;
-
-    countryCodeCycle = gad;
-    
-    // Codec dropdown
+    // Codec dropdown  
     ng.ng_LeftEdge = leftEdge + ng.ng_Width + 40;
     ng.ng_GadgetText = "Codec";
     ng.ng_GadgetID = 4;
     ng.ng_Flags = PLACETEXT_ABOVE;
     
-    gad = CreateGadget(CYCLE_KIND, gad, &ng,
+    codecCycle = CreateGadget(CYCLE_KIND, countryCodeCycle, &ng,
         GTCY_Labels, (STRPTR *)codecChoices,
         GTCY_Active, 0,
         TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create Codec gadget");
-    }
-    if (!gad) goto cleanup;
-
-    codecCycle = gad;
+    if (!codecCycle) goto cleanup;
     
-    // HTTPS checkbox
+    // HTTPS checkbox  
     ng.ng_LeftEdge = leftEdge;
     ng.ng_TopEdge += 30;
     ng.ng_Width = 120;
@@ -749,30 +735,22 @@ BOOL OpenGUI(void) {
     ng.ng_GadgetID = 6;
     ng.ng_Flags = PLACETEXT_RIGHT;
     
-    gad = CreateGadget(CHECKBOX_KIND, gad, &ng,
+    httpsCheckBox = CreateGadget(CHECKBOX_KIND, codecCycle, &ng,
         GTCB_Checked, FALSE,
         TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create HTTPS gadget");
-    }
-    if (!gad) goto cleanup;
-    httpsCheckBox = gad;
+    if (!httpsCheckBox) goto cleanup;
     
-    // Hide Broken checkbox
+    // Hide Broken checkbox  
     ng.ng_LeftEdge = leftEdge + 150;
     ng.ng_GadgetText = "Hide Broken";
     ng.ng_GadgetID = 7;
     
-    gad = CreateGadget(CHECKBOX_KIND, gad, &ng,
+    hideBrokenCheckBox = CreateGadget(CHECKBOX_KIND, httpsCheckBox, &ng,
         GTCB_Checked, TRUE,
         TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create Hide Broken gadget");
-    }
-    if (!gad) goto cleanup;
-    hideBrokenCheckBox = gad;
+    if (!hideBrokenCheckBox) goto cleanup;
     
-    // Search Button
+    // Search Button  
     ng.ng_LeftEdge = WINDOW_WIDTH - 120;
     ng.ng_TopEdge = ng.ng_TopEdge;
     ng.ng_Width = 100;
@@ -781,14 +759,10 @@ BOOL OpenGUI(void) {
     ng.ng_GadgetID = 8;
     ng.ng_Flags = PLACETEXT_IN;
     
-    gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create Search button gadget");
-    }
-    if (!gad) goto cleanup;
-    searchButton = gad;
+    searchButton = CreateGadget(BUTTON_KIND, hideBrokenCheckBox, &ng, TAG_DONE);
+    if (!searchButton) goto cleanup;
     
-    // Results List
+    // Results List  
     ng.ng_LeftEdge = leftEdge;
     ng.ng_TopEdge += 30;
     ng.ng_Width = WINDOW_WIDTH - 40;
@@ -796,17 +770,13 @@ BOOL OpenGUI(void) {
     ng.ng_GadgetText = NULL;
     ng.ng_GadgetID = 9;
     
-    gad = CreateGadget(LISTVIEW_KIND, gad, &ng,
+    listView = CreateGadget(LISTVIEW_KIND, searchButton, &ng,
         GTLV_ReadOnly, FALSE,
         GTLV_Labels, site_labels,
         TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create ListView gadget");
-    }
-    if (!gad) goto cleanup;
-    listView = gad;
+    if (!listView) goto cleanup;
     
-    // Save Button
+    // Save Button  
     ng.ng_LeftEdge = WINDOW_WIDTH - 120;
     ng.ng_TopEdge += ng.ng_Height + 10;
     ng.ng_Width = 100;
@@ -815,14 +785,10 @@ BOOL OpenGUI(void) {
     ng.ng_Flags = PLACETEXT_IN;
     ng.ng_GadgetID = 10;
     
-    gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create Save gadget");
-    }
-    if (!gad) goto cleanup;
-    saveButton = gad;
+    saveButton = CreateGadget(BUTTON_KIND, listView, &ng, TAG_DONE);
+    if (!saveButton) goto cleanup;
     
-    // Status Message
+    // Status Message 
     ng.ng_LeftEdge = leftEdge;
     ng.ng_TopEdge -= 5;
     ng.ng_Width = WINDOW_WIDTH - 180;
@@ -831,25 +797,27 @@ BOOL OpenGUI(void) {
     ng.ng_Flags = 0;
     ng.ng_GadgetID = 11;
     
-    gad = CreateGadget(TEXT_KIND, gad, &ng,
+    statusMsgGad = CreateGadget(TEXT_KIND, saveButton, &ng,
         GTTX_Text, "Ready",
         TAG_DONE);
-    if (!gad) {
-        DEBUG("Failed to create MSG gadget");
-    }
-    if (!gad) goto cleanup;
-    statusMsgGad = gad;
+    if (!statusMsgGad) goto cleanup;
     
+    // Create window
     window = OpenWindowTags(NULL,
         WA_Left, 100,
-        WA_Top, 10,
-        WA_Width, WINDOW_WIDTH,
-        WA_Height, WINDOW_HEIGHT,
-        WA_IDCMP, IDCMP_CLOSEWINDOW | 
-                  IDCMP_REFRESHWINDOW | 
-                  IDCMP_GADGETUP | 
-                  IDCMP_MENUPICK | 
-                  CYCLEIDCMP | 
+        WA_Top, 50,
+        WA_InnerWidth, WINDOW_WIDTH,
+        WA_InnerHeight, WINDOW_HEIGHT,
+        WA_ReportMouse, TRUE,
+        WA_MouseQueue, 3,
+        WA_IDCMP, BUTTONIDCMP |
+                  IDCMP_CLOSEWINDOW |
+                  IDCMP_REFRESHWINDOW |
+                  IDCMP_GADGETUP |
+                  IDCMP_MENUPICK |
+                  IDCMP_MOUSEMOVE |
+                  IDCMP_MOUSEBUTTONS |
+                  CYCLEIDCMP |
                   LISTVIEWIDCMP,
         WA_Flags, WFLG_DRAGBAR |
                   WFLG_DEPTHGADGET |
@@ -857,41 +825,24 @@ BOOL OpenGUI(void) {
                   WFLG_ACTIVATE |
                   WFLG_NOCAREREFRESH |
                   WFLG_SMART_REFRESH |
-                  WFLG_MENUSTATE,  
+                  WFLG_RMBTRAP,
         WA_Title, "TuneFinder by sandlbn",
+        WA_ScreenTitle, "TuneFinder 1.0",
         WA_PubScreen, s,
         TAG_DONE);
         
-    if (!window) {
-        DEBUG("Failed to create Window");
-        goto cleanup;
-    }
+    if (!window) goto cleanup;
 
+    // Store window ports
+    RastPort = window->RPort;
+    WindowPort = window->UserPort;
 
-    // Create and set up menus after window creation
-    menuStrip = CreateAppMenus();
-    if (menuStrip) {
-        // Make sure to enable menus
-        ModifyIDCMP(window, window->IDCMPFlags | IDCMP_MENUPICK);
-        if (!SetMenuStrip(window, menuStrip)) {
-            DEBUG("Failed to set menu strip");
-            FreeMenus(menuStrip);
-            menuStrip = NULL;
-        }
-    }
-    
-
-    
-    // Initialize window
+    // Add gadgets to window
     AddGList(window, glist, (UWORD)~0, (UWORD)~0, NULL);
     RefreshGList(glist, window, NULL, -1);
     GT_RefreshWindow(window, NULL);
 
-    browserList = site_labels;
-    window->UserData = (void *)glist;
-    visualInfo = vi;  
-    
-    // Add menu strip after window creation
+    // Create and setup menus
     menuStrip = CreateAppMenus();
     if (menuStrip) {
         if (!LayoutMenus(menuStrip, vi, TAG_DONE)) {
@@ -905,10 +856,14 @@ BOOL OpenGUI(void) {
         }
     }
 
+    browserList = site_labels;
+    window->UserData = (void *)glist;
+    visualInfo = vi;
     
     // Load settings
     LoadSettings(&currentSettings);
     
+    // Finally unlock screen
     UnlockPubScreen(NULL, s);
     
     DEBUG("GUI initialization completed successfully");
@@ -934,4 +889,3 @@ cleanup:
     DEBUG("GUI initialization failed");
     return FALSE;
 }
-    
