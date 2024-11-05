@@ -23,15 +23,18 @@ void free_stations(struct RadioStation *stations, int count) {
         if (stations[i].name) free(stations[i].name);
         if (stations[i].url) free(stations[i].url);
         if (stations[i].codec) free(stations[i].codec);
+        if (stations[i].country) free(stations[i].country);
+
     }
     free(stations);
     DEBUG("Memory cleanup complete");
 }
 
-char* FormatStationEntry(const char *name, const char *url, const char *codec, int bitrate) {
+char* FormatStationEntry(const char *name, const char *url, const char *codec, const char *country,  int bitrate) {
     char *entry;
     char trimmedName[40];
     char codecBuf[10];
+    char countryBuf[20];
     char bitrateBuf[10];
     size_t nameLen;
     
@@ -58,6 +61,10 @@ char* FormatStationEntry(const char *name, const char *url, const char *codec, i
         memset(trimmedName + 7, ' ', 23);
         trimmedName[30] = '\0';
     }
+
+    if (country) {
+        strncpy(countryBuf, country, 20);
+    }
     
     if (codec) {
         strncpy(codecBuf, codec, 8);
@@ -78,9 +85,10 @@ char* FormatStationEntry(const char *name, const char *url, const char *codec, i
     }
     bitrateBuf[6] = '\0';
     
-    sprintf(entry, "%-30s  %-8s  %-6s", 
+    sprintf(entry, "%-30s  %-8s  %-8s %-6s", 
         trimmedName,
         codecBuf,
+        countryBuf,
         bitrateBuf);
     
     DEBUG("Formatted entry: '%s'\n", entry);

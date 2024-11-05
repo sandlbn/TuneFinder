@@ -425,10 +425,17 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
     Move(rp, labelX, textY);
     Text(rp, "Bitrate:", 8);
     char bitrateBuf[20];
-    sprintf(bitrateBuf, "%d kbps", station->bitrate);
+    sprintf(bitrateBuf, "%ld kbps", station->bitrate);
     Move(rp, contentX, textY);
     Text(rp, bitrateBuf, strlen(bitrateBuf));
+    textY += 20;
     
+    // Draw Country field
+    Move(rp, labelX, textY);
+    Text(rp, "Country:", 8);
+    Move(rp, contentX, textY);
+    Text(rp, station->country, strlen(station->country));
+
     UnlockPubScreen(NULL, screen);
     return detailWindow;
 }
@@ -606,6 +613,7 @@ void HandleSearch(void) {
 		                  stations[i].name,
 		                  stations[i].url,
 		                  stations[i].codec,
+                          stations[i].country,
 		                  stations[i].bitrate
 		              );
 
@@ -620,6 +628,7 @@ void HandleSearch(void) {
 		ext->displayText = displayText;
 		ext->url = strdup(stations[i].url ? stations[i].url : "");
 		ext->codec = strdup(stations[i].codec ? stations[i].codec : "Unknown");
+        ext->country = strdup(stations[i].country ? stations[i].country : "??");
 		ext->bitrate = stations[i].bitrate;
 		ext->node.ln_Name = ext->displayText;
 		ext->node.ln_Type = 0;
