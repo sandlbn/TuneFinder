@@ -73,7 +73,7 @@ struct GadgetMetrics {
 };
 
 // Choices for dropdowns
-const char *codecChoices[] = {"","MP3","AAC", "FLAC", NULL};
+const char *codecChoices[] = {"","MP3","AAC", "AAC+", "FLAC", NULL};
 static void SetupGadgetPosition(struct NewGadget *ng, const struct GadgetMetrics *metrics,
                                 const char *text, BOOL isFirstInRow) {
 	if (isFirstInRow) {
@@ -105,6 +105,52 @@ static struct Menu *CreateAppMenus(void) {
 
 	return menuStrip;
 }
+void DrawWrappedText(struct RastPort *rp, STRPTR text, WORD xStart, WORD *yPos, WORD maxWidth) {
+	WORD textLen = strlen(text);
+	WORD charWidth;
+	WORD totalWidth = 0;
+	WORD lastSpace = -1;
+	WORD lineStart = 0;
+	WORD i;
+
+	for (i = 0; i < textLen; i++) {
+		charWidth = TextLength(rp, &text[i], 1);
+
+		// Check if adding this character would exceed maxWidth
+		if (totalWidth + charWidth > maxWidth || text[i] == '\n') {
+			// If we found a space in this line, break there
+			if (lastSpace != -1) {
+				Move(rp, xStart, *yPos);
+				Text(rp, &text[lineStart], lastSpace - lineStart);
+				lineStart = lastSpace + 1;
+				*yPos += 14; // Line height
+				totalWidth = 0;
+				i = lastSpace;  // Resume from after the last space
+				lastSpace = -1;
+			} else {
+				// No space found, force break
+				Move(rp, xStart, *yPos);
+				Text(rp, &text[lineStart], i - lineStart);
+				lineStart = i;
+				*yPos += 14;
+				totalWidth = 0;
+			}
+		} else {
+			if (text[i] == ' ') {
+				lastSpace = i;
+			}
+			totalWidth += charWidth;
+		}
+	}
+
+	// Draw remaining text
+	if (lineStart < textLen) {
+		Move(rp, xStart, *yPos);
+		Text(rp, &text[lineStart], textLen - lineStart);
+		*yPos += 14;
+	}
+}
+
 static void CalculateMetrics(struct Screen *s, struct GadgetMetrics *metrics) {
 	struct TextFont *font = s->RastPort.Font;  // Use RastPort's font instead
 	WORD baseUnit;
@@ -274,107 +320,117 @@ void SaveSingleStation(struct ExtNode *station) {
 }
 
 struct Window* OpenDetailsWindow(struct ExtNode *station) {
-	struct Screen *screen = LockPubScreen(NULL);
-	struct Window *detailWindow;
-	struct Gadget *glist = NULL, *gad;
-	struct NewGadget ng;
-	void *vi;
-	WORD windowWidth = 400;
-	WORD windowHeight = 200;
-
-	if (!screen) return NULL;
-
-	WORD leftEdge = (screen->Width - windowWidth) / 2;
-	WORD topEdge = (screen->Height - windowHeight) / 2;
-
-	vi = GetVisualInfo(screen, TAG_DONE);
-	if (!vi) {
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-
-	gad = CreateContext(&glist);
-	if (!gad) {
-		FreeVisualInfo(vi);
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-
-	ng.ng_LeftEdge = windowWidth/2 - 40;
-	ng.ng_TopEdge = windowHeight - 40;
-	ng.ng_Width = 80;
-	ng.ng_Height = 15;
-	ng.ng_GadgetText = "Save";
-	ng.ng_TextAttr = screen->Font;
-	ng.ng_GadgetID = 1;
-	ng.ng_Flags = PLACETEXT_IN;
-	ng.ng_VisualInfo = vi;
-
-	gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-	if (!gad) {
-		FreeGadgets(glist);
-		FreeVisualInfo(vi);
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-
-	detailWindow = OpenWindowTags(NULL,
-	                              WA_Title, "Station Details",
-	                              WA_Left, leftEdge,
-	                              WA_Top, topEdge,
-	                              WA_Width, windowWidth,
-	                              WA_Height, windowHeight,
-	                              WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_REFRESHWINDOW,
-	                              WA_Gadgets, glist,
-	                              WA_DragBar, TRUE,
-	                              WA_DepthGadget, TRUE,
-	                              WA_CloseGadget, TRUE,
-	                              WA_Activate, TRUE,
-	                              WA_SmartRefresh, TRUE,
-	                              WA_PubScreen, screen,
-	                              TAG_DONE);
-
-	if (!detailWindow) {
-		FreeGadgets(glist);
-		FreeVisualInfo(vi);
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-
-	detailWindow->UserData = (void*)station;
-
-	struct RastPort *rp = detailWindow->RPort;
-	WORD textY = detailWindow->BorderTop + 20;
-
-	SetAPen(rp, 1);
-
-	Move(rp, 20, textY);
-	Text(rp, "Name:", 5);
-	Move(rp, 100, textY);
-	Text(rp, station->displayText, strlen(station->displayText));
-
-	textY += 20;
-	Move(rp, 20, textY);
-	Text(rp, "URL:", 4);
-	Move(rp, 100, textY);
-	Text(rp, station->url, strlen(station->url));
-
-	textY += 20;
-	Move(rp, 20, textY);
-	Text(rp, "Codec:", 6);
-	Move(rp, 100, textY);
-	Text(rp, station->codec, strlen(station->codec));
-
-	textY += 20;
-	Move(rp, 20, textY);
-	Text(rp, "Bitrate:", 8);
-	char bitrateBuf[20];
-	sprintf(bitrateBuf, "%d kbps", station->bitrate);
-	Move(rp, 100, textY);
-	Text(rp, bitrateBuf, strlen(bitrateBuf));
-
-	UnlockPubScreen(NULL, screen);
-	return detailWindow;
+    struct Screen *screen = LockPubScreen(NULL);
+    struct Window *detailWindow;
+    struct Gadget *glist = NULL, *gad;
+    struct NewGadget ng;
+    void *vi;
+    WORD windowWidth = 400;
+    WORD windowHeight = 250;  // Increased height for wrapped text
+    
+    if (!screen) return NULL;
+    
+    WORD leftEdge = (screen->Width - windowWidth) / 2;
+    WORD topEdge = (screen->Height - windowHeight) / 2;
+    
+    vi = GetVisualInfo(screen, TAG_DONE);
+    if (!vi) {
+        UnlockPubScreen(NULL, screen);
+        return NULL;
+    }
+    
+    gad = CreateContext(&glist);
+    if (!gad) {
+        FreeVisualInfo(vi);
+        UnlockPubScreen(NULL, screen);
+        return NULL;
+    }
+    
+    // Save button
+    ng.ng_LeftEdge = windowWidth/2 - 40;
+    ng.ng_TopEdge = windowHeight - 30;  // Adjusted position
+    ng.ng_Width = 80;
+    ng.ng_Height = 15;
+    ng.ng_GadgetText = "Save";
+    ng.ng_TextAttr = screen->Font;
+    ng.ng_GadgetID = 1;
+    ng.ng_Flags = PLACETEXT_IN;
+    ng.ng_VisualInfo = vi;
+    
+    gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
+    if (!gad) {
+        FreeGadgets(glist);
+        FreeVisualInfo(vi);
+        UnlockPubScreen(NULL, screen);
+        return NULL;
+    }
+    
+    detailWindow = OpenWindowTags(NULL,
+        WA_Title, "Station Details",
+        WA_Left, leftEdge,
+        WA_Top, topEdge,
+        WA_Width, windowWidth,
+        WA_Height, windowHeight,
+        WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_REFRESHWINDOW,
+        WA_Gadgets, glist,
+        WA_DragBar, TRUE,
+        WA_DepthGadget, TRUE,
+        WA_CloseGadget, TRUE,
+        WA_Activate, TRUE,
+        WA_SmartRefresh, TRUE,
+        WA_PubScreen, screen,
+        TAG_DONE);
+        
+    if (!detailWindow) {
+        FreeGadgets(glist);
+        FreeVisualInfo(vi);
+        UnlockPubScreen(NULL, screen);
+        return NULL;
+    }
+    
+    detailWindow->UserData = (void*)station;
+    
+    struct RastPort *rp = detailWindow->RPort;
+    WORD textY = detailWindow->BorderTop + 20;
+    WORD labelX = 20;
+    WORD contentX = 100;
+    WORD maxWidth = windowWidth - contentX - 20;  // Maximum width for wrapped text
+    
+    SetAPen(rp, 1);
+    SetBPen(rp, 0);
+    
+    // Draw Name field
+    Move(rp, labelX, textY);
+    Text(rp, "Name:", 5);
+    DrawWrappedText(rp, station->displayText, contentX, &textY, maxWidth);
+    
+    // Add some spacing between fields
+    textY += 10;
+    
+    // Draw URL field
+    Move(rp, labelX, textY);
+    Text(rp, "URL:", 4);
+    DrawWrappedText(rp, station->url, contentX, &textY, maxWidth);
+    
+    textY += 10;
+    
+    // Draw Codec field
+    Move(rp, labelX, textY);
+    Text(rp, "Codec:", 6);
+    Move(rp, contentX, textY);
+    Text(rp, station->codec, strlen(station->codec));
+    textY += 20;
+    
+    // Draw Bitrate field
+    Move(rp, labelX, textY);
+    Text(rp, "Bitrate:", 8);
+    char bitrateBuf[20];
+    sprintf(bitrateBuf, "%d kbps", station->bitrate);
+    Move(rp, contentX, textY);
+    Text(rp, bitrateBuf, strlen(bitrateBuf));
+    
+    UnlockPubScreen(NULL, screen);
+    return detailWindow;
 }
 
 void HandleSave(void) {
