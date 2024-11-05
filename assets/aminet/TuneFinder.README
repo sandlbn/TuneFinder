@@ -64,4 +64,15 @@ Fixes:
 - Add proper cleanup of GUI resources
 - Add better error handling and debugging messages
 
+TuneFinder 0.4 (05.11.2024)
 
+New features:
+- Improved Station Details View
+- Increased window size for better readability
+- Add cleaner layout with proper spacing between fields
+
+Fixes:
+- Fixed text overflow in station details window
+- Fixed memory leaks in list handling
+- Removed unused variables and functions
+- Fixed issues with screen lock/unlock
