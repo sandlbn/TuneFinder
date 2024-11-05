@@ -23,6 +23,7 @@
 #include "../../include/utils.h"
 #include "../../include/data.h"
 #include "../../include/country_config.h"
+#include "../../include/amigaamp.h"
 
 struct CountryConfig countryConfig;
 struct RastPort *RastPort;
@@ -347,7 +348,7 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
     }
     
     // Save button
-    ng.ng_LeftEdge = windowWidth/2 - 40;
+    ng.ng_LeftEdge = windowWidth/2 - 90;
     ng.ng_TopEdge = windowHeight - 30;  // Adjusted position
     ng.ng_Width = 80;
     ng.ng_Height = 15;
@@ -364,7 +365,19 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
         UnlockPubScreen(NULL, screen);
         return NULL;
     }
+        // AmigaAMP button
+    ng.ng_LeftEdge = windowWidth/2 + 10;  
+    ng.ng_GadgetText = "Play";
+    ng.ng_GadgetID = 2;  
     
+    gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
+    if (!gad) {
+        FreeGadgets(glist);
+        FreeVisualInfo(vi);
+        UnlockPubScreen(NULL, screen);
+        return NULL;
+    }
+
     detailWindow = OpenWindowTags(NULL,
         WA_Title, "Station Details",
         WA_Left, leftEdge,
@@ -496,13 +509,37 @@ void HandleListSelect(struct IntuiMessage *imsg) {
 			WaitPort(detailWindow->UserPort);
 
 			while ((msg = GT_GetIMsg(detailWindow->UserPort))) {
+                UWORD class = msg->Class;
+                UWORD code = msg->Code;
+                struct Gadget *gad = (struct Gadget *)msg->IAddress;
+
 				switch(msg->Class) {
 				case IDCMP_CLOSEWINDOW:
 					done = TRUE;
 					break;
 
 				case IDCMP_GADGETUP:
-					SaveSingleStation(ext);
+                        switch(gad->GadgetID) {
+                            case 1: // Save button
+                                SaveSingleStation(ext);
+                                break;
+                                
+                            case 2: // Play button
+                                if (IsAmigaAMPRunning()) {
+                                    if (OpenStreamInAmigaAMP(ext->url)) {
+                                        // Success - show status in main window
+                                        char msg[MAX_STATUS_MSG_LEN];
+                                        snprintf(msg, MAX_STATUS_MSG_LEN, 
+                                                "Playing: %s", ext->displayText);
+                                        UpdateStatusMessage(msg);
+                                    } else {
+                                        UpdateStatusMessage("Failed to start playback");
+                                    }
+                                } else {
+                                    UpdateStatusMessage("AmigaAMP is not running");
+                                }
+                                break;
+                        }
 					break;
 
 				case IDCMP_REFRESHWINDOW:
