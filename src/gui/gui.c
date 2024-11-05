@@ -16,10 +16,7 @@
 #include <proto/graphics.h>
 #include <intuition/screens.h>
 #include <intuition/gadgetclass.h>
-#include <libraries/gadtools.h>
 #include <proto/gadtools.h>
-#include <libraries/asl.h>
-#include <proto/asl.h>
 #include "../../include/config.h"
 #include "../../include/network.h"
 #include "../../include/gui_layout.h"
@@ -27,7 +24,6 @@
 #include "../../include/data.h"
 #include "../../include/country_config.h"
 
-static struct TextAttr topaz8 = { "topaz.font", 8, 0, 0 };
 struct CountryConfig countryConfig;
 struct RastPort *RastPort;
 struct MsgPort *WindowPort;
@@ -54,7 +50,6 @@ struct APISettings currentSettings;
 // GUI Elements
 struct Gadget *nameStrGad;
 struct Gadget *countryCodeCycle;
-struct Gadget *stateStrGad;
 struct Gadget *codecCycle;
 struct Gadget *tagsStrGad;
 struct Gadget *hideBrokenCheckBox;
@@ -75,8 +70,6 @@ struct GadgetMetrics {
 	WORD buttonWidth;
 	WORD checkboxWidth;
 	WORD cycleWidth;
-	WORD standardWidth;
-	WORD fullWidth;
 };
 
 // Choices for dropdowns
@@ -141,25 +134,6 @@ static void CalculateMetrics(struct Screen *s, struct GadgetMetrics *metrics) {
 
 	DEBUG("Metrics: text height=%d, label width=%d, column width=%d",
 	      baseUnit, metrics->labelWidth, metrics->columnWidth);
-}
-static void ShowAboutWindow(void) {
-	struct EasyStruct es = {
-		sizeof(struct EasyStruct),
-		0,
-		"About TuneFinder",
-		"TuneFinder v1.0\n\n"
-		"Created by sandlbn\n"
-		"An Internet radio browser for AmigaOS 3.x\n"
-		"\n"
-		"Current API: %s:%ld",
-		"OK"
-	};
-
-	char message[512];
-	snprintf(message, sizeof(message), es.es_TextFormat, currentSettings.host, currentSettings.port);
-	es.es_TextFormat = message;
-
-	EasyRequest(window, &es, NULL, NULL);
 }
 
 BOOL InitLibraries(void) {
