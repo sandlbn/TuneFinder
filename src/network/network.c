@@ -330,23 +330,26 @@ struct RadioStation* parse_stations_json(const char *json_str, int *count) {
     DEBUG("Parsing individual stations");
     for (i = 0; i < array_len; i++) {
         struct json_object *station_obj = json_object_array_get_idx(root, i);
-        struct json_object *name_obj, *url_obj, *codec_obj, *bitrate_obj;
-        const char *name, *url, *codec;
+        struct json_object *name_obj, *url_obj, *codec_obj, *bitrate_obj, *country_obj;
+        const char *name, *url, *codec, *country;
         int bitrate;
         
         if (json_object_object_get_ex(station_obj, "name", &name_obj) &&
             json_object_object_get_ex(station_obj, "url", &url_obj) &&
             json_object_object_get_ex(station_obj, "codec", &codec_obj) &&
+            json_object_object_get_ex(station_obj, "countrycode", &country_obj) &&
             json_object_object_get_ex(station_obj, "bitrate", &bitrate_obj)) {
             
             name = json_object_get_string(name_obj);
             url = json_object_get_string(url_obj);
             codec = json_object_get_string(codec_obj);
+            country = json_object_get_string(country_obj);
             bitrate = json_object_get_int(bitrate_obj);
             
             stations[i].name = strdup(name);
             stations[i].url = strdup(url);
             stations[i].codec = strdup(codec);
+            stations[i].country = strdup(country);
             stations[i].bitrate = bitrate;
             
             (*count)++;
