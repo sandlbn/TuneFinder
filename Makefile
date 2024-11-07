@@ -24,6 +24,7 @@ PROGRAM_NAME = TuneFinder
 SOURCES = $(SRCDIR)/settings/settings.c \
 		  $(SRCDIR)/settings/country_config.c \
           $(SRCDIR)/data/data.c \
+          $(SRCDIR)/amigaamp/amigaamp.c \
           $(SRCDIR)/network/network.c \
           $(SRCDIR)/utils/gui_layout.c \
 		  $(SRCDIR)/utils/utils.c \
@@ -35,6 +36,7 @@ OBJECTS = \
     $(BUILDDIR)/settings/settings.o \
 	$(BUILDDIR)/settings/country_config.o \
     $(BUILDDIR)/data/data.o \
+    $(BUILDDIR)/amigaamp/amigaamp.o \
     $(BUILDDIR)/network/network.o \
 	$(BUILDDIR)/utils/gui_layout.o \
     $(BUILDDIR)/utils/utils.o \
