@@ -30,7 +30,7 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
     config->count = 1;
     
     // Create full path
-    sprintf(filepath, "%s%s", CONFIG_PATH, filename);
+    sprintf(filepath, "%s/%s", CONFIG_PATH, filename);
     
     file = Open(filepath, MODE_OLDFILE);
     if (!file) {
@@ -82,7 +82,7 @@ BOOL SaveCountryConfig(const char *filename, struct CountryConfig *config) {
         return FALSE;
     }
     
-    sprintf(filepath, "%s%s", CONFIG_PATH, filename);
+    sprintf(filepath, "%s/%s", CONFIG_PATH, filename);
     file = Open(filepath, MODE_NEWFILE);
     if (!file) {
         DEBUG("Failed to create country config file");

@@ -6,91 +6,79 @@
 #include "../../include/config.h"
 
 void *allocate(size_t size, int type) {
-    return AllocVec(size, MEMF_CLEAR);
+	return AllocVec(size, MEMF_CLEAR);
 }
 
 void deallocate(void *ptr, int type) {
-    FreeVec(ptr);
+	FreeVec(ptr);
 }
 
 void free_stations(struct RadioStation *stations, int count) {
-    int i;
-    
-    if (!stations) return;
-    
-    DEBUG("Freeing %d stations", count);
-    for (i = 0; i < count; i++) {
-        if (stations[i].name) free(stations[i].name);
-        if (stations[i].url) free(stations[i].url);
-        if (stations[i].codec) free(stations[i].codec);
-        if (stations[i].country) free(stations[i].country);
+	int i;
 
-    }
-    free(stations);
-    DEBUG("Memory cleanup complete");
+	if (!stations) return;
+
+	DEBUG("Freeing %d stations", count);
+	for (i = 0; i < count; i++) {
+		if (stations[i].name) free(stations[i].name);
+		if (stations[i].url) free(stations[i].url);
+		if (stations[i].codec) free(stations[i].codec);
+		if (stations[i].country) free(stations[i].country);
+
+	}
+	free(stations);
+	DEBUG("Memory cleanup complete");
 }
 
-char* FormatStationEntry(const char *name, const char *url, const char *codec, const char *country,  int bitrate) {
-    char *entry;
-    char trimmedName[40];
-    char codecBuf[10];
-    char countryBuf[20];
-    char bitrateBuf[10];
-    size_t nameLen;
-    
-    entry = AllocVec(256, MEMF_CLEAR);
-    if (!entry) return NULL;
-    
-    if (name) {
-        nameLen = strlen(name);
-        if (nameLen > 30) {
-            strncpy(trimmedName, name, 27);
-            trimmedName[27] = '.';
-            trimmedName[28] = '.';
-            trimmedName[29] = '.';
-            trimmedName[30] = '\0';
-        } else {
-            strcpy(trimmedName, name);
-            while (nameLen < 30) {
-                trimmedName[nameLen++] = ' ';
-            }
-            trimmedName[30] = '\0';
-        }
-    } else {
-        strcpy(trimmedName, "Unknown");
-        memset(trimmedName + 7, ' ', 23);
-        trimmedName[30] = '\0';
-    }
+char* FormatStationEntry(const char *name, const char *url, const char *codec,
+                         const char *country, int bitrate) {
+	char *entry;
+	char sanitizedName[31];  // 30 chars + null terminator
 
-    if (country) {
-        strncpy(countryBuf, country, 20);
-    }
-    
-    if (codec) {
-        strncpy(codecBuf, codec, 8);
-        codecBuf[8] = '\0';
-        size_t codecLen = strlen(codecBuf);
-        while (codecLen < 8) {
-            codecBuf[codecLen++] = ' ';
-        }
-        codecBuf[8] = '\0';
-    } else {
-        strcpy(codecBuf, "???     ");
-    }
-    
-    snprintf(bitrateBuf, sizeof(bitrateBuf), "%4d", bitrate);
-    size_t bitrateLen = strlen(bitrateBuf);
-    while (bitrateLen < 6) {
-        bitrateBuf[bitrateLen++] = ' ';
-    }
-    bitrateBuf[6] = '\0';
-    
-    sprintf(entry, "%-30s  %-8s  %-8s %-6s", 
-        trimmedName,
-        codecBuf,
-        countryBuf,
-        bitrateBuf);
-    
-    DEBUG("Formatted entry: '%s'\n", entry);
-    return entry;
+	entry = AllocVec(256, MEMF_CLEAR);
+	if (!entry) return NULL;
+
+	// Process station name - limit to 30 chars
+	if (name) {
+		WORD i, j = 0;
+		WORD nameLen = strlen(name);
+
+		if (nameLen > 27) {  // Leave room for "..."
+			// Copy first 27 chars and add "..."
+			for (i = 0; i < 27 && name[i]; i++) {
+				if (name[i] >= 32 && name[i] <= 126) {
+					sanitizedName[j++] = name[i];
+				}
+			}
+			sanitizedName[j++] = '.';
+			sanitizedName[j++] = '.';
+			sanitizedName[j++] = '.';
+		} else {
+			// Copy full name and pad with spaces
+			for (i = 0; i < nameLen; i++) {
+				if (name[i] >= 32 && name[i] <= 126) {
+					sanitizedName[j++] = name[i];
+				}
+			}
+			// Pad with spaces
+			while (j < 30) {
+				sanitizedName[j++] = ' ';
+			}
+		}
+		sanitizedName[j] = '\0';
+	} else {
+		strcpy(sanitizedName, "Unknown");
+		memset(sanitizedName + 7, ' ', 23);  // Pad with spaces
+		sanitizedName[30] = '\0';
+	}
+
+	// Format with delimiters
+	snprintf(entry, 255, "%-30s / %-6s / %-2s / %3d",
+	         sanitizedName,
+	         codec ? codec : "???",
+	         country ? country : "??",
+	         bitrate);
+
+	DEBUG("Formatted entry: '%s'\n", entry);
+	return entry;
 }

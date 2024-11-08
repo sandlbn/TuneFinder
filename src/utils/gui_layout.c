@@ -5,32 +5,28 @@
 #include "../../include/config.h"
 
 void CalculateGUIMetrics(struct Screen *screen, struct GUIMetrics *metrics) {
-    // Get screen font
-    metrics->font = screen->RastPort.Font;
+    // Get font metrics directly from screen
+    ULONG font_width = screen->RastPort.TxWidth;
+    ULONG font_height = screen->RastPort.TxHeight;
     
-    // Calculate base metrics from font height
-    WORD baseUnit = metrics->font->tf_YSize;
+    // Basic spacing based on font
+    metrics->leftMargin = 10;  // Fixed margin like in example
+    metrics->topMargin = font_height + 8;  // Following example pattern
     
-    metrics->gadgetHeight = baseUnit + 4;
-    metrics->gadgetSpacing = baseUnit;
-    metrics->labelSpacing = baseUnit / 2;
+    // Text heights and spacing
+    metrics->rowHeight = font_height;
+    metrics->elementSpacing = font_height + 2;  // Standard spacing between elements
     
-    // Set margins based on font size
-    metrics->leftMargin = baseUnit * 2;
-    metrics->rightMargin = baseUnit * 2;
-    metrics->topMargin = baseUnit * 2;
-    metrics->bottomMargin = baseUnit * 2;
+    // Control sizes based on font width
+    metrics->labelWidth = font_width * 17;  // Standard label width from example
+    metrics->controlWidth = font_width * 22;  // Standard control width from example
+    metrics->buttonHeight = font_height + 10;  // Button height with padding
     
-    // Calculate minimum window dimensions
-    metrics->windowWidth = screen->Width / 2;  // 50% of screen width
-    metrics->windowHeight = screen->Height / 2; // 50% of screen height
-}
-
-WORD CalculateTextWidth(struct RastPort *rp, const char *text) {
-    return TextLength(rp, text, strlen(text));
-}
-
-WORD CalculateGadgetWidth(struct RastPort *rp, const char *text, WORD minWidth) {
-    WORD textWidth = CalculateTextWidth(rp, text);
-    return MAX(textWidth + 20, minWidth); // 20 pixels padding
+    // List view sizing
+    metrics->listViewHeight = (font_height + 8) + (font_height * 7);  // Matches example pattern
+    
+    // Additional metrics
+    metrics->windowPadding = 15;  // Standard window padding from example
+    metrics->checkboxWidth = font_width * 14;  // For checkbox gadgets
+    metrics->columnWidth = metrics->controlWidth + metrics->leftMargin;  // For column layout
 }
