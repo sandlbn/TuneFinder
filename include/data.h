@@ -36,6 +36,7 @@ struct ExtNode {
 void *allocate(size_t size, int type);
 void deallocate(void *ptr, int type);
 void free_stations(struct RadioStation *stations, int count);
-char *FormatStationEntry(const char *name, const char *url, const char *codec, const char *country, int bitrate);
+char* FormatStationEntry(const char *name, const char *url, const char *codec,
+                        const char *country, int bitrate);
 
 #endif /* DATA_H */

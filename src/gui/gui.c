@@ -36,7 +36,6 @@ struct List *browserList = NULL;
 struct Library *IntuitionBase = NULL;
 struct Library *GadToolsBase = NULL;
 struct Library *SocketBase = NULL;
-//struct Library *DOSBase = NULL;
 struct GfxBase *GfxBase = NULL;
 struct Library *AslBase = NULL;
 void *visualInfo = NULL;
@@ -59,34 +58,9 @@ struct Gadget *searchButton;
 struct Gadget *saveButton;
 struct Gadget *listView;
 struct Gadget *statusMsgGad;
-struct GadgetMetrics {
-	WORD leftMargin;
-	WORD topMargin;
-	WORD gadgetHeight;
-	WORD gadgetSpacing;
-	WORD columnWidth;
-	WORD labelWidth;
-	WORD labelSpacing;
-	WORD checkboxSpacing;
-	WORD buttonWidth;
-	WORD checkboxWidth;
-	WORD cycleWidth;
-};
 
 // Choices for dropdowns
 const char *codecChoices[] = {"","MP3","AAC", "AAC+", "FLAC", NULL};
-static void SetupGadgetPosition(struct NewGadget *ng, const struct GadgetMetrics *metrics,
-                                const char *text, BOOL isFirstInRow) {
-	if (isFirstInRow) {
-		ng->ng_LeftEdge = metrics->leftMargin;
-	} else {
-		ng->ng_LeftEdge = metrics->leftMargin * 2 + metrics->columnWidth;
-	}
-
-	if (text && ng->ng_Flags & PLACETEXT_ABOVE) {
-		ng->ng_TopEdge += metrics->labelSpacing;
-	}
-}
 
 static struct Menu *CreateAppMenus(void) {
 	struct NewMenu newMenu[] = {
@@ -150,37 +124,6 @@ void DrawWrappedText(struct RastPort *rp, STRPTR text, WORD xStart, WORD *yPos, 
 		Text(rp, &text[lineStart], textLen - lineStart);
 		*yPos += 14;
 	}
-}
-
-static void CalculateMetrics(struct Screen *s, struct GadgetMetrics *metrics) {
-	struct TextFont *font = s->RastPort.Font;  // Use RastPort's font instead
-	WORD baseUnit;
-
-	if (!font) {
-		// Fallback if no font is set
-		baseUnit = 8;  // Default minimum size
-		DEBUG("No font found, using default size");
-	} else {
-		baseUnit = font->tf_YSize;
-		DEBUG("Font height: %d", baseUnit);
-	}
-	// Basic spacing
-	metrics->leftMargin = baseUnit * 2;
-	metrics->topMargin = baseUnit * 2;
-	metrics->gadgetHeight = baseUnit + 4;
-	metrics->gadgetSpacing = baseUnit;
-
-	// Important: Make label width wider
-	metrics->labelWidth = baseUnit * 8;  // More space for label text
-	metrics->checkboxSpacing = baseUnit * 8;
-	// Calculate effective widths
-	WORD availableWidth = WINDOW_WIDTH - (metrics->leftMargin * 3);  // Three margins: left, between columns, right
-	metrics->columnWidth = (availableWidth - metrics->labelWidth * 2) / 2;  // Account for two label spaces
-	metrics->buttonWidth = baseUnit * 10;
-	metrics->checkboxWidth = baseUnit * 12;  // Width including text
-
-	DEBUG("Metrics: text height=%d, label width=%d, column width=%d",
-	      baseUnit, metrics->labelWidth, metrics->columnWidth);
 }
 
 BOOL InitLibraries(void) {
@@ -321,136 +264,136 @@ void SaveSingleStation(struct ExtNode *station) {
 }
 
 struct Window* OpenDetailsWindow(struct ExtNode *station) {
-    struct Screen *screen = LockPubScreen(NULL);
-    struct Window *detailWindow;
-    struct Gadget *glist = NULL, *gad;
-    struct NewGadget ng;
-    void *vi;
-    WORD windowWidth = 400;
-    WORD windowHeight = 250;  // Increased height for wrapped text
-    
-    if (!screen) return NULL;
-    
-    WORD leftEdge = (screen->Width - windowWidth) / 2;
-    WORD topEdge = (screen->Height - windowHeight) / 2;
-    
-    vi = GetVisualInfo(screen, TAG_DONE);
-    if (!vi) {
-        UnlockPubScreen(NULL, screen);
-        return NULL;
-    }
-    
-    gad = CreateContext(&glist);
-    if (!gad) {
-        FreeVisualInfo(vi);
-        UnlockPubScreen(NULL, screen);
-        return NULL;
-    }
-    
-    // Save button
-    ng.ng_LeftEdge = windowWidth/2 - 90;
-    ng.ng_TopEdge = windowHeight - 30;  // Adjusted position
-    ng.ng_Width = 80;
-    ng.ng_Height = 15;
-    ng.ng_GadgetText = "Save";
-    ng.ng_TextAttr = screen->Font;
-    ng.ng_GadgetID = 1;
-    ng.ng_Flags = PLACETEXT_IN;
-    ng.ng_VisualInfo = vi;
-    
-    gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-    if (!gad) {
-        FreeGadgets(glist);
-        FreeVisualInfo(vi);
-        UnlockPubScreen(NULL, screen);
-        return NULL;
-    }
-        // AmigaAMP button
-    ng.ng_LeftEdge = windowWidth/2 + 10;  
-    ng.ng_GadgetText = "Play";
-    ng.ng_GadgetID = 2;  
-    
-    gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-    if (!gad) {
-        FreeGadgets(glist);
-        FreeVisualInfo(vi);
-        UnlockPubScreen(NULL, screen);
-        return NULL;
-    }
+	struct Screen *screen = LockPubScreen(NULL);
+	struct Window *detailWindow;
+	struct Gadget *glist = NULL, *gad;
+	struct NewGadget ng;
+	void *vi;
+	WORD windowWidth = 400;
+	WORD windowHeight = 250;  // Increased height for wrapped text
 
-    detailWindow = OpenWindowTags(NULL,
-        WA_Title, "Station Details",
-        WA_Left, leftEdge,
-        WA_Top, topEdge,
-        WA_Width, windowWidth,
-        WA_Height, windowHeight,
-        WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_REFRESHWINDOW,
-        WA_Gadgets, glist,
-        WA_DragBar, TRUE,
-        WA_DepthGadget, TRUE,
-        WA_CloseGadget, TRUE,
-        WA_Activate, TRUE,
-        WA_SmartRefresh, TRUE,
-        WA_PubScreen, screen,
-        TAG_DONE);
-        
-    if (!detailWindow) {
-        FreeGadgets(glist);
-        FreeVisualInfo(vi);
-        UnlockPubScreen(NULL, screen);
-        return NULL;
-    }
-    
-    detailWindow->UserData = (void*)station;
-    
-    struct RastPort *rp = detailWindow->RPort;
-    WORD textY = detailWindow->BorderTop + 20;
-    WORD labelX = 20;
-    WORD contentX = 100;
-    WORD maxWidth = windowWidth - contentX - 20;  // Maximum width for wrapped text
-    
-    SetAPen(rp, 1);
-    SetBPen(rp, 0);
-    
-    // Draw Name field
-    Move(rp, labelX, textY);
-    Text(rp, "Name:", 5);
-    DrawWrappedText(rp, station->displayText, contentX, &textY, maxWidth);
-    
-    // Add some spacing between fields
-    textY += 10;
-    
-    // Draw URL field
-    Move(rp, labelX, textY);
-    Text(rp, "URL:", 4);
-    DrawWrappedText(rp, station->url, contentX, &textY, maxWidth);
-    
-    textY += 10;
-    
-    // Draw Codec field
-    Move(rp, labelX, textY);
-    Text(rp, "Codec:", 6);
-    Move(rp, contentX, textY);
-    Text(rp, station->codec, strlen(station->codec));
-    textY += 20;
-    
-    // Draw Bitrate field
-    Move(rp, labelX, textY);
-    Text(rp, "Bitrate:", 8);
-    char bitrateBuf[20];
-    sprintf(bitrateBuf, "%ld kbps", station->bitrate);
-    Move(rp, contentX, textY);
-    Text(rp, bitrateBuf, strlen(bitrateBuf));
-    textY += 20;
-    
-    // Draw Country field
-    Move(rp, labelX, textY);
-    Text(rp, "Country:", 8);
-    Move(rp, contentX, textY);
-    Text(rp, station->country, strlen(station->country));
+	if (!screen) return NULL;
 
-    UnlockPubScreen(NULL, screen);
-    return detailWindow;
+	WORD leftEdge = (screen->Width - windowWidth) / 2;
+	WORD topEdge = (screen->Height - windowHeight) / 2;
+
+	vi = GetVisualInfo(screen, TAG_DONE);
+	if (!vi) {
+		UnlockPubScreen(NULL, screen);
+		return NULL;
+	}
+
+	gad = CreateContext(&glist);
+	if (!gad) {
+		FreeVisualInfo(vi);
+		UnlockPubScreen(NULL, screen);
+		return NULL;
+	}
+
+	// Save button
+	ng.ng_LeftEdge = windowWidth/2 - 90;
+	ng.ng_TopEdge = windowHeight - 30;  // Adjusted position
+	ng.ng_Width = 80;
+	ng.ng_Height = 15;
+	ng.ng_GadgetText = "Save";
+	ng.ng_TextAttr = screen->Font;
+	ng.ng_GadgetID = 1;
+	ng.ng_Flags = PLACETEXT_IN;
+	ng.ng_VisualInfo = vi;
+
+	gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
+	if (!gad) {
+		FreeGadgets(glist);
+		FreeVisualInfo(vi);
+		UnlockPubScreen(NULL, screen);
+		return NULL;
+	}
+	// AmigaAMP button
+	ng.ng_LeftEdge = windowWidth/2 + 10;
+	ng.ng_GadgetText = "Play";
+	ng.ng_GadgetID = 2;
+
+	gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
+	if (!gad) {
+		FreeGadgets(glist);
+		FreeVisualInfo(vi);
+		UnlockPubScreen(NULL, screen);
+		return NULL;
+	}
+
+	detailWindow = OpenWindowTags(NULL,
+	                              WA_Title, "Station Details",
+	                              WA_Left, leftEdge,
+	                              WA_Top, topEdge,
+	                              WA_Width, windowWidth,
+	                              WA_Height, windowHeight,
+	                              WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_REFRESHWINDOW,
+	                              WA_Gadgets, glist,
+	                              WA_DragBar, TRUE,
+	                              WA_DepthGadget, TRUE,
+	                              WA_CloseGadget, TRUE,
+	                              WA_Activate, TRUE,
+	                              WA_SmartRefresh, TRUE,
+	                              WA_PubScreen, screen,
+	                              TAG_DONE);
+
+	if (!detailWindow) {
+		FreeGadgets(glist);
+		FreeVisualInfo(vi);
+		UnlockPubScreen(NULL, screen);
+		return NULL;
+	}
+
+	detailWindow->UserData = (void*)station;
+
+	struct RastPort *rp = detailWindow->RPort;
+	WORD textY = detailWindow->BorderTop + 20;
+	WORD labelX = 20;
+	WORD contentX = 100;
+	WORD maxWidth = windowWidth - contentX - 20;  // Maximum width for wrapped text
+
+	SetAPen(rp, 1);
+	SetBPen(rp, 0);
+
+	// Draw Name field
+	Move(rp, labelX, textY);
+	Text(rp, "Name:", 5);
+	DrawWrappedText(rp, station->displayText, contentX, &textY, maxWidth);
+
+	// Add some spacing between fields
+	textY += 10;
+
+	// Draw URL field
+	Move(rp, labelX, textY);
+	Text(rp, "URL:", 4);
+	DrawWrappedText(rp, station->url, contentX, &textY, maxWidth);
+
+	textY += 10;
+
+	// Draw Codec field
+	Move(rp, labelX, textY);
+	Text(rp, "Codec:", 6);
+	Move(rp, contentX, textY);
+	Text(rp, station->codec, strlen(station->codec));
+	textY += 20;
+
+	// Draw Bitrate field
+	Move(rp, labelX, textY);
+	Text(rp, "Bitrate:", 8);
+	char bitrateBuf[20];
+	sprintf(bitrateBuf, "%ld kbps", station->bitrate);
+	Move(rp, contentX, textY);
+	Text(rp, bitrateBuf, strlen(bitrateBuf));
+	textY += 20;
+
+	// Draw Country field
+	Move(rp, labelX, textY);
+	Text(rp, "Country:", 8);
+	Move(rp, contentX, textY);
+	Text(rp, station->country, strlen(station->country));
+
+	UnlockPubScreen(NULL, screen);
+	return detailWindow;
 }
 
 void HandleSave(void) {
@@ -509,9 +452,9 @@ void HandleListSelect(struct IntuiMessage *imsg) {
 			WaitPort(detailWindow->UserPort);
 
 			while ((msg = GT_GetIMsg(detailWindow->UserPort))) {
-                UWORD class = msg->Class;
-                UWORD code = msg->Code;
-                struct Gadget *gad = (struct Gadget *)msg->IAddress;
+				UWORD class = msg->Class;
+				UWORD code = msg->Code;
+				struct Gadget *gad = (struct Gadget *)msg->IAddress;
 
 				switch(msg->Class) {
 				case IDCMP_CLOSEWINDOW:
@@ -519,27 +462,27 @@ void HandleListSelect(struct IntuiMessage *imsg) {
 					break;
 
 				case IDCMP_GADGETUP:
-                        switch(gad->GadgetID) {
-                            case 1: // Save button
-                                SaveSingleStation(ext);
-                                break;
-                                
-                            case 2: // Play button
-                                if (IsAmigaAMPRunning()) {
-                                    if (OpenStreamInAmigaAMP(ext->url)) {
-                                        // Success - show status in main window
-                                        char msg[MAX_STATUS_MSG_LEN];
-                                        snprintf(msg, MAX_STATUS_MSG_LEN, 
-                                                "Playing: %s", ext->displayText);
-                                        UpdateStatusMessage(msg);
-                                    } else {
-                                        UpdateStatusMessage("Failed to start playback");
-                                    }
-                                } else {
-                                    UpdateStatusMessage("AmigaAMP is not running");
-                                }
-                                break;
-                        }
+					switch(gad->GadgetID) {
+					case 1: // Save button
+						SaveSingleStation(ext);
+						break;
+
+					case 2: // Play button
+						if (IsAmigaAMPRunning()) {
+							if (OpenStreamInAmigaAMP(ext->url)) {
+								// Success - show status in main window
+								char msg[MAX_STATUS_MSG_LEN];
+								snprintf(msg, MAX_STATUS_MSG_LEN,
+								         "Playing: %s", ext->displayText);
+								UpdateStatusMessage(msg);
+							} else {
+								UpdateStatusMessage("Failed to start playback");
+							}
+						} else {
+							UpdateStatusMessage("AmigaAMP is not running");
+						}
+						break;
+					}
 					break;
 
 				case IDCMP_REFRESHWINDOW:
@@ -641,19 +584,16 @@ void HandleSearch(void) {
 			deallocate(node, V_Node);
 		}
 	}
-
 	for (int i = 0; i < station_count; i++) {
 		struct ExtNode *ext;
-		char *displayText;
 
-		displayText = FormatStationEntry(
-		                  stations[i].name,
-		                  stations[i].url,
-		                  stations[i].codec,
-                          stations[i].country,
-		                  stations[i].bitrate
-		              );
-
+		char *displayText = FormatStationEntry(
+		                        stations[i].name,
+		                        stations[i].url,
+		                        stations[i].codec,
+		                        stations[i].country,
+		                        stations[i].bitrate
+		                    );
 		if (!displayText) continue;
 
 		ext = AllocVec(sizeof(struct ExtNode), MEMF_CLEAR);
@@ -665,7 +605,7 @@ void HandleSearch(void) {
 		ext->displayText = displayText;
 		ext->url = strdup(stations[i].url ? stations[i].url : "");
 		ext->codec = strdup(stations[i].codec ? stations[i].codec : "Unknown");
-        ext->country = strdup(stations[i].country ? stations[i].country : "??");
+		ext->country = strdup(stations[i].country ? stations[i].country : "??");
 		ext->bitrate = stations[i].bitrate;
 		ext->node.ln_Name = ext->displayText;
 		ext->node.ln_Type = 0;
@@ -769,7 +709,7 @@ BOOL OpenGUI(void) {
 	struct Screen *s;
 	void *vi;
 	struct List *site_labels;
-	struct GadgetMetrics metrics;
+	ULONG font_width, font_height;
 
 	DEBUG("Starting GUI initialization...");
 
@@ -779,12 +719,16 @@ BOOL OpenGUI(void) {
 		return FALSE;
 	}
 
-	// Calculate layout metrics
-	CalculateMetrics(s, &metrics);
+	// Get font metrics
+	font_width = s->RastPort.TxWidth;
+	font_height = s->RastPort.TxHeight;
+
 	if (!LoadCountryConfig(COUNTRY_CONFIG_FILE, &countryConfig)) {
 		DEBUG("Failed to load country configuration");
-		goto cleanup;
+		UnlockPubScreen(NULL, s);
+		return FALSE;
 	}
+
 	vi = GetVisualInfo(s, TAG_END);
 	if (!vi) {
 		DEBUG("Failed to get visual info");
@@ -800,7 +744,6 @@ BOOL OpenGUI(void) {
 		return FALSE;
 	}
 
-	// Create gadget context
 	gad = CreateContext(&glist);
 	if (!gad) {
 		DEBUG("Failed to create gadget context");
@@ -810,42 +753,37 @@ BOOL OpenGUI(void) {
 		return FALSE;
 	}
 
-
-	// Initialize base gadget properties
+	// Base properties
 	ng.ng_TextAttr = s->Font;
 	ng.ng_VisualInfo = vi;
-	ng.ng_Height = metrics.gadgetHeight;
 
-	// First Row - Name input
-	// Name field
-	ng.ng_LeftEdge = metrics.leftMargin + metrics.labelWidth;  // Start after label space
-	ng.ng_TopEdge = metrics.topMargin;
-	ng.ng_Width = metrics.columnWidth;
-	ng.ng_Height = metrics.gadgetHeight;
+	// Name String gadget
+	ng.ng_LeftEdge = font_width * 10;  // Move right to accommodate label
+	ng.ng_TopEdge = font_height + 10;
+	ng.ng_Width = font_width * 22;
+	ng.ng_Height = font_height + 4;
 	ng.ng_GadgetText = "Name";
-	ng.ng_TextAttr = s->Font;
 	ng.ng_GadgetID = 1;
-	ng.ng_Flags = PLACETEXT_LEFT;
-	ng.ng_VisualInfo = vi;
+	ng.ng_Flags = PLACETEXT_LEFT | NG_HIGHLABEL;  // Add NG_HIGHLABEL for better visibility
 
 	nameStrGad = CreateGadget(STRING_KIND, gad, &ng,
 	                          GTST_MaxChars, 40,
-	                          GTST_String, "",
 	                          TAG_DONE);
+	if (!nameStrGad) DEBUG("Failed to create name gadget");
 
-	// Tags
-	ng.ng_LeftEdge = metrics.leftMargin * 2 + metrics.columnWidth + metrics.labelWidth * 2;  // Account for two label spaces
+	// Tags String gadget
+	ng.ng_LeftEdge = font_width * 40;  // Adjust for second column
 	ng.ng_GadgetText = "Tags";
 	ng.ng_GadgetID = 5;
 
 	tagsStrGad = CreateGadget(STRING_KIND, nameStrGad, &ng,
 	                          GTST_MaxChars, 100,
-	                          GTTX_Text, "",
 	                          TAG_DONE);
+	if (!tagsStrGad) DEBUG("Failed to create tags gadget");
 
-	// Country dropdown
-	ng.ng_LeftEdge = metrics.leftMargin + metrics.labelWidth;  // Same as Name
-	ng.ng_TopEdge += metrics.gadgetHeight + metrics.gadgetSpacing;
+	// Country Cycle gadget
+	ng.ng_LeftEdge = font_width * 10;  // Same as name gadget
+	ng.ng_TopEdge += font_height + 12;
 	ng.ng_GadgetText = "Country";
 	ng.ng_GadgetID = 2;
 
@@ -853,9 +791,10 @@ BOOL OpenGUI(void) {
 	                                GTCY_Labels, countryConfig.choices,
 	                                GTCY_Active, 0,
 	                                TAG_DONE);
+	if (!countryCodeCycle) DEBUG("Failed to create country gadget");
 
-	// Codec dropdown
-	ng.ng_LeftEdge = metrics.leftMargin * 2 + metrics.columnWidth + metrics.labelWidth * 2;
+	// Codec Cycle gadget
+	ng.ng_LeftEdge = font_width * 40;  // Same as tags gadget
 	ng.ng_GadgetText = "Codec";
 	ng.ng_GadgetID = 4;
 
@@ -863,64 +802,72 @@ BOOL OpenGUI(void) {
 	                          GTCY_Labels, (STRPTR *)codecChoices,
 	                          GTCY_Active, 0,
 	                          TAG_DONE);
+	if (!codecCycle) DEBUG("Failed to create codec gadget");
 
-	// Checkboxes - adjust for better text visibility
-	ng.ng_LeftEdge = metrics.leftMargin;
-	ng.ng_TopEdge += metrics.gadgetHeight + metrics.gadgetSpacing;
-	ng.ng_Width = metrics.labelWidth;
+	// Checkboxes row
+	ng.ng_TopEdge += font_height + 12;
+	ng.ng_LeftEdge = font_width * 2;  // Move left for checkbox
+	ng.ng_Width = font_width * 12;
+	ng.ng_Height = font_height + 4;
 	ng.ng_GadgetText = "HTTPS Only";
 	ng.ng_GadgetID = 6;
-	ng.ng_Flags = PLACETEXT_RIGHT;
+	ng.ng_Flags = PLACETEXT_RIGHT;  // Text to right of checkbox
 
 	httpsCheckBox = CreateGadget(CHECKBOX_KIND, codecCycle, &ng,
 	                             GTCB_Checked, FALSE,
 	                             TAG_DONE);
+	if (!httpsCheckBox) DEBUG("Failed to create https checkbox");
 
-	// Hide Broken checkbox with proper spacing
-	ng.ng_LeftEdge += metrics.labelWidth + metrics.checkboxSpacing;  // Use dedicated spacing
+	ng.ng_LeftEdge = font_width * 18;  // Position second checkbox
 	ng.ng_GadgetText = "Hide Broken";
 	ng.ng_GadgetID = 7;
 
 	hideBrokenCheckBox = CreateGadget(CHECKBOX_KIND, httpsCheckBox, &ng,
 	                                  GTCB_Checked, TRUE,
 	                                  TAG_DONE);
+	if (!hideBrokenCheckBox) DEBUG("Failed to create broken checkbox");
 
-
-	// Search button - right aligned
-	ng.ng_LeftEdge = WINDOW_WIDTH - metrics.leftMargin - metrics.buttonWidth;
-	ng.ng_Width = metrics.buttonWidth;
+	// Search button
+	ng.ng_LeftEdge = font_width * 52;
+	ng.ng_Width = font_width * 10;
 	ng.ng_GadgetText = "Search";
-	ng.ng_Flags = PLACETEXT_IN;  // Text inside button
+	ng.ng_Flags = PLACETEXT_IN;
 	ng.ng_GadgetID = 8;
 
-	searchButton = CreateGadget(BUTTON_KIND, hideBrokenCheckBox, &ng, TAG_DONE);
+	searchButton = CreateGadget(BUTTON_KIND, hideBrokenCheckBox, &ng,
+	                            TAG_DONE);
+	if (!searchButton) DEBUG("Failed to create search button");
 
-
-
-	// List view remains full width
-	ng.ng_LeftEdge = metrics.leftMargin;
-	ng.ng_TopEdge += metrics.gadgetHeight + metrics.gadgetSpacing;
-	ng.ng_Width = WINDOW_WIDTH - (metrics.leftMargin * 2);
-	ng.ng_Height = WINDOW_HEIGHT - ng.ng_TopEdge - metrics.gadgetHeight * 3;
+	// ListView
+	ng.ng_LeftEdge = font_width * 2;
+	ng.ng_TopEdge += font_height + 12;
+	ng.ng_Width = font_width * 60;
+	ng.ng_Height = (font_height + 4) * 10;
+	ng.ng_GadgetText = NULL;
 	ng.ng_GadgetID = 9;
+	ng.ng_Flags = PLACETEXT_LEFT;
 
 	listView = CreateGadget(LISTVIEW_KIND, searchButton, &ng,
-	                        GTLV_ReadOnly, FALSE,
 	                        GTLV_Labels, site_labels,
+	                        GTLV_ReadOnly, FALSE,
 	                        TAG_DONE);
+	if (!listView) DEBUG("Failed to create listview");
 
-	// Save button - right aligned, bottom
-	ng.ng_LeftEdge = WINDOW_WIDTH - metrics.leftMargin - metrics.buttonWidth;
-	ng.ng_TopEdge += ng.ng_Height + metrics.gadgetSpacing;
-	ng.ng_Width = metrics.buttonWidth;
-	ng.ng_Height = metrics.gadgetHeight;
+	// Save button
+	ng.ng_TopEdge += ng.ng_Height + 12;
+	ng.ng_Width = font_width * 10;
+	ng.ng_Height = font_height + 4;
 	ng.ng_GadgetText = "Save";
+	ng.ng_Flags = PLACETEXT_IN;
+	ng.ng_GadgetID = 10;
 
-	saveButton = CreateGadget(BUTTON_KIND, listView, &ng, TAG_DONE);
+	saveButton = CreateGadget(BUTTON_KIND, listView, &ng,
+	                          TAG_DONE);
+	if (!saveButton) DEBUG("Failed to create save button");
 
-	// Status Message (bottom left)
-	ng.ng_LeftEdge = metrics.leftMargin;
-	ng.ng_Width = WINDOW_WIDTH - metrics.leftMargin * 3 - metrics.columnWidth;
+	// Status text
+	ng.ng_LeftEdge = font_width * 14;
+	ng.ng_Width = font_width * 32;
 	ng.ng_GadgetText = NULL;
 	ng.ng_Flags = 0;
 	ng.ng_GadgetID = 11;
@@ -928,24 +875,22 @@ BOOL OpenGUI(void) {
 	statusMsgGad = CreateGadget(TEXT_KIND, saveButton, &ng,
 	                            GTTX_Text, "Ready",
 	                            TAG_DONE);
-	if (!statusMsgGad) {
-		DEBUG("Failed to create Status gadget");
-		goto cleanup;
-	}
-	// Create window
+	if (!statusMsgGad) DEBUG("Failed to create status gadget");
+
+	// Calculate window size based on gadget positions - add extra space for labels
+	ULONG window_width = font_width * 64;  // Increased to accommodate labels
+	ULONG window_height = ng.ng_TopEdge + font_height + 15;
+
+	// Center window on screen
+	ULONG window_pos_x = (s->Width - window_width) / 2;
+	ULONG window_pos_y = (s->Height - window_height) / 2;
+
 	window = OpenWindowTags(NULL,
-	                        WA_Left, 100,
-	                        WA_Top, 50,
-	                        WA_InnerWidth, WINDOW_WIDTH,
-	                        WA_InnerHeight, WINDOW_HEIGHT,
-	                        WA_ReportMouse, TRUE,
-	                        WA_MouseQueue, 3,
-	                        WA_IDCMP, BUTTONIDCMP |
-	                        IDCMP_CLOSEWINDOW |
-	                        IDCMP_REFRESHWINDOW |
-	                        IDCMP_GADGETUP |
-	                        IDCMP_MENUPICK |
-	                        CYCLEIDCMP,
+	                        WA_Left, window_pos_x,
+	                        WA_Top, window_pos_y,
+	                        WA_Width, window_width,
+	                        WA_Height, window_height,
+	                        WA_Title, "TuneFinder by sandlbn",
 	                        WA_Flags, WFLG_DRAGBAR |
 	                        WFLG_DEPTHGADGET |
 	                        WFLG_CLOSEGADGET |
@@ -954,9 +899,13 @@ BOOL OpenGUI(void) {
 	                        WFLG_NOCAREREFRESH |
 	                        WFLG_NEWLOOKMENUS |
 	                        WFLG_SMART_REFRESH,
+	                        WA_IDCMP, BUTTONIDCMP |
+	                        IDCMP_CLOSEWINDOW |
+	                        IDCMP_REFRESHWINDOW |
+	                        IDCMP_GADGETUP |
+	                        IDCMP_MENUPICK |
+	                        CYCLEIDCMP,
 	                        WA_Gadgets, glist,
-	                        WA_ScreenTitle, "TuneFinder 1.0",
-	                        WA_Title, "TuneFinder by sandlbn",
 	                        WA_PubScreen, s,
 	                        TAG_DONE);
 
@@ -968,37 +917,18 @@ BOOL OpenGUI(void) {
 	// Create and setup menus
 	menuStrip = CreateAppMenus();
 	if (menuStrip) {
-		DEBUG("Menu created successfully");
-
-		if (!LayoutMenus(menuStrip, vi,
-		                 GTMN_NewLookMenus, TRUE,  // Add this for new look
-		                 TAG_DONE)) {
-			DEBUG("Failed to layout menus");
+		if (!LayoutMenus(menuStrip, vi, GTMN_NewLookMenus, TRUE, TAG_DONE)) {
 			FreeMenus(menuStrip);
 			menuStrip = NULL;
 		} else if (!SetMenuStrip(window, menuStrip)) {
-			DEBUG("Failed to set menu strip");
 			FreeMenus(menuStrip);
 			menuStrip = NULL;
-		} else {
-			DEBUG("Menu setup complete");
 		}
-	} else {
-		DEBUG("Menu creation failed");
 	}
 
-	RefreshGList(glist, window, NULL, -1);
-	// Store window ports
+	// Store important pointers
 	RastPort = window->RPort;
 	WindowPort = window->UserPort;
-
-	// Add gadgets to window
-	//AddGList(window, glist, (UWORD)~0, (UWORD)~0, NULL);
-	//RefreshGList(glist, window, NULL, 0);
-	GT_RefreshWindow(window, NULL);
-
-
-	// Store important pointers
 	browserList = site_labels;
 	window->UserData = (void *)glist;
 	visualInfo = vi;
@@ -1006,26 +936,18 @@ BOOL OpenGUI(void) {
 	// Load settings
 	LoadSettings(&currentSettings);
 
+	// Refresh window
+	RefreshGList(glist, window, NULL, -1);
+	GT_RefreshWindow(window, NULL);
+
 	UnlockPubScreen(NULL, s);
-	DEBUG("GUI initialization completed successfully");
 	return TRUE;
 
 cleanup:
-	if (menuStrip) {
-		FreeMenus(menuStrip);
-	}
-	if (glist) {
-		FreeGadgets(glist);
-	}
-	if (site_labels) {
-		free_labels(site_labels);
-	}
-	if (vi) {
-		FreeVisualInfo(vi);
-	}
-	if (s) {
-		UnlockPubScreen(NULL, s);
-	}
-	DEBUG("GUI initialization failed");
+	if (menuStrip) FreeMenus(menuStrip);
+	if (glist) FreeGadgets(glist);
+	if (site_labels) free_labels(site_labels);
+	if (vi) FreeVisualInfo(vi);
+	if (s) UnlockPubScreen(NULL, s);
 	return FALSE;
 }

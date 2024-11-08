@@ -24,7 +24,7 @@ BOOL SaveSettings(const struct APISettings *settings) {
     }
     
     // Save host
-    sprintf(filepath, ENV_PATH ENV_HOST);
+    sprintf(filepath, TUNEFINDER_DIR ENV_HOST);
     file = Open(filepath, MODE_NEWFILE);
     if (!file) {
         snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to create host settings file: %s", filepath);
@@ -44,7 +44,7 @@ BOOL SaveSettings(const struct APISettings *settings) {
     Close(file);
     
     // Save port
-    sprintf(filepath, ENV_PATH ENV_PORT);
+    sprintf(filepath, TUNEFINDER_DIR ENV_PORT);
     file = Open(filepath, MODE_NEWFILE);
     if (!file) {
         snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to create port settings file: %s", filepath);
@@ -82,7 +82,7 @@ BOOL LoadSettings(struct APISettings *settings) {
     settings->port = API_PORT; 
     
     // Try to load saved settings
-    sprintf(filepath, ENV_PATH ENV_HOST);
+    sprintf(filepath, TUNEFINDER_DIR ENV_HOST);
     file = Open(filepath, MODE_OLDFILE);
     if (file) {
         LONG len = Read(file, settings->host, MAX_HOST_LEN-1);
@@ -94,7 +94,7 @@ BOOL LoadSettings(struct APISettings *settings) {
     }
     
     // Load port setting
-    sprintf(filepath, ENV_PATH ENV_PORT);
+    sprintf(filepath, TUNEFINDER_DIR ENV_PORT);
     file = Open(filepath, MODE_OLDFILE);
     if (file) {
         memset(portStr, 0, sizeof(portStr));  // Clear the buffer
