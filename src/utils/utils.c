@@ -14,46 +14,6 @@
 #include "../../include/config.h"
 #include "../../include/gui.h"
 
-void UpdateStatusMessage(const char *message)
-{
-	char padded_message[81];  // 80 chars + null terminator
-	WORD i;
-
-	// Clear the entire buffer first
-	memset(padded_message, ' ', 80);
-	padded_message[80] = '\0';
-
-	// Copy original message into cleared buffer
-	if (message) {
-		for (i = 0; i < 80 && message[i] != '\0'; i++) {
-			padded_message[i] = message[i];
-		}
-	}
-
-	if (window && statusMsgGad) {
-		GT_SetGadgetAttrs(statusMsgGad, window, NULL,
-		                  GTTX_Text, padded_message,
-		                  TAG_DONE);
-		GT_RefreshWindow(window, NULL);
-	}
-
-#ifdef DEBUG_BUILD
-	DEBUG("Status: %s", message);  // Use original message for debug
-#endif
-}
-void free_labels(struct List *l)
-{
-	struct Node *n;
-
-	while ((n = RemHead(l)))
-	{
-		deallocate(n->ln_Name, V_cstr);
-		deallocate(n, V_Node);
-	}
-
-	deallocate(l, V_List);
-}
-
 static inline int isPrintableASCII(unsigned char c)
 {
 	return c >= 32 && c <= 126; // Standard ASCII printable range
@@ -133,6 +93,47 @@ void SanitizeAmigaFilename(const char *input, char *output, size_t maxLen)
 		output[14] = '\0';
 	}
 }
+
+void UpdateStatusMessage(const char *message)
+{
+	char padded_message[51];  // 51 chars + null terminator
+	WORD i;
+
+	// Clear the entire buffer first
+	memset(padded_message, ' ', 50);
+	padded_message[60] = '\0';
+
+	// Copy original message into cleared buffer
+	if (message) {
+		for (i = 0; i < 50 && message[i] != '\0'; i++) {
+			padded_message[i] = message[i];
+		}
+	}
+
+	if (window && statusMsgGad) {
+		GT_SetGadgetAttrs(statusMsgGad, window, NULL,
+		                  GTTX_Text, (STRPTR)padded_message,
+		                  TAG_DONE);
+		GT_RefreshWindow(window, NULL);
+	}
+
+#ifdef DEBUG_BUILD
+	DEBUG("Status: %s", message);  // Use original message for debug
+#endif
+}
+void free_labels(struct List *l)
+{
+	struct Node *n;
+
+	while ((n = RemHead(l)))
+	{
+		deallocate(n->ln_Name, V_cstr);
+		deallocate(n, V_Node);
+	}
+
+	deallocate(l, V_List);
+}
+
 
 BOOL SaveToPLS(const char *filename)
 {

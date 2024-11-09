@@ -159,7 +159,6 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     }
 
     snprintf(msg, MAX_STATUS_MSG_LEN, "Resolving host: %s", settings->host);
-    UpdateStatusMessage(msg);
     DEBUG("Resolving host: %s", settings->host);
     
     server = gethostbyname(settings->host);

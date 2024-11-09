@@ -37,7 +37,6 @@ BOOL SaveSettings(const struct APISettings *settings) {
     if (Write(file, settings->host, len) != len) {
         snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to write host setting");
         UpdateStatusMessage(msg);
-        DEBUG("%s", msg);
         Close(file);
         return FALSE;
     }
@@ -49,7 +48,6 @@ BOOL SaveSettings(const struct APISettings *settings) {
     if (!file) {
         snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to create port settings file: %s", filepath);
         UpdateStatusMessage(msg);
-        DEBUG("%s", msg);
         return FALSE;
     }
     
@@ -57,7 +55,6 @@ BOOL SaveSettings(const struct APISettings *settings) {
     if (Write(file, portStr, len) != len) {
         snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to write port setting");
         UpdateStatusMessage(msg);
-        DEBUG("%s", msg);
         Close(file);
         return FALSE;
     }
@@ -65,7 +62,6 @@ BOOL SaveSettings(const struct APISettings *settings) {
     
     snprintf(msg, MAX_STATUS_MSG_LEN, "Settings saved: %s:%u", settings->host, settings->port);
     UpdateStatusMessage(msg);
-    DEBUG("%s", msg);
     return TRUE;
 }
 
@@ -91,6 +87,10 @@ BOOL LoadSettings(struct APISettings *settings) {
             success = TRUE;
         }
         Close(file);
+    } 
+    if (!file) {
+        snprintf(msg, MAX_STATUS_MSG_LEN, "Can't load file: %s", filepath);
+        DEBUG("%s", msg);
     }
     
     // Load port setting
@@ -106,7 +106,7 @@ BOOL LoadSettings(struct APISettings *settings) {
                 settings->port = (UWORD)tempPort;
                 success = TRUE;
             } else {
-                snprintf(msg, MAX_STATUS_MSG_LEN, "Invalid port number in settings, using default: %d", API_PORT);
+                snprintf(msg, MAX_STATUS_MSG_LEN, "Invalid port number in settings, using default: %ld", API_PORT);
                 UpdateStatusMessage(msg);
                 DEBUG("%s", msg);
                 settings->port = API_PORT;
@@ -114,9 +114,11 @@ BOOL LoadSettings(struct APISettings *settings) {
         }
         Close(file);
     }
-    
+    if (!file) {
+        snprintf(msg, MAX_STATUS_MSG_LEN, "Can't load file: %s", filepath);
+        DEBUG("%s", msg);
+    }
     snprintf(msg, MAX_STATUS_MSG_LEN, "Settings loaded: %s:%u", settings->host, settings->port);
-    UpdateStatusMessage(msg);
     DEBUG("%s", msg);
     
     return success;
@@ -134,76 +136,126 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     struct IntuiMessage *msg;
     BOOL success = FALSE;
     char currentPortStr[MAX_PORT_LEN];
+    WORD currentTop;
     
+    // Get screen and visual info
     screen = parent->WScreen;
     vi = GetVisualInfo(screen, TAG_DONE);
-    if (!vi) return FALSE;
-    
-    gad = CreateContext(&glist);
-    if (!gad) {
-        FreeVisualInfo(vi);
+    if (!vi) {
+        DEBUG("Failed to get visual info");
         return FALSE;
     }
     
-    // Host input
-    ng.ng_LeftEdge = 20;
-    ng.ng_TopEdge = 20;
-    ng.ng_Width = 250;
-    ng.ng_Height = 15;
-    ng.ng_GadgetText = "API Host";
-    ng.ng_TextAttr = screen->Font;
-    ng.ng_GadgetID = 1;
-    ng.ng_Flags = PLACETEXT_RIGHT;
-    ng.ng_VisualInfo = vi;
+    // Get font metrics for consistent spacing
+    ULONG font_width = screen->RastPort.TxWidth;
+    ULONG font_height = screen->RastPort.TxHeight;
     
-    gad = CreateGadget(STRING_KIND, gad, &ng,
-        GTST_MaxChars, MAX_HOST_LEN-1,
-        GTST_String, settings->host,
-        TAG_DONE);
-    if (!gad) goto cleanup;
-    hostGad = gad;   
+    // Calculate layout metrics
+    WORD leftMargin = font_width * 2;            // Left margin
+    WORD topMargin = font_height + 10;            // Top margin
+    WORD rowHeight = font_height + 6;            // Height of each row
+    WORD rowSpacing = font_height / 2;           // Space between rows
+    WORD labelWidth = font_width * 10;           // Width for labels
+    WORD controlWidth = font_width * 25;         // Width for input fields
+    WORD buttonWidth = font_width * 10;          // Width for buttons
+    WORD windowWidth = leftMargin * 3 + controlWidth + labelWidth;
+    
+    // Create gadget context
+    gad = CreateContext(&glist);
+    if (!gad) {
+        FreeVisualInfo(vi);
+        DEBUG("Failed to create gadget context");
+        return FALSE;
+    }
+    
+    // Initialize base gadget properties
+    ng.ng_TextAttr = screen->Font;
+    ng.ng_VisualInfo = vi;
+    ng.ng_Flags = PLACETEXT_LEFT;
+    
+    // Start positioning from top margin
+    currentTop = topMargin;
+    
+    // Host input
+    ng.ng_LeftEdge = leftMargin + labelWidth;
+    ng.ng_TopEdge = currentTop;
+    ng.ng_Width = controlWidth;
+    ng.ng_Height = rowHeight;
+    ng.ng_GadgetText = "API Host";
+    ng.ng_GadgetID = 1;
+    
+    hostGad = CreateGadget(STRING_KIND, gad, &ng,
+                          GTST_MaxChars, MAX_HOST_LEN-1,
+                          GTST_String, settings->host,
+                          TAG_DONE);
+    if (!hostGad) {
+        DEBUG("Failed to create host gadget");
+        goto cleanup;
+    }
+    
+    // Move to next row
+    currentTop += rowHeight + rowSpacing;
     
     // Port input
-    ng.ng_TopEdge += 30;
-    ng.ng_Width = 100;
+    ng.ng_TopEdge = currentTop;
+    ng.ng_Width = font_width * 10;  // Shorter width for port
     ng.ng_GadgetText = "API Port";
     ng.ng_GadgetID = 2;
     
     snprintf(currentPortStr, sizeof(currentPortStr), "%u", settings->port);
-    DEBUG("Current port string: %s", currentPortStr);
     
-    gad = CreateGadget(STRING_KIND, gad, &ng,
-        GTST_MaxChars, MAX_PORT_LEN-1,
-        GTST_String, currentPortStr,
-        TAG_DONE);
-    if (!gad) goto cleanup;
-    portGad = gad;  // Store port gadget pointer
+    portGad = CreateGadget(STRING_KIND, hostGad, &ng,
+                          GTST_MaxChars, MAX_PORT_LEN-1,
+                          GTST_String, currentPortStr,
+                          TAG_DONE);
+    if (!portGad) {
+        DEBUG("Failed to create port gadget");
+        goto cleanup;
+    }
+    
+    // Move to button row
+    currentTop += rowHeight + rowSpacing * 2;  // Extra spacing before buttons
     
     // Save button
-    ng.ng_TopEdge += 40;
-    ng.ng_Width = 80;
+    ng.ng_LeftEdge = windowWidth/2 - buttonWidth - leftMargin;
+    ng.ng_TopEdge = currentTop;
+    ng.ng_Width = buttonWidth;
     ng.ng_GadgetText = "Save";
     ng.ng_GadgetID = 3;
     ng.ng_Flags = PLACETEXT_IN;
     
-    gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-    if (!gad) goto cleanup;
+    gad = CreateGadget(BUTTON_KIND, portGad, &ng, TAG_DONE);
+    if (!gad) {
+        DEBUG("Failed to create save button");
+        goto cleanup;
+    }
     
     // Cancel button
-    ng.ng_LeftEdge += 100;
+    ng.ng_LeftEdge = windowWidth/2 + leftMargin;
     ng.ng_GadgetText = "Cancel";
     ng.ng_GadgetID = 4;
     
     gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-    if (!gad) goto cleanup;
+    if (!gad) {
+        DEBUG("Failed to create cancel button");
+        goto cleanup;
+    }
     
+    // Calculate window height based on last gadget position
+    WORD windowHeight = currentTop + rowHeight + topMargin;
+    
+    // Center window relative to parent
+    WORD windowLeft = parent->LeftEdge + (parent->Width - windowWidth) / 2;
+    WORD windowTop = parent->TopEdge + (parent->Height - windowHeight) / 2;
+    
+    // Create window
     window = OpenWindowTags(NULL,
         WA_Title, "API Settings",
-        WA_Left, parent->LeftEdge + 50,
-        WA_Top, parent->TopEdge + 50,
-        WA_Width, 350,
-        WA_Height, 120,
-        WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP,
+        WA_Left, windowLeft,
+        WA_Top, windowTop,
+        WA_Width, windowWidth,
+        WA_Height, windowHeight,
+        WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_REFRESHWINDOW,
         WA_Gadgets, glist,
         WA_DragBar, TRUE,
         WA_DepthGadget, TRUE,
@@ -213,8 +265,12 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
         WA_PubScreen, screen,
         TAG_DONE);
         
-    if (!window) goto cleanup;
+    if (!window) {
+        DEBUG("Failed to create window");
+        goto cleanup;
+    }
     
+    // Event loop
     while (!done) {
         WaitPort(window->UserPort);
         
@@ -228,6 +284,11 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
             switch (class) {
                 case IDCMP_CLOSEWINDOW:
                     done = TRUE;
+                    break;
+                    
+                case IDCMP_REFRESHWINDOW:
+                    GT_BeginRefresh(window);
+                    GT_EndRefresh(window, TRUE);
                     break;
                     
                 case IDCMP_GADGETUP:
@@ -256,7 +317,9 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                                         DEBUG("Port set to: %u", settings->port);
                                     } else {
                                         char msg[MAX_STATUS_MSG_LEN];
-                                        snprintf(msg, MAX_STATUS_MSG_LEN, "Invalid port number, keeping current: %u", settings->port);
+                                        snprintf(msg, MAX_STATUS_MSG_LEN, 
+                                               "Invalid port number, keeping current: %u", 
+                                               settings->port);
                                         UpdateStatusMessage(msg);
                                         DEBUG("%s", msg);
                                     }

@@ -874,6 +874,7 @@ BOOL OpenGUI(void) {
 
 	statusMsgGad = CreateGadget(TEXT_KIND, saveButton, &ng,
 	                            GTTX_Text, "Ready",
+                                GTST_MaxChars, 51,
 	                            TAG_DONE);
 	if (!statusMsgGad) DEBUG("Failed to create status gadget");
 
