@@ -6,6 +6,7 @@ TuneFinder is an AmigaOS 3.x application that allows you to browse and save Inte
 - Search radio stations by name, country, codec, or tags
 - Filter stations by HTTPS and broken links
 - Save stations as PLS playlists
+- Play stations in AmigaAmp
 - Configurable API settings
 - Compatible with AmigaOS 3.x (68020+ CPU recommended)
 
@@ -65,7 +66,7 @@ The compiled binary will be placed in the `out` directory.
 2. Enter search criteria (name, country, codec, or tags)
 3. Click "Search" to find stations
 4. Select a station to view details
-5. Use "Save" to create a PLS playlist file
+5. Use "Save" to create a PLS playlist file or "Play" to play selected station in the AmigaAmp
 
 ## Credits
 Created by sandlbn
