@@ -9,7 +9,6 @@
 BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
     BPTR file;
     char buffer[256];
-    char filepath[256];
     
     // Initialize config
     config->count = 0;
@@ -30,9 +29,7 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
     config->count = 1;
     
     // Create full path
-    sprintf(filepath, "%s/%s", CONFIG_PATH, filename);
-    
-    file = Open(filepath, MODE_OLDFILE);
+    file = Open(filename, MODE_OLDFILE);
     if (!file) {
         // If file doesn't exist, create default entries
         AddCountry(config, "PL", "Poland");
@@ -73,7 +70,6 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
 
 BOOL SaveCountryConfig(const char *filename, struct CountryConfig *config) {
     BPTR file;
-    char filepath[256];
     char dirlock;
     
     // Ensure config directory exists
@@ -82,8 +78,7 @@ BOOL SaveCountryConfig(const char *filename, struct CountryConfig *config) {
         return FALSE;
     }
     
-    sprintf(filepath, "%s/%s", CONFIG_PATH, filename);
-    file = Open(filepath, MODE_NEWFILE);
+    file = Open(filename, MODE_NEWFILE);
     if (!file) {
         DEBUG("Failed to create country config file");
         return FALSE;

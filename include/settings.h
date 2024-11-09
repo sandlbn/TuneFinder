@@ -5,6 +5,9 @@
 
 #define ENV_PATH "ENVARC:TuneFinder"
 #define TUNEFINDER_DIR "ENVARC:TuneFinder/"
+#define CONFIG_PATH "ENVARC:TuneFinder/"
+#define FULL_COUNTRY_CONFIG_PATH "ENVARC:TuneFinder/countries.cfg"
+
 #define ENV_HOST "apihost"
 #define ENV_PORT "apiport"
 #define MAX_HOST_LEN 256

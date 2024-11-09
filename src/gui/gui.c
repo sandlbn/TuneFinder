@@ -723,7 +723,7 @@ BOOL OpenGUI(void) {
 	font_width = s->RastPort.TxWidth;
 	font_height = s->RastPort.TxHeight;
 
-	if (!LoadCountryConfig(COUNTRY_CONFIG_FILE, &countryConfig)) {
+	if (!LoadCountryConfig(FULL_COUNTRY_CONFIG_PATH, &countryConfig)) {
 		DEBUG("Failed to load country configuration");
 		UnlockPubScreen(NULL, s);
 		return FALSE;
