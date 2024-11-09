@@ -87,4 +87,13 @@ Fixes:
 
 - Fixed settings directory inconsistency between country and API settings.
 
+TuneFinder 1.00 (09.11.2024)
+
+- Improved settings window creation
+
+Fixes:
+
+- Fixed text padding in msg text gadget
+
+
 Special thanks to Flype and Paluch for their help testing TuneFinder!
