@@ -96,23 +96,10 @@ void SanitizeAmigaFilename(const char *input, char *output, size_t maxLen)
 
 void UpdateStatusMessage(const char *message)
 {
-	char padded_message[51];  // 51 chars + null terminator
-	WORD i;
-
-	// Clear the entire buffer first
-	memset(padded_message, ' ', 50);
-	padded_message[60] = '\0';
-
-	// Copy original message into cleared buffer
-	if (message) {
-		for (i = 0; i < 50 && message[i] != '\0'; i++) {
-			padded_message[i] = message[i];
-		}
-	}
 
 	if (window && statusMsgGad) {
 		GT_SetGadgetAttrs(statusMsgGad, window, NULL,
-		                  GTTX_Text, (STRPTR)padded_message,
+		                  GTTX_Text, (STRPTR)message,
 		                  TAG_DONE);
 		GT_RefreshWindow(window, NULL);
 	}
