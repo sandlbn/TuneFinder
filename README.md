@@ -56,6 +56,17 @@ docker run --rm  -v ${PWD}:/work -it sacredbanana/amiga-compiler:m68k-amigaos ma
 
 The compiled binary will be placed in the `out` directory.
 
+## Translation
+
+To translate TuneFinder to a new language, create a new .ct file with the same structure as shown in [assets/translation](assets/translation/tunefinder.cd) , replacing each English text line with your translated version while keeping the MSG_ identifiers and semicolons untouched. Make sure to update the language code in the header of your .ct file (e.g., ## language deutsch for German). 
+After creating your translation file, use the command 
+
+```
+flexcat tunefinder.cd yourlanguage.ct CATALOG LOCALE:Catalogs/yourlanguage/tunefinder.catalog
+```
+
+to generate the catalog file, then place the generated catalog in your LOCALE:Catalogs/yourlanguage/ directory.
+
 ## Installation
 
 1. Copy the TuneFinder executable to your Amiga

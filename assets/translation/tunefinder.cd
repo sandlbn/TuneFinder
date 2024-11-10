@@ -90,6 +90,9 @@ File saved: %s
 MSG_SET_SAVED (46//)
 Settings saved: %s:%u
 ;
+MSG_SET_SAVED (47//)
+No stations found
+;
 ; Error Messages - Settings Related
 MSG_INVALID_PORT (50//)
 Invalid port number, keeping current: %ld
