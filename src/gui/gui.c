@@ -24,6 +24,7 @@
 #include "../../include/data.h"
 #include "../../include/country_config.h"
 #include "../../include/amigaamp.h"
+#include "../../include/locale.h"
 
 struct CountryConfig countryConfig;
 struct RastPort *RastPort;
@@ -819,7 +820,7 @@ BOOL OpenGUI(void) {
 	if (!httpsCheckBox) DEBUG("Failed to create https checkbox");
 
 	ng.ng_LeftEdge = font_width * 18;  // Position second checkbox
-	ng.ng_GadgetText = "Hide Broken";
+	ng.ng_GadgetText = GetTFString(MSG_HIDE_BROKEN);
 	ng.ng_GadgetID = 7;
 
 	hideBrokenCheckBox = CreateGadget(CHECKBOX_KIND, httpsCheckBox, &ng,
@@ -830,7 +831,7 @@ BOOL OpenGUI(void) {
 	// Search button
 	ng.ng_LeftEdge = font_width * 52;
 	ng.ng_Width = font_width * 10;
-	ng.ng_GadgetText = "Search";
+	ng.ng_GadgetText = GetTFString(MSG_SAVE);
 	ng.ng_Flags = PLACETEXT_IN;
 	ng.ng_GadgetID = 8;
 
