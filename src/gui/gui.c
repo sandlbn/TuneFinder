@@ -65,11 +65,11 @@ const char *codecChoices[] = {"","MP3","AAC", "AAC+", "FLAC", NULL};
 
 static struct Menu *CreateAppMenus(void) {
 	struct NewMenu newMenu[] = {
-		{ NM_TITLE,  "Project",     NULL,     0, 0L, NULL },
-		{ NM_ITEM,   "Settings...", "S",      0, 0L, NULL },
-		{ NM_ITEM,   "About...",    "?",      0, 0L, NULL },
+		{ NM_TITLE,  GetTFString(MSG_PROJECT),     NULL,     0, 0L, NULL },
+		{ NM_ITEM,   GetTFString(MSG_SETTINGS), "S",      0, 0L, NULL },
+		{ NM_ITEM,   GetTFString(MSG_ABOUT),    "?",      0, 0L, NULL },
 		{ NM_ITEM,   NM_BARLABEL,   NULL,     0, 0L, NULL },
-		{ NM_ITEM,   "Quit",        "Q",      0, 0L, NULL },
+		{ NM_ITEM,   GetTFString(MSG_QUIT),        "Q",      0, 0L, NULL },
 		{ NM_END,    NULL,          NULL,     0, 0L, NULL }
 	};
 
@@ -296,7 +296,7 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
 	ng.ng_TopEdge = windowHeight - 30;  // Adjusted position
 	ng.ng_Width = 80;
 	ng.ng_Height = 15;
-	ng.ng_GadgetText = "Save";
+	ng.ng_GadgetText = GetTFString(MSG_SAVE);
 	ng.ng_TextAttr = screen->Font;
 	ng.ng_GadgetID = 1;
 	ng.ng_Flags = PLACETEXT_IN;
@@ -311,7 +311,7 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
 	}
 	// AmigaAMP button
 	ng.ng_LeftEdge = windowWidth/2 + 10;
-	ng.ng_GadgetText = "Play";
+	ng.ng_GadgetText = GetTFString(MSG_PLAY);
 	ng.ng_GadgetID = 2;
 
 	gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
@@ -323,7 +323,7 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
 	}
 
 	detailWindow = OpenWindowTags(NULL,
-	                              WA_Title, "Station Details",
+	                              WA_Title, GetTFString(MSG_STATION_DETAILS),
 	                              WA_Left, leftEdge,
 	                              WA_Top, topEdge,
 	                              WA_Width, windowWidth,
@@ -373,14 +373,14 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
 
 	// Draw Codec field
 	Move(rp, labelX, textY);
-	Text(rp, "Codec:", 6);
+	Text(rp, GetTFString(MSG_CODEC), 6);
 	Move(rp, contentX, textY);
 	Text(rp, station->codec, strlen(station->codec));
 	textY += 20;
 
 	// Draw Bitrate field
 	Move(rp, labelX, textY);
-	Text(rp, "Bitrate:", 8);
+	Text(rp, GetTFString(MSG_BITRATE), 8);
 	char bitrateBuf[20];
 	sprintf(bitrateBuf, "%ld kbps", station->bitrate);
 	Move(rp, contentX, textY);
@@ -389,7 +389,7 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
 
 	// Draw Country field
 	Move(rp, labelX, textY);
-	Text(rp, "Country:", 8);
+	Text(rp, GetTFString(MSG_COUNTRY), 8);
 	Move(rp, contentX, textY);
 	Text(rp, station->country, strlen(station->country));
 
@@ -423,10 +423,11 @@ void HandleSave(void) {
 		}
 
 		if (SaveToPLS(filepath)) {
-			snprintf(msg, MAX_STATUS_MSG_LEN, "File saved: %s", filepath);
+            char msg[MAX_STATUS_MSG_LEN];
+            GetTFFormattedString(msg, sizeof(msg), MSG_FILE_SAVED, filepath);
 			UpdateStatusMessage(msg);
 		} else {
-			UpdateStatusMessage("Failed to save file");
+			UpdateStatusMessage(GetTFString(MSG_FAILED_FILE_SAVE));
 		}
 	}
 
@@ -473,14 +474,19 @@ void HandleListSelect(struct IntuiMessage *imsg) {
 							if (OpenStreamInAmigaAMP(ext->url)) {
 								// Success - show status in main window
 								char msg[MAX_STATUS_MSG_LEN];
-								snprintf(msg, MAX_STATUS_MSG_LEN,
-								         "Playing: %s", ext->displayText);
+                                GetTFFormattedString(msg, sizeof(msg), MSG_PLAYING_STATION, ext->displayText);
 								UpdateStatusMessage(msg);
 							} else {
-								UpdateStatusMessage("Failed to start playback");
+								char msg[MAX_STATUS_MSG_LEN];
+                                GetTFFormattedString(msg, sizeof(msg), MSG_FAILED_START_PLAYBACK, ext->displayText);
+								UpdateStatusMessage(msg);
+
 							}
 						} else {
-							UpdateStatusMessage("AmigaAMP is not running");
+								char msg[MAX_STATUS_MSG_LEN];
+                                GetTFFormattedString(msg, sizeof(msg), MSG_AMIGAAMP_NOT_RUNNING, ext->displayText);
+								UpdateStatusMessage(msg);
+
 						}
 						break;
 					}
@@ -558,7 +564,7 @@ void HandleSearch(void) {
 
 	urlPath = build_search_url(&params);
 	if (!urlPath) {
-		UpdateStatusMessage("Failed to build URL");
+		DEBUG("%s","Failed to build URL");
 		return;
 	}
 
@@ -566,7 +572,8 @@ void HandleSearch(void) {
 	free(urlPath);
 
 	if (!response) {
-		UpdateStatusMessage("HTTP request failed");
+        
+		UpdateStatusMessage(GetTFString(MSG_HTTP_REQ_FAILED));
 		return;
 	}
 
@@ -605,7 +612,7 @@ void HandleSearch(void) {
 
 		ext->displayText = displayText;
 		ext->url = strdup(stations[i].url ? stations[i].url : "");
-		ext->codec = strdup(stations[i].codec ? stations[i].codec : "Unknown");
+		ext->codec = strdup(stations[i].codec ? stations[i].codec : GetTFString(MSG_UNKNOWN));
 		ext->country = strdup(stations[i].country ? stations[i].country : "??");
 		ext->bitrate = stations[i].bitrate;
 		ext->node.ln_Name = ext->displayText;
@@ -621,8 +628,10 @@ void HandleSearch(void) {
 		GT_SetGadgetAttrs(listView, window, NULL,
 		                  GTLV_Labels, browserList,
 		                  TAG_DONE);
-
-		snprintf(msg, MAX_STATUS_MSG_LEN, "Search completed. Found %d stations.", station_count);
+                          
+        char msg[MAX_STATUS_MSG_LEN];
+        GetTFFormattedString(msg, sizeof(msg), MSG_FOUND_STATIONS, station_count);
+		//snprintf(msg, MAX_STATUS_MSG_LEN, "Search completed. Found %d stations.", station_count);
 		UpdateStatusMessage(msg);
 	}
 }
@@ -662,8 +671,10 @@ void HandleMenuPick(UWORD menuNumber) {
 			DEBUG("Settings selected");
 			if (CreateSettingsWindow(&currentSettings, window)) {
 				char msg[MAX_STATUS_MSG_LEN];
-				snprintf(msg, MAX_STATUS_MSG_LEN, "Settings saved: %s:%d",
-				         currentSettings.host, currentSettings.port);
+                GetTFFormattedString(msg, sizeof(msg), MSG_SETTINGS_SAVED, currentSettings.host, currentSettings.port);
+
+				//snprintf(msg, MAX_STATUS_MSG_LEN, "Settings saved: %s:%d",
+				 //        currentSettings.host, currentSettings.port);
 				UpdateStatusMessage(msg);
 			}
 			break;
@@ -763,7 +774,7 @@ BOOL OpenGUI(void) {
 	ng.ng_TopEdge = font_height + 10;
 	ng.ng_Width = font_width * 22;
 	ng.ng_Height = font_height + 4;
-	ng.ng_GadgetText = "Name";
+	ng.ng_GadgetText = GetTFString(MSG_NAME);
 	ng.ng_GadgetID = 1;
 	ng.ng_Flags = PLACETEXT_LEFT | NG_HIGHLABEL;  // Add NG_HIGHLABEL for better visibility
 
@@ -774,7 +785,7 @@ BOOL OpenGUI(void) {
 
 	// Tags String gadget
 	ng.ng_LeftEdge = font_width * 40;  // Adjust for second column
-	ng.ng_GadgetText = "Tags";
+	ng.ng_GadgetText = GetTFString(MSG_TAGS);
 	ng.ng_GadgetID = 5;
 
 	tagsStrGad = CreateGadget(STRING_KIND, nameStrGad, &ng,
@@ -785,7 +796,7 @@ BOOL OpenGUI(void) {
 	// Country Cycle gadget
 	ng.ng_LeftEdge = font_width * 10;  // Same as name gadget
 	ng.ng_TopEdge += font_height + 12;
-	ng.ng_GadgetText = "Country";
+	ng.ng_GadgetText = GetTFString(MSG_COUNTRY);
 	ng.ng_GadgetID = 2;
 
 	countryCodeCycle = CreateGadget(CYCLE_KIND, tagsStrGad, &ng,
@@ -796,7 +807,7 @@ BOOL OpenGUI(void) {
 
 	// Codec Cycle gadget
 	ng.ng_LeftEdge = font_width * 40;  // Same as tags gadget
-	ng.ng_GadgetText = "Codec";
+	ng.ng_GadgetText = GetTFString(MSG_CODEC);
 	ng.ng_GadgetID = 4;
 
 	codecCycle = CreateGadget(CYCLE_KIND, countryCodeCycle, &ng,
@@ -810,7 +821,7 @@ BOOL OpenGUI(void) {
 	ng.ng_LeftEdge = font_width * 2;  // Move left for checkbox
 	ng.ng_Width = font_width * 12;
 	ng.ng_Height = font_height + 4;
-	ng.ng_GadgetText = "HTTPS Only";
+	ng.ng_GadgetText = GetTFString(MSG_HTTPS_ONLY);
 	ng.ng_GadgetID = 6;
 	ng.ng_Flags = PLACETEXT_RIGHT;  // Text to right of checkbox
 
@@ -831,7 +842,7 @@ BOOL OpenGUI(void) {
 	// Search button
 	ng.ng_LeftEdge = font_width * 52;
 	ng.ng_Width = font_width * 10;
-	ng.ng_GadgetText = GetTFString(MSG_SAVE);
+	ng.ng_GadgetText = GetTFString(MSG_SEARCH);
 	ng.ng_Flags = PLACETEXT_IN;
 	ng.ng_GadgetID = 8;
 
@@ -858,7 +869,7 @@ BOOL OpenGUI(void) {
 	ng.ng_TopEdge += ng.ng_Height + 12;
 	ng.ng_Width = font_width * 10;
 	ng.ng_Height = font_height + 4;
-	ng.ng_GadgetText = "Save";
+	ng.ng_GadgetText = GetTFString(MSG_SAVE);
 	ng.ng_Flags = PLACETEXT_IN;
 	ng.ng_GadgetID = 10;
 
@@ -874,7 +885,7 @@ BOOL OpenGUI(void) {
 	ng.ng_GadgetID = 11;
 
 	statusMsgGad = CreateGadget(TEXT_KIND, saveButton, &ng,
-	                            GTTX_Text, "Ready",
+	                            GTTX_Text, GetTFString(MSG_READY),
                                 GTST_MaxChars, 51,
 	                            TAG_DONE);
 	if (!statusMsgGad) DEBUG("Failed to create status gadget");
@@ -892,7 +903,7 @@ BOOL OpenGUI(void) {
 	                        WA_Top, window_pos_y,
 	                        WA_Width, window_width,
 	                        WA_Height, window_height,
-	                        WA_Title, "TuneFinder by sandlbn",
+	                        WA_Title, "TuneFinder",
 	                        WA_Flags, WFLG_DRAGBAR |
 	                        WFLG_DEPTHGADGET |
 	                        WFLG_CLOSEGADGET |
