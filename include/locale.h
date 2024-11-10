@@ -43,7 +43,7 @@
 #define MSG_SEARCH_COMPLETED   44  // "Search completed. Found %d stations."
 #define MSG_FILE_SAVED         45  // "File saved: %s"
 #define MSG_SET_SAVED          46  // "Settings saved: %s:%u"
-
+#define MSG_NO_STATION_FOUND   47 // "No stations found"
 // Error Messages - Settings Related
 #define MSG_INVALID_PORT           50  // "Invalid port number, keeping current: %ld"
 #define MSG_FAILED_WRITE_PORT_SET  51  // "Failed to write port setting"

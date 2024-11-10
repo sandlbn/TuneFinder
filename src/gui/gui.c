@@ -581,7 +581,7 @@ void HandleSearch(void) {
 	free(response);
 
 	if (!stations || station_count == 0) {
-		UpdateStatusMessage("No stations found");
+		UpdateStatusMessage(GetTFString(MSG_NO_STATION_FOUND));
 		return;
 	}
 

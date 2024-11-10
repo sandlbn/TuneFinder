@@ -1,7 +1,6 @@
 ; tunefinder.cd
 ; Catalog description for TuneFinder
 ; $VER: tunefinder.cd 1.0 (09.11.2024)
-
 ; GUI Labels
 MSG_NAME (1//)
 Name
@@ -21,7 +20,6 @@ Bitrate
 MSG_UNKNOWN (6//)
 Unknown
 ;
-
 ; GUI Actions
 MSG_SEARCH (10//)
 Search
@@ -38,7 +36,6 @@ Play
 MSG_QUIT (14//)
 Quit
 ;
-
 ; GUI States
 MSG_READY (20//)
 Ready
@@ -58,7 +55,6 @@ Project
 MSG_ABOUT (25//)
 About
 ;
-
 ; Options and Settings
 MSG_HOST (30//)
 API Host
@@ -72,7 +68,6 @@ HTTPS Only
 MSG_HIDE_BROKEN (33//)
 Hide Broken
 ;
-
 ; Status Messages with Parameters
 MSG_FOUND_STATIONS (40//)
 Found %d stations
@@ -95,7 +90,6 @@ File saved: %s
 MSG_SET_SAVED (46//)
 Settings saved: %s:%u
 ;
-
 ; Error Messages - Settings Related
 MSG_INVALID_PORT (50//)
 Invalid port number, keeping current: %ld
@@ -106,7 +100,6 @@ Failed to write port setting
 MSG_FAILED_WRITE_HOST_SETTING (52//)
 Failed to write host setting
 ;
-
 ; Error Messages - File Operations
 MSG_FAILED_FILE_SAVE (60//)
 Failed to save file
@@ -120,7 +113,6 @@ Failed to create port settings file: %s
 MSG_FAILED_CREAT_HOST_SET_FILE (63//)
 Failed to create host settings file: %s
 ;
-
 ; Error Messages - Directory Operations
 MSG_CREATED_SET_DIR (70//)
 Created settings directory: %s
@@ -128,7 +120,6 @@ Created settings directory: %s
 MSG_FAIL_CREATE_SET_DIR (71//)
 Failed to create directory: %s
 ;
-
 ; Error Messages - Network Related
 MSG_HTTP_REQ_FAILED (80//)
 HTTP request failed
@@ -151,7 +142,6 @@ Failed to create socket
 MSG_FAILED_ALL_BUFF (86//)
 Failed to allocate buffers
 ;
-
 ; Error Messages - External Programs
 MSG_FAILED_START_PLAYBACK (90//)
 Failed to start playback

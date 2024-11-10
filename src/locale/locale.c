@@ -78,9 +78,8 @@ static const char *built_in_strings[] = {
     "Search completed. Found %d stations.",
     "File saved: %s",
     "Settings saved: %s:%u",
-    
-    // Padding to align with IDs 47-49
-    NULL,
+    "No stations found",
+    // Padding to align with IDs 48-49
     NULL,
     NULL,
     
