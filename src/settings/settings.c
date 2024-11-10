@@ -54,7 +54,7 @@ BOOL SaveSettings(const struct APISettings *settings) {
     
     len = snprintf(portStr, sizeof(portStr), "%u", (unsigned int)settings->port);
     if (Write(file, portStr, len) != len) {
-        UpdateStatusMessage(GetTFString(MSG_FAIL_WRITE_PORT_SET));
+        UpdateStatusMessage(GetTFString(MSG_FAILED_WRITE_PORT_SET));
         Close(file);
         return FALSE;
     }

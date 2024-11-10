@@ -13,56 +13,139 @@
 static struct Catalog *Catalog = NULL;
 
 // Built-in default strings (English)
+// locale.c
 static const char *built_in_strings[] = {
-    "Name",                                     // 1  MSG_NAME
-    "Country",                                  // 2  MSG_COUNTRY
-    "Codec",                                    // 3  MSG_CODEC
-    "Tags",                                     // 4  MSG_TAGS
-    "HTTPS Only",                              // 5  MSG_HTTPS_ONLY
-    "Hide Broken",                             // 6  MSG_HIDE_BROKEN
-    "Search",                                  // 7  MSG_SEARCH
-    "Save",                                    // 8  MSG_SAVE
-    "Ready",                                   // 9  MSG_READY
-    "Settings",                                // 10 MSG_SETTINGS
-    "API Host",                                // 11 MSG_HOST
-    "API Port",                                // 12 MSG_PORT
-    "Cancel",                                  // 13 MSG_CANCEL
-    "About",                                   // 14 MSG_ABOUT
-    "Quit",                                    // 15 MSG_QUIT
-    "Bitrate",                                // 16 MSG_BITRATE
-    "Unknown",                                // 17 MSG_UNKNOWN
-    "Found %d stations",                      // 18 MSG_FOUND_STATIONS
-    "Playing: %s",                            // 19 MSG_PLAYING_STATION
-    "Settings loaded: %s:%d",                 // 20 MSG_SETTINGS_LOADED
-    "Invalid port number, keeping current: %ld", // 21 MSG_INVALID_PORT
-    "Search completed. Found %d stations.",    // 22 MSG_SEARCH_COMPLETED
-    "Project",                                // 23 MSG_PROJECT
-    "Play",                                   // 24 MSG_PLAY
-    "Station Details",                        // 25 MSG_STATION_DETAILS
-    "File saved: %s",                         // 26 MSG_FILE_SAVED
-    "Failed to save file",                    // 27 MSG_FAILED_FILE_SAVE
-    "Failed to start playback",               // 28 MSG_FAILED_START_PLAYBACK
-    "AmigaAMP is not running",               // 29 MSG_AMIGAAMP_NOT_RUNNING
-    "HTTP request failed",                    // 30 MSG_HTTP_REQ_FAILED
-    "Settings saved: %s:%d",                  // 31 MSG_SETTINGS_SAVED
-    "Failed to resolve host",                 // 32 MSG_FAILED_RESOLV_HOST
-    "Failed to connect to server",            // 33 MSG_FAILED_CONN_SERV
-    "Failed to send request",                 // 34 MSG_FAILED_SEND_REQ
-    "Timeout waiting for data",               // 35 MSG_TIMEOUT
-    "Failed to allocate buffers",             // 36 MSG_FAILED_ALL_BUFF
-    "Failed to create socket",                // 37 MSG_FAILED_CR_SOC
-    "Failed to access %s",                    // 38 MSG_FAILED_ACCESS
-    "Created settings directory: %s",         // 39 MSG_CREATED_SET_DIR
-    "Failed to create directory: %s",         // 40 MSG_FAIL_CREATE_SET_DIR
-    "Failed to write port setting",           // 41 MSG_FAIL_WRITE_PORT_SET
-    "Settings saved: %s:%u",                  // 42 MSG_SET_SAVED
-    "Failed to create port settings file: %s", // 43 MSG_FAILED_CREAT_PORT_FILE
-    "Failed to write host setting",           // 44 MSG_FAILED_WRITE_HOST_SETTING
-    "Failed to create host settings file: %s", // 45 MSG_FAILED_CREAT_HOST_SET_FILE
-    "API Settings",                           // 46 MSG_API_SETTINGS
-    NULL
+    // GUI Labels (1-6)
+    "Name",
+    "Country",
+    "Codec",
+    "Tags",
+    "Bitrate",
+    "Unknown",
+    
+    // Padding to align with IDs 7-9
+    NULL,
+    NULL,
+    NULL,
+    
+    // GUI Actions (10-14)
+    "Search",
+    "Save",
+    "Cancel",
+    "Play",
+    "Quit",
+    
+    // Padding to align with IDs 15-19
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    
+    // GUI States (20-25)
+    "Ready",
+    "Settings",
+    "API Settings",
+    "Station Details",
+    "Project",
+    "About",
+    
+    // Padding to align with IDs 26-29
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    
+    // Options and Settings (30-33)
+    "API Host",
+    "API Port",
+    "HTTPS Only",
+    "Hide Broken",
+    
+    // Padding to align with IDs 34-39
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    
+    // Status Messages with Parameters (40-46)
+    "Found %d stations",
+    "Playing: %s",
+    "Settings loaded: %s:%d",
+    "Settings saved: %s:%d",
+    "Search completed. Found %d stations.",
+    "File saved: %s",
+    "Settings saved: %s:%u",
+    
+    // Padding to align with IDs 47-49
+    NULL,
+    NULL,
+    NULL,
+    
+    // Error Messages - Settings Related (50-52)
+    "Invalid port number, keeping current: %ld",
+    "Failed to write port setting",
+    "Failed to write host setting",
+    
+    // Padding to align with IDs 53-59
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    
+    // Error Messages - File Operations (60-63)
+    "Failed to save file",
+    "Failed to access %s",
+    "Failed to create port settings file: %s",
+    "Failed to create host settings file: %s",
+    
+    // Padding to align with IDs 64-69
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    
+    // Error Messages - Directory Operations (70-71)
+    "Created settings directory: %s",
+    "Failed to create directory: %s",
+    
+    // Padding to align with IDs 72-79
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    
+    // Error Messages - Network Related (80-86)
+    "HTTP request failed",
+    "Failed to resolve host",
+    "Failed to connect to server",
+    "Failed to send request",
+    "Timeout waiting for data",
+    "Failed to create socket",
+    "Failed to allocate buffers",
+    
+    // Padding to align with IDs 87-89
+    NULL,
+    NULL,
+    NULL,
+    
+    // Error Messages - External Programs (90-91)
+    "Failed to start playback",
+    "AmigaAMP is not running",
+    
+    NULL  // Final terminator
 };
-
 BOOL InitLocaleSystem(void)
 {
     // Open locale.library
