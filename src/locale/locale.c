@@ -156,9 +156,9 @@ BOOL InitLocaleSystem(void)
     }
     
     // Try to open catalog for current locale
-    Catalog = OpenCatalogA(NULL, 
-                          (STRPTR)CATALOG_NAME,
-                          (struct TagItem *)TAG_USER);  // No tags needed
+    Catalog = OpenCatalog(NULL,
+                          CATALOG_NAME,
+                          TAG_DONE);  // No tags needed
     
     // Note: It's OK if catalog doesn't open - we'll use built-in strings
     if (!Catalog) {
