@@ -1,0 +1,154 @@
+; tunefinder.cd
+; Catalog description for TuneFinder
+; $VER: tunefinder.cd 1.0 (09.11.2024)
+; GUI Labels
+MSG_NAME (1//)
+Name
+;
+MSG_COUNTRY (2//)
+Country
+;
+MSG_CODEC (3//)
+Codec
+;
+MSG_TAGS (4//)
+Tags
+;
+MSG_BITRATE (5//)
+Bitrate
+;
+MSG_UNKNOWN (6//)
+Unknown
+;
+; GUI Actions
+MSG_SEARCH (10//)
+Search
+;
+MSG_SAVE (11//)
+Save
+;
+MSG_CANCEL (12//)
+Cancel
+;
+MSG_PLAY (13//)
+Play
+;
+MSG_QUIT (14//)
+Quit
+;
+; GUI States
+MSG_READY (20//)
+Ready
+;
+MSG_SETTINGS (21//)
+Settings
+;
+MSG_API_SETTINGS (22//)
+API Settings
+;
+MSG_STATION_DETAILS (23//)
+Station Details
+;
+MSG_PROJECT (24//)
+Project
+;
+MSG_ABOUT (25//)
+About
+;
+; Options and Settings
+MSG_HOST (30//)
+API Host
+;
+MSG_PORT (31//)
+API Port
+;
+MSG_HTTPS_ONLY (32//)
+HTTPS Only
+;
+MSG_HIDE_BROKEN (33//)
+Hide Broken
+;
+; Status Messages with Parameters
+MSG_FOUND_STATIONS (40//)
+Found %d stations
+;
+MSG_PLAYING_STATION (41//)
+Playing: %s
+;
+MSG_SETTINGS_LOADED (42//)
+Settings loaded: %s:%d
+;
+MSG_SETTINGS_SAVED (43//)
+Settings saved: %s:%d
+;
+MSG_SEARCH_COMPLETED (44//)
+Search completed. Found %d stations.
+;
+MSG_FILE_SAVED (45//)
+File saved: %s
+;
+MSG_SET_SAVED (46//)
+Settings saved: %s:%u
+;
+MSG_SET_SAVED (47//)
+No stations found
+;
+; Error Messages - Settings Related
+MSG_INVALID_PORT (50//)
+Invalid port number, keeping current: %ld
+;
+MSG_FAILED_WRITE_PORT_SET (51//)
+Failed to write port setting
+;
+MSG_FAILED_WRITE_HOST_SETTING (52//)
+Failed to write host setting
+;
+; Error Messages - File Operations
+MSG_FAILED_FILE_SAVE (60//)
+Failed to save file
+;
+MSG_FAILED_ACCESS (61//)
+Failed to access %s
+;
+MSG_FAILED_CREAT_PORT_FILE (62//)
+Failed to create port settings file: %s
+;
+MSG_FAILED_CREAT_HOST_SET_FILE (63//)
+Failed to create host settings file: %s
+;
+; Error Messages - Directory Operations
+MSG_CREATED_SET_DIR (70//)
+Created settings directory: %s
+;
+MSG_FAIL_CREATE_SET_DIR (71//)
+Failed to create directory: %s
+;
+; Error Messages - Network Related
+MSG_HTTP_REQ_FAILED (80//)
+HTTP request failed
+;
+MSG_FAILED_RESOLV_HOST (81//)
+Failed to resolve host
+;
+MSG_FAILED_CONN_SERV (82//)
+Failed to connect to server
+;
+MSG_FAILED_SEND_REQ (83//)
+Failed to send request
+;
+MSG_TIMEOUT (84//)
+Timeout waiting for data
+;
+MSG_FAILED_CR_SOC (85//)
+Failed to create socket
+;
+MSG_FAILED_ALL_BUFF (86//)
+Failed to allocate buffers
+;
+; Error Messages - External Programs
+MSG_FAILED_START_PLAYBACK (90//)
+Failed to start playback
+;
+MSG_AMIGAAMP_NOT_RUNNING (91//)
+AmigaAMP is not running
+;

@@ -13,6 +13,7 @@
 #include "../../include/config.h"
 #include "../../include/gui.h"
 #include "../../include/utils.h"
+#include "../../include/locale.h"
 
 char* url_encode(const char *str) {
     if (!str) return NULL;
@@ -145,8 +146,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to create socket");
-        UpdateStatusMessage(msg);
+        UpdateStatusMessage(GetTFString(MSG_FAILED_CR_SOC));
         return NULL;
     }
     
@@ -154,7 +154,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     chunk_buffer = malloc(READ_CHUNK_SIZE);
     response_buffer = malloc(INITIAL_BUFFER_SIZE);
     if (!chunk_buffer || !response_buffer) {
-        UpdateStatusMessage("Failed to allocate buffers");
+        UpdateStatusMessage(GetTFString(MSG_FAILED_ALL_BUFF));
         goto cleanup;
     }
 
@@ -163,8 +163,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     
     server = gethostbyname(settings->host);
     if (!server) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to resolve host");
-        UpdateStatusMessage(msg);
+        UpdateStatusMessage(GetTFString(MSG_FAILED_RESOLV_HOST));
         goto cleanup;
     }
     
@@ -179,7 +178,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     
     DEBUG("Connecting to server");
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        UpdateStatusMessage("Failed to connect to server");
+        UpdateStatusMessage(GetTFString(MSG_FAILED_CONN_SERV));
         goto cleanup;
     }
     
@@ -194,7 +193,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     
     DEBUG("Sending request");
     if (send(sockfd, request, strlen(request), 0) < 0) {
-        UpdateStatusMessage("Failed to send request");
+        UpdateStatusMessage(GetTFString(MSG_FAILED_SEND_REQ));
         goto cleanup;
     }
     
@@ -214,7 +213,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
             break;
         }
         if (ready == 0) {
-            UpdateStatusMessage("Timeout waiting for data");
+            UpdateStatusMessage(GetTFString(MSG_TIMEOUT));
             retry_count++;
             if (retry_count >= MAX_RETRIES) {
                 DEBUG("Max retries reached");

@@ -18,6 +18,7 @@
 #include "../include/utils.h"
 #include "../include/data.h"
 #include "../include/config.h"
+#include "../include/locale.h"
 
 int main(void) {
     struct IntuiMessage *imsg;
@@ -26,7 +27,11 @@ int main(void) {
         DEBUG("Failed to open libraries");
         return 20;
     }
-    
+    if (!InitLocaleSystem()) {
+        DEBUG("Warning: Could not initialize locale system");
+        return 20;
+
+    }
     if (!OpenGUI()) {
         DEBUG("Failed to open GUI");
         CleanupLibraries();
@@ -82,6 +87,7 @@ int main(void) {
     if (browserList) free_labels(browserList);
     if (visualInfo) FreeVisualInfo(visualInfo);
     
+    CleanupLocaleSystem();
     CleanupLibraries();
     return 0;
 }

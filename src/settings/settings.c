@@ -11,6 +11,7 @@
 #include "../../include/config.h"
 #include "../../include/gui.h"
 #include "../../include/utils.h"
+#include "../../include/locale.h"
 
 BOOL SaveSettings(const struct APISettings *settings) {
     char filepath[256];
@@ -27,16 +28,15 @@ BOOL SaveSettings(const struct APISettings *settings) {
     sprintf(filepath, TUNEFINDER_DIR ENV_HOST);
     file = Open(filepath, MODE_NEWFILE);
     if (!file) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to create host settings file: %s", filepath);
+        char msg[MAX_STATUS_MSG_LEN];
+        GetTFFormattedString(msg, sizeof(msg), MSG_FAILED_CREAT_HOST_SET_FILE, filepath);
         UpdateStatusMessage(msg);
-        DEBUG("%s", msg);
         return FALSE;
     }
     
     LONG len = strlen(settings->host);
     if (Write(file, settings->host, len) != len) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to write host setting");
-        UpdateStatusMessage(msg);
+        UpdateStatusMessage(GetTFString(MSG_FAILED_CREAT_HOST_SET_FILE));
         Close(file);
         return FALSE;
     }
@@ -46,21 +46,20 @@ BOOL SaveSettings(const struct APISettings *settings) {
     sprintf(filepath, TUNEFINDER_DIR ENV_PORT);
     file = Open(filepath, MODE_NEWFILE);
     if (!file) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to create port settings file: %s", filepath);
+        char msg[MAX_STATUS_MSG_LEN];
+        GetTFFormattedString(msg, sizeof(msg), MSG_FAILED_CREAT_PORT_FILE, filepath);
         UpdateStatusMessage(msg);
         return FALSE;
     }
     
     len = snprintf(portStr, sizeof(portStr), "%u", (unsigned int)settings->port);
     if (Write(file, portStr, len) != len) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Failed to write port setting");
-        UpdateStatusMessage(msg);
+        UpdateStatusMessage(GetTFString(MSG_FAILED_WRITE_PORT_SET));
         Close(file);
         return FALSE;
     }
     Close(file);
-    
-    snprintf(msg, MAX_STATUS_MSG_LEN, "Settings saved: %s:%u", settings->host, settings->port);
+    GetTFFormattedString(msg, sizeof(msg), MSG_SET_SAVED,  settings->host, settings->port);
     UpdateStatusMessage(msg);
     return TRUE;
 }
@@ -106,9 +105,9 @@ BOOL LoadSettings(struct APISettings *settings) {
                 settings->port = (UWORD)tempPort;
                 success = TRUE;
             } else {
-                snprintf(msg, MAX_STATUS_MSG_LEN, "Invalid port number in settings, using default: %ld", API_PORT);
+                char msg[MAX_STATUS_MSG_LEN];
+                GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT,  API_PORT);
                 UpdateStatusMessage(msg);
-                DEBUG("%s", msg);
                 settings->port = API_PORT;
             }
         }
@@ -181,7 +180,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     ng.ng_TopEdge = currentTop;
     ng.ng_Width = controlWidth;
     ng.ng_Height = rowHeight;
-    ng.ng_GadgetText = "API Host";
+    ng.ng_GadgetText = GetTFString(MSG_HOST);
     ng.ng_GadgetID = 1;
     
     hostGad = CreateGadget(STRING_KIND, gad, &ng,
@@ -199,7 +198,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     // Port input
     ng.ng_TopEdge = currentTop;
     ng.ng_Width = font_width * 10;  // Shorter width for port
-    ng.ng_GadgetText = "API Port";
+    ng.ng_GadgetText = GetTFString(MSG_PORT);
     ng.ng_GadgetID = 2;
     
     snprintf(currentPortStr, sizeof(currentPortStr), "%u", settings->port);
@@ -220,7 +219,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     ng.ng_LeftEdge = windowWidth/2 - buttonWidth - leftMargin;
     ng.ng_TopEdge = currentTop;
     ng.ng_Width = buttonWidth;
-    ng.ng_GadgetText = "Save";
+    ng.ng_GadgetText = GetTFString(MSG_SAVE);
     ng.ng_GadgetID = 3;
     ng.ng_Flags = PLACETEXT_IN;
     
@@ -232,7 +231,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     
     // Cancel button
     ng.ng_LeftEdge = windowWidth/2 + leftMargin;
-    ng.ng_GadgetText = "Cancel";
+    ng.ng_GadgetText = GetTFString(MSG_CANCEL);
     ng.ng_GadgetID = 4;
     
     gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
@@ -250,7 +249,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     
     // Create window
     window = OpenWindowTags(NULL,
-        WA_Title, "API Settings",
+        WA_Title, GetTFString(MSG_API_SETTINGS),
         WA_Left, windowLeft,
         WA_Top, windowTop,
         WA_Width, windowWidth,
@@ -317,9 +316,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                                         DEBUG("Port set to: %u", settings->port);
                                     } else {
                                         char msg[MAX_STATUS_MSG_LEN];
-                                        snprintf(msg, MAX_STATUS_MSG_LEN, 
-                                               "Invalid port number, keeping current: %u", 
-                                               settings->port);
+                                        GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, settings->port);
                                         UpdateStatusMessage(msg);
                                         DEBUG("%s", msg);
                                     }
