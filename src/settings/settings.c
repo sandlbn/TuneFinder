@@ -17,7 +17,7 @@ BOOL SaveSettings(const struct APISettings *settings) {
     char filepath[256];
     char portStr[MAX_PORT_LEN];
     char limitStr[MAX_PORT_LEN];
-    BPTR file;
+    BPTR file = NULL;
     BOOL success = FALSE;
     char msg[MAX_STATUS_MSG_LEN];
     
@@ -39,6 +39,7 @@ BOOL SaveSettings(const struct APISettings *settings) {
     if (Write(file, settings->host, len) != len) {
         UpdateStatusMessage(GetTFString(MSG_FAILED_CREAT_HOST_SET_FILE));
         Close(file);
+        file = NULL;
         return FALSE;
     }
     Close(file);
@@ -83,96 +84,82 @@ BOOL SaveSettings(const struct APISettings *settings) {
 }
 
 BOOL LoadSettings(struct APISettings *settings) {
+    BOOL hostLoaded = FALSE;
+    BOOL portLoaded = FALSE;
+    BOOL limitLoaded = FALSE;
     char filepath[256];
     char portStr[MAX_PORT_LEN];
     char limitStr[MAX_PORT_LEN];
-
     BPTR file;
-    BOOL success = FALSE;
     char msg[MAX_STATUS_MSG_LEN];
     
     // Set defaults first
     strncpy(settings->host, API_HOST, MAX_HOST_LEN-1);
     settings->host[MAX_HOST_LEN-1] = '\0';
     settings->port = API_PORT; 
-    settings->limit = atoi(DEFAULT_LIMIT);
+    settings->limit = DEFAULT_LIMIT;
     
-    // Try to load saved settings
+    // Load host
     sprintf(filepath, TUNEFINDER_DIR ENV_HOST);
     file = Open(filepath, MODE_OLDFILE);
     if (file) {
         LONG len = Read(file, settings->host, MAX_HOST_LEN-1);
         if (len > 0) {
             settings->host[len] = '\0';
-            success = TRUE;
+            hostLoaded = TRUE;
         }
         Close(file);
     } 
-    if (!file) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Can't load file: %s", filepath);
-        DEBUG("%s", msg);
-    }
-    
-    // Load port setting
+
+    // Load port
     sprintf(filepath, TUNEFINDER_DIR ENV_PORT);
     file = Open(filepath, MODE_OLDFILE);
     if (file) {
-        memset(portStr, 0, sizeof(portStr));  // Clear the buffer
+        memset(portStr, 0, sizeof(portStr));
         LONG len = Read(file, portStr, sizeof(portStr) - 1);
         if (len > 0) {
-            portStr[len] = '\0';  // Ensure null termination 
+            portStr[len] = '\0';
             unsigned int tempPort = 0;
-            if (sscanf(portStr, "%u", &tempPort) == 1) { 
+            if (sscanf(portStr, "%u", &tempPort) == 1) {
                 settings->port = (UWORD)tempPort;
-                success = TRUE;
+                portLoaded = TRUE;
             } else {
-                char msg[MAX_STATUS_MSG_LEN];
-                GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT,  API_PORT);
+                GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, API_PORT);
                 UpdateStatusMessage(msg);
-                settings->port = API_PORT;
             }
         }
         Close(file);
     }
-    if (!file) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Can't load file: %s", filepath);
-        DEBUG("%s", msg);
-    }
-    
-    // Load limit setting
+
+    // Load limit
     sprintf(filepath, TUNEFINDER_DIR ENV_LIMIT);
     file = Open(filepath, MODE_OLDFILE);
     if (file) {
-        memset(limitStr, 0, sizeof(limitStr));  // Clear the buffer
+        memset(limitStr, 0, sizeof(limitStr));
         LONG len = Read(file, limitStr, sizeof(limitStr) - 1);
         if (len > 0) {
-            limitStr[len] = '\0';  // Ensure null termination 
-            unsigned int tempLimit = 0;
-            if (sscanf(limitStr, "%u", &tempLimit) == 1) { 
-                settings->limit = (UWORD)tempLimit;
-                success = TRUE;
+            limitStr[len] = '\0';
+            int tempLimit = 0;
+            if (sscanf(limitStr, "%d", &tempLimit) == 1 && tempLimit > 0) {
+                settings->limit = tempLimit;
+                limitLoaded = TRUE;
             } else {
-                char msg[MAX_STATUS_MSG_LEN];
-                GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT,  DEFAULT_LIMIT);
+                GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, DEFAULT_LIMIT);
                 UpdateStatusMessage(msg);
-                settings->limit = DEFAULT_LIMIT;
             }
         }
         Close(file);
     }
-    if (!file) {
-        snprintf(msg, MAX_STATUS_MSG_LEN, "Can't load file: %s", filepath);
-        DEBUG("%s", msg);
-        settings->limit = DEFAULT_LIMIT;
-    }
-    snprintf(msg, MAX_STATUS_MSG_LEN, "Settings loaded: %s:%u Limit: %u", settings->host, settings->port, settings->limit);
-    DEBUG("%s", msg);
+
+    GetTFFormattedString(msg, sizeof(msg), MSG_SETTINGS_LOADED, 
+                        settings->host, settings->port, settings->limit);
+    UpdateStatusMessage(msg);
     
-    return success;
+    return (hostLoaded || portLoaded || limitLoaded);
 }
 
 BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
-    struct Window *window;
+    struct Window *window = NULL;
     struct Gadget *glist = NULL, *gad;
     struct Gadget *hostGad = NULL;     
     struct Gadget *portGad = NULL;  
@@ -182,7 +169,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     void *vi;
     struct Screen *screen;
     BOOL done = FALSE;
-    struct IntuiMessage *msg;
+    struct IntuiMessage *imsg;
     BOOL success = FALSE;
     char currentPortStr[MAX_PORT_LEN];
     char currentLimitStr[MAX_PORT_LEN];
@@ -343,12 +330,12 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     while (!done) {
         WaitPort(window->UserPort);
         
-        while ((msg = GT_GetIMsg(window->UserPort))) {
-            ULONG class = msg->Class;
-            UWORD code = msg->Code;
-            struct Gadget *gadget = (struct Gadget *)msg->IAddress;
+        while ((imsg = GT_GetIMsg(window->UserPort))) {
+            ULONG class = imsg->Class;
+            UWORD code = imsg->Code;
+            struct Gadget *gadget = (struct Gadget *)imsg->IAddress;
             
-            GT_ReplyIMsg(msg);
+            GT_ReplyIMsg(imsg);
             
             switch (class) {
                 case IDCMP_CLOSEWINDOW:
@@ -362,53 +349,61 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                     
                 case IDCMP_GADGETUP:
                     switch (gadget->GadgetID) {
-                        case 4: // Save
-                            {
-                                STRPTR hostStr, portStr, limitStr;
-                                
-                                GT_GetGadgetAttrs(hostGad, window, NULL,
-                                    GTST_String, &hostStr,
-                                    TAG_DONE);
-                                
-                                GT_GetGadgetAttrs(portGad, window, NULL,
-                                    GTST_String, &portStr,
-                                    TAG_DONE);
-                                GT_GetGadgetAttrs(limitGad, window, NULL,
-                                    GTST_String, &limitStr,
-                                    TAG_DONE);
+                case 4: // Save
+                    {
 
+                        STRPTR hostStr, portStr, limitStr;
+                        BOOL inputValid = TRUE;
+                        char msg[MAX_STATUS_MSG_LEN];
+                
+                        GT_GetGadgetAttrs(hostGad, window, NULL,
+                            GTST_String, &hostStr,
+                            TAG_DONE);
+                                             
+                        GT_GetGadgetAttrs(portGad, window, NULL,
+                            GTST_String, &portStr,
+                            TAG_DONE);
 
-                                if (hostStr && *hostStr) {
-                                    strncpy(settings->host, hostStr, MAX_HOST_LEN-1);
-                                    settings->host[MAX_HOST_LEN-1] = '\0';
-                                }
-                                
-                                if (portStr && *portStr) {
-                                    unsigned int tempPort;
-                                    if (sscanf(portStr, "%u", &tempPort) == 1) {
-                                        settings->port = (UWORD)tempPort;
-                                        DEBUG("Port set to: %u", settings->port);
-                                    } else {
-                                        char msg[MAX_STATUS_MSG_LEN];
-                                        GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, settings->port);
-                                        UpdateStatusMessage(msg);
-                                        DEBUG("%s", msg);
-                                    }
-                                }
-                    if (limitStr && *limitStr) {
+                        GT_GetGadgetAttrs(limitGad, window, NULL,
+                            GTST_String, &limitStr,
+                            TAG_DONE);
+
+                        // Validate host
+                        if (!hostStr || !*hostStr || strlen(hostStr) >= MAX_HOST_LEN) {
+                            UpdateStatusMessage("Invalid host");
+                            inputValid = FALSE;
+                        }
+
+                        // Validate port
+                        unsigned int tempPort;
+                        if (!portStr || sscanf(portStr, "%u", &tempPort) != 1 || 
+                            tempPort == 0 || tempPort > 65535) {
+                            GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, settings->port);
+                            UpdateStatusMessage(msg);
+                            inputValid = FALSE;
+                        }
+
+                        // Validate limit
                         int tempLimit;
-                        if (sscanf(limitStr, "%d", &tempLimit) == 1) {
+                        if (!limitStr || sscanf(limitStr, "%d", &tempLimit) != 1 || 
+                            tempLimit <= 0) {
+                            GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, DEFAULT_LIMIT);
+                            UpdateStatusMessage(msg);
+                            inputValid = FALSE;
+                        }
+
+                        if (inputValid) {
+                            strncpy(settings->host, hostStr, MAX_HOST_LEN-1);
+                            settings->host[MAX_HOST_LEN-1] = '\0';
+                            settings->port = (UWORD)tempPort;
                             settings->limit = tempLimit;
-                        } else {
-                            settings->limit = DEFAULT_LIMIT;
+
+                            if (SaveSettings(settings)) {
+                                success = TRUE;
+                                done = TRUE;
+                            }
                         }
                     }
-                    
-                                if (SaveSettings(settings)) {
-                                    success = TRUE;
-                                    done = TRUE;
-                                }
-                            }
                             break;
                             
                         case 5: // Cancel

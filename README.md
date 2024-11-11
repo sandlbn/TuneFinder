@@ -9,6 +9,7 @@ TuneFinder is an AmigaOS 3.x application that allows you to browse and save Inte
 - Play stations in AmigaAmp
 - Configurable API settings
 - Compatible with AmigaOS 3.x (68020+ CPU recommended)
+- Support for Amiga translation library
 
 ## Requirements
 - AmigaOS 3.x
@@ -61,8 +62,14 @@ The compiled binary will be placed in the `out` directory.
 To translate TuneFinder to a new language, create a new .ct file with the same structure as shown in [assets/translation](assets/translation/tunefinder.cd) , replacing each English text line with your translated version while keeping the MSG_ identifiers and semicolons untouched. Make sure to update the language code in the header of your .ct file (e.g., ## language deutsch for German). 
 After creating your translation file, use the command 
 
-```
+```bash
 flexcat tunefinder.cd yourlanguage.ct CATALOG LOCALE:Catalogs/yourlanguage/tunefinder.catalog
+```
+
+To use it in the docker 
+
+```bash
+docker run --rm  -v ${PWD}:/work -it sacredbanana/amiga-compiler:m68k-amigaos flexcat assets/translation/tunefinder.cd assets/translation/tunefinder_polish.ct CATALOG tunefinder.catalog
 ```
 
 to generate the catalog file, then place the generated catalog in your LOCALE:Catalogs/yourlanguage/ directory.

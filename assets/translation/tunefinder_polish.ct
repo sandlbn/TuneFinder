@@ -1,0 +1,160 @@
+## version $VER: tunefinder.catalog 1.0 (09.11.2024)
+## codeset 0
+## language polski
+; GUI Labels
+MSG_NAME
+Nazwa
+;
+MSG_COUNTRY
+Kraj
+;
+MSG_CODEC
+Kodek
+;
+MSG_TAGS
+Tagi
+;
+MSG_BITRATE
+Bitrate
+;
+MSG_UNKNOWN
+Nieznany
+;
+MSG_LIMIT
+Limit
+;
+MSG_URL
+Adres
+;
+MSG_SEARCH
+Szukaj
+;
+MSG_SAVE
+Zapisz
+;
+MSG_CANCEL
+Anuluj
+;
+MSG_PLAY
+Odtworz
+;
+MSG_QUIT
+Zakoncz
+;
+MSG_READY
+Gotowy
+;
+MSG_SETTINGS
+Ustawienia
+;
+MSG_API_SETTINGS
+Ustawienia API
+;
+MSG_STATION_DETAILS
+Detale stacji
+;
+MSG_PROJECT
+Projekt
+;
+MSG_ABOUT
+O programie
+;
+MSG_HOST
+Host API
+;
+MSG_PORT
+Port API
+;
+MSG_HTTPS_ONLY
+Tylko HTTPS
+;
+MSG_HIDE_BROKEN
+Ukryj uszkodzone
+;
+MSG_FOUND_STATIONS
+Znaleziono %d stacji
+;
+MSG_PLAYING_STATION
+Odtwarzanie: %s
+;
+MSG_SETTINGS_LOADED
+Wczytano ustawienia: %s:%d
+;
+MSG_SETTINGS_SAVED
+Zapisano ustawienia: %s:%d
+;
+MSG_SEARCH_COMPLETED
+Wyszukiwanie zakonczone. Znaleziono %d stacji.
+;
+MSG_FILE_SAVED
+Zapisano plik: %s
+;
+MSG_SET_SAVED
+Zapisano ustawienia: %s:%u Limit: %u
+;
+MSG_NO_STATIONS
+Nie znaleziono stacji
+;
+MSG_INVALID_PORT
+Nieprawidlowy numer portu, zachowano obecny: %ld
+;
+MSG_FAILED_WRITE_PORT_SET
+Nie mozna zapisac ustawien portu
+;
+MSG_FAILED_WRITE_HOST_SETTING
+Nie mozna zapisac ustawien hosta
+;
+MSG_INVALID_LOCALE
+Nieprawidlowa wartosc lokalizacji, zachowano obecna: %ld
+;
+MSG_FAILED_WRITE_LIMIT_SET
+Nie mozna zapisac ustawien limitu
+;
+MSG_FAILED_FILE_SAVE
+Nie mozna zapisac pliku
+;
+MSG_FAILED_ACCESS
+Nie mozna uzyskac dostepu do %s
+;
+MSG_FAILED_CREAT_PORT_FILE
+Nie mozna utworzyc pliku ustawien portu: %s
+;
+MSG_FAILED_CREAT_HOST_SET_FILE
+Nie mozna utworzyc pliku ustawien hosta: %s
+;
+MSG_FAILED_CREAT_LIMIT_FILE
+Nie mozna utworzyc pliku ustawien limitu: %s
+;
+MSG_CREATED_SET_DIR
+Utworzono katalog ustawien: %s
+;
+MSG_FAIL_CREATE_SET_DIR
+Nie mozna utworzyc katalogu: %s
+;
+MSG_HTTP_REQ_FAILED
+Blad zadania HTTP
+;
+MSG_FAILED_RESOLV_HOST
+Blad DNS
+;
+MSG_FAILED_CONN_SERV
+Nie mozna polaczyc z serwerem
+;
+MSG_FAILED_SEND_REQ
+Blad zapytania
+;
+MSG_TIMEOUT
+Przekroczono czas oczekiwania na dane
+;
+MSG_FAILED_CR_SOC
+Nie mozna utworzyc polaczenia
+;
+MSG_FAILED_ALL_BUFF
+Blad alokacji pamieci
+;
+MSG_FAILED_START_PLAYBACK
+Blad odtwarzania
+;
+MSG_AMIGAAMP_NOT_RUNNING
+AmigaAMP nie jest uruchomiony
+;
