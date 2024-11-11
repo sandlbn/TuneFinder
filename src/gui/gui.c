@@ -562,7 +562,7 @@ void HandleSearch(void) {
 
 	params.limit = DEFAULT_LIMIT;
 
-	urlPath = build_search_url(&params);
+	urlPath = build_search_url(&currentSettings, &params);
 	if (!urlPath) {
 		DEBUG("%s","Failed to build URL");
 		return;

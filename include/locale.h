@@ -13,6 +13,7 @@
 #define MSG_TAGS               4
 #define MSG_BITRATE            5
 #define MSG_UNKNOWN            6
+#define MSG_LIMIT              7
 
 // GUI Actions (Buttons and checkboxes)
 #define MSG_SEARCH             10
@@ -48,13 +49,15 @@
 #define MSG_INVALID_PORT           50  // "Invalid port number, keeping current: %ld"
 #define MSG_FAILED_WRITE_PORT_SET  51  // "Failed to write port setting"
 #define MSG_FAILED_WRITE_HOST_SETTING 52  // "Failed to write host setting"
+#define MSG_INVALID_LIMIT          53  // "Invalid limit number, keeping current: %ld"
+#define MSG_FAILED_WRITE_LIMIT_SET  54  // "Failed to write limit setting"
 
 // Error Messages - File Operations
 #define MSG_FAILED_FILE_SAVE       60  // "Failed to save file"
 #define MSG_FAILED_ACCESS          61  // "Failed to access %s"
 #define MSG_FAILED_CREAT_PORT_FILE 62  // "Failed to create port settings file: %s"
 #define MSG_FAILED_CREAT_HOST_SET_FILE 63  // "Failed to create host settings file: %s"
-
+#define MSG_FAILED_CREAT_LIMIT_FILE  64  // "Failed to create limit settings file: %s"
 // Error Messages - Directory Operations
 #define MSG_CREATED_SET_DIR        70  // "Created settings directory: %s"
 #define MSG_FAIL_CREATE_SET_DIR    71  // "Failed to create directory: %s"

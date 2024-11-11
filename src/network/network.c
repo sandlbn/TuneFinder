@@ -43,7 +43,7 @@ char* url_encode(const char *str) {
     return encoded;
 }
 
-char* build_search_url(const struct SearchParams *params) {
+char* build_search_url(const struct APISettings *settings, const struct SearchParams *params) {
     char *url;
     int pos = 0;
     int space_left;
@@ -113,10 +113,9 @@ char* build_search_url(const struct SearchParams *params) {
             free(encoded_tags);
         }
     }
-    
-    if (space_left > 0) {
-        const char *limit = params->limit ? params->limit : DEFAULT_LIMIT;
-        pos += snprintf(url + pos, space_left, "limit=%s", limit);
+    if (space_left > 0 && settings->limit != 0) {
+        const int limit = params->limit > 0 ? params->limit : settings->limit;
+        pos += snprintf(url + pos, space_left, "limit=%d", limit);
     }
     
     if (pos > 0 && url[pos-1] == '&') {

@@ -11,12 +11,12 @@
 #define API_PORT 80
 #define API_ENDPOINT "/json/stations/search"
 #define MAX_URL_LENGTH 2048
-#define DEFAULT_LIMIT "100"
+#define DEFAULT_LIMIT 100
 #define HTTPS_ALL -1
 #define HTTPS_TRUE 1
 #define HTTPS_FALSE 0
-#define INITIAL_BUFFER_SIZE (32 * 1024)    // Start with 32KB
-#define MAX_BUFFER_SIZE (512 * 1024)       // Max 512KB
+#define INITIAL_BUFFER_SIZE (64 * 1024)    // Start with 32KB
+#define MAX_BUFFER_SIZE (1024 * 1024)       // Max 1024KB
 #define READ_CHUNK_SIZE (8 * 1024)         // Read 8KB at a time
 #define MAX_STATUS_MSG_LEN 256 
 #define PLS_HEADER "[playlist]\n"

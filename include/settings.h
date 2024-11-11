@@ -10,12 +10,14 @@
 
 #define ENV_HOST "apihost"
 #define ENV_PORT "apiport"
+#define ENV_LIMIT "apilimit"
 #define MAX_HOST_LEN 256
 #define MAX_PORT_LEN 6
 
 struct APISettings {
     char host[MAX_HOST_LEN];
     int port;
+    int limit;
 };
 
 BOOL LoadSettings(struct APISettings *settings);

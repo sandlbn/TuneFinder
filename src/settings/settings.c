@@ -16,6 +16,7 @@
 BOOL SaveSettings(const struct APISettings *settings) {
     char filepath[256];
     char portStr[MAX_PORT_LEN];
+    char limitStr[MAX_PORT_LEN];
     BPTR file;
     BOOL success = FALSE;
     char msg[MAX_STATUS_MSG_LEN];
@@ -59,7 +60,24 @@ BOOL SaveSettings(const struct APISettings *settings) {
         return FALSE;
     }
     Close(file);
-    GetTFFormattedString(msg, sizeof(msg), MSG_SET_SAVED,  settings->host, settings->port);
+    // Save limit
+    sprintf(filepath, TUNEFINDER_DIR ENV_LIMIT);
+    file = Open(filepath, MODE_NEWFILE);
+    if (!file) {
+        char msg[MAX_STATUS_MSG_LEN];
+        GetTFFormattedString(msg, sizeof(msg), MSG_FAILED_CREAT_LIMIT_FILE, filepath);
+        UpdateStatusMessage(msg);
+        return FALSE;
+    }
+    
+    len = snprintf(limitStr, sizeof(limitStr), "%u", (unsigned int)settings->limit);
+    if (Write(file, limitStr, len) != len) {
+        UpdateStatusMessage(GetTFString(MSG_FAILED_WRITE_LIMIT_SET));
+        Close(file);
+        return FALSE;
+    }
+    Close(file);
+    GetTFFormattedString(msg, sizeof(msg), MSG_SET_SAVED,  settings->host, settings->port, settings->limit);
     UpdateStatusMessage(msg);
     return TRUE;
 }
@@ -67,6 +85,8 @@ BOOL SaveSettings(const struct APISettings *settings) {
 BOOL LoadSettings(struct APISettings *settings) {
     char filepath[256];
     char portStr[MAX_PORT_LEN];
+    char limitStr[MAX_PORT_LEN];
+
     BPTR file;
     BOOL success = FALSE;
     char msg[MAX_STATUS_MSG_LEN];
@@ -75,6 +95,7 @@ BOOL LoadSettings(struct APISettings *settings) {
     strncpy(settings->host, API_HOST, MAX_HOST_LEN-1);
     settings->host[MAX_HOST_LEN-1] = '\0';
     settings->port = API_PORT; 
+    settings->limit = atoi(DEFAULT_LIMIT);
     
     // Try to load saved settings
     sprintf(filepath, TUNEFINDER_DIR ENV_HOST);
@@ -117,7 +138,34 @@ BOOL LoadSettings(struct APISettings *settings) {
         snprintf(msg, MAX_STATUS_MSG_LEN, "Can't load file: %s", filepath);
         DEBUG("%s", msg);
     }
-    snprintf(msg, MAX_STATUS_MSG_LEN, "Settings loaded: %s:%u", settings->host, settings->port);
+    
+    // Load limit setting
+    sprintf(filepath, TUNEFINDER_DIR ENV_LIMIT);
+    file = Open(filepath, MODE_OLDFILE);
+    if (file) {
+        memset(limitStr, 0, sizeof(limitStr));  // Clear the buffer
+        LONG len = Read(file, limitStr, sizeof(limitStr) - 1);
+        if (len > 0) {
+            limitStr[len] = '\0';  // Ensure null termination 
+            unsigned int tempLimit = 0;
+            if (sscanf(limitStr, "%u", &tempLimit) == 1) { 
+                settings->limit = (UWORD)tempLimit;
+                success = TRUE;
+            } else {
+                char msg[MAX_STATUS_MSG_LEN];
+                GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT,  DEFAULT_LIMIT);
+                UpdateStatusMessage(msg);
+                settings->limit = DEFAULT_LIMIT;
+            }
+        }
+        Close(file);
+    }
+    if (!file) {
+        snprintf(msg, MAX_STATUS_MSG_LEN, "Can't load file: %s", filepath);
+        DEBUG("%s", msg);
+        settings->limit = DEFAULT_LIMIT;
+    }
+    snprintf(msg, MAX_STATUS_MSG_LEN, "Settings loaded: %s:%u Limit: %u", settings->host, settings->port, settings->limit);
     DEBUG("%s", msg);
     
     return success;
@@ -128,6 +176,8 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     struct Gadget *glist = NULL, *gad;
     struct Gadget *hostGad = NULL;     
     struct Gadget *portGad = NULL;  
+    struct Gadget *limitGad = NULL;  
+
     struct NewGadget ng;
     void *vi;
     struct Screen *screen;
@@ -135,6 +185,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     struct IntuiMessage *msg;
     BOOL success = FALSE;
     char currentPortStr[MAX_PORT_LEN];
+    char currentLimitStr[MAX_PORT_LEN];
     WORD currentTop;
     
     // Get screen and visual info
@@ -211,7 +262,26 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
         DEBUG("Failed to create port gadget");
         goto cleanup;
     }
+        // Move to next row
+    currentTop += rowHeight + rowSpacing;
     
+    // Limit input
+    ng.ng_TopEdge = currentTop;
+    ng.ng_Width = font_width * 10;  // Shorter width for port
+    ng.ng_GadgetText = GetTFString(MSG_LIMIT);
+    ng.ng_GadgetID = 3;
+    
+    snprintf(currentLimitStr, sizeof(currentLimitStr), "%d", settings->limit);
+    
+    limitGad = CreateGadget(STRING_KIND, portGad, &ng,
+                          GTST_MaxChars, MAX_PORT_LEN-1,
+                          GTST_String, currentLimitStr,
+                          TAG_DONE);
+    if (!limitGad) {
+        DEBUG("Failed to create limit gadget");
+        goto cleanup;
+    }
+
     // Move to button row
     currentTop += rowHeight + rowSpacing * 2;  // Extra spacing before buttons
     
@@ -220,10 +290,10 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     ng.ng_TopEdge = currentTop;
     ng.ng_Width = buttonWidth;
     ng.ng_GadgetText = GetTFString(MSG_SAVE);
-    ng.ng_GadgetID = 3;
+    ng.ng_GadgetID = 4;
     ng.ng_Flags = PLACETEXT_IN;
     
-    gad = CreateGadget(BUTTON_KIND, portGad, &ng, TAG_DONE);
+    gad = CreateGadget(BUTTON_KIND, limitGad, &ng, TAG_DONE);
     if (!gad) {
         DEBUG("Failed to create save button");
         goto cleanup;
@@ -232,7 +302,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     // Cancel button
     ng.ng_LeftEdge = windowWidth/2 + leftMargin;
     ng.ng_GadgetText = GetTFString(MSG_CANCEL);
-    ng.ng_GadgetID = 4;
+    ng.ng_GadgetID = 5;
     
     gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
     if (!gad) {
@@ -292,9 +362,9 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                     
                 case IDCMP_GADGETUP:
                     switch (gadget->GadgetID) {
-                        case 3: // Save
+                        case 4: // Save
                             {
-                                STRPTR hostStr, portStr;
+                                STRPTR hostStr, portStr, limitStr;
                                 
                                 GT_GetGadgetAttrs(hostGad, window, NULL,
                                     GTST_String, &hostStr,
@@ -303,7 +373,11 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                                 GT_GetGadgetAttrs(portGad, window, NULL,
                                     GTST_String, &portStr,
                                     TAG_DONE);
-                                
+                                GT_GetGadgetAttrs(limitGad, window, NULL,
+                                    GTST_String, &limitStr,
+                                    TAG_DONE);
+
+
                                 if (hostStr && *hostStr) {
                                     strncpy(settings->host, hostStr, MAX_HOST_LEN-1);
                                     settings->host[MAX_HOST_LEN-1] = '\0';
@@ -321,7 +395,15 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                                         DEBUG("%s", msg);
                                     }
                                 }
-                                
+                    if (limitStr && *limitStr) {
+                        int tempLimit;
+                        if (sscanf(limitStr, "%d", &tempLimit) == 1) {
+                            settings->limit = tempLimit;
+                        } else {
+                            settings->limit = DEFAULT_LIMIT;
+                        }
+                    }
+                    
                                 if (SaveSettings(settings)) {
                                     success = TRUE;
                                     done = TRUE;
@@ -329,7 +411,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                             }
                             break;
                             
-                        case 4: // Cancel
+                        case 5: // Cancel
                             done = TRUE;
                             break;
                     }

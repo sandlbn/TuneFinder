@@ -22,9 +22,8 @@ static const char *built_in_strings[] = {
     "Tags",
     "Bitrate",
     "Unknown",
-    
-    // Padding to align with IDs 7-9
-    NULL,
+    "Limit",
+    // Padding to align with IDs 8-9
     NULL,
     NULL,
     
@@ -87,10 +86,9 @@ static const char *built_in_strings[] = {
     "Invalid port number, keeping current: %ld",
     "Failed to write port setting",
     "Failed to write host setting",
-    
-    // Padding to align with IDs 53-59
-    NULL,
-    NULL,
+    "Invalid locale value, keeping current: %ld",
+    "Failed to write limit setting",
+    // Padding to align with IDs 54-59
     NULL,
     NULL,
     NULL,
@@ -102,9 +100,8 @@ static const char *built_in_strings[] = {
     "Failed to access %s",
     "Failed to create port settings file: %s",
     "Failed to create host settings file: %s",
-    
-    // Padding to align with IDs 64-69
-    NULL,
+    "Failed to create limit settings file: %s",
+    // Padding to align with IDs 65-69
     NULL,
     NULL,
     NULL,
