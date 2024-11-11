@@ -14,6 +14,7 @@
 #define MSG_BITRATE            5
 #define MSG_UNKNOWN            6
 #define MSG_LIMIT              7
+#define MSG_URL                8
 
 // GUI Actions (Buttons and checkboxes)
 #define MSG_SEARCH             10

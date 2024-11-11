@@ -21,7 +21,10 @@ MSG_UNKNOWN (6//)
 Unknown
 ;
 MSG_LIMIT  (7//)
-Unknown
+Limit
+;
+MSG_URL  (7//)
+Url
 ;
 ; GUI Actions
 MSG_SEARCH (10//)

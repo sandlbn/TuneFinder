@@ -352,35 +352,39 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
 	WORD labelX = 20;
 	WORD contentX = 100;
 	WORD maxWidth = windowWidth - contentX - 20;  // Maximum width for wrapped text
-
+    char label[256];
 	SetAPen(rp, 1);
 	SetBPen(rp, 0);
-
+    
 	// Draw Name field
+    sprintf(label, "%s:",GetTFString(MSG_NAME));
 	Move(rp, labelX, textY);
-	Text(rp, "Name:", 5);
+	Text(rp, label, 5);
 	DrawWrappedText(rp, station->displayText, contentX, &textY, maxWidth);
 
 	// Add some spacing between fields
 	textY += 10;
 
 	// Draw URL field
+    sprintf(label, "%s:",GetTFString(MSG_URL));
 	Move(rp, labelX, textY);
-	Text(rp, "URL:", 4);
+	Text(rp, label, 4);
 	DrawWrappedText(rp, station->url, contentX, &textY, maxWidth);
 
 	textY += 10;
 
 	// Draw Codec field
+    sprintf(label, "%s:",GetTFString(MSG_CODEC));
 	Move(rp, labelX, textY);
-	Text(rp, GetTFString(MSG_CODEC), 6);
+	Text(rp, label, 6);
 	Move(rp, contentX, textY);
 	Text(rp, station->codec, strlen(station->codec));
 	textY += 20;
 
 	// Draw Bitrate field
+    sprintf(label, "%s:",GetTFString(MSG_BITRATE));
 	Move(rp, labelX, textY);
-	Text(rp, GetTFString(MSG_BITRATE), 8);
+	Text(rp, label, 8);
 	char bitrateBuf[20];
 	sprintf(bitrateBuf, "%ld kbps", station->bitrate);
 	Move(rp, contentX, textY);
@@ -388,8 +392,10 @@ struct Window* OpenDetailsWindow(struct ExtNode *station) {
 	textY += 20;
 
 	// Draw Country field
+    sprintf(label, "%s:",GetTFString(MSG_COUNTRY));
 	Move(rp, labelX, textY);
-	Text(rp, GetTFString(MSG_COUNTRY), 8);
+	Move(rp, labelX, textY);
+	Text(rp, label, 8);
 	Move(rp, contentX, textY);
 	Text(rp, station->country, strlen(station->country));
 
