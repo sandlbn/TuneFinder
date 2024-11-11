@@ -23,8 +23,8 @@ static const char *built_in_strings[] = {
     "Bitrate",
     "Unknown",
     "Limit",
-    // Padding to align with IDs 8-9
-    NULL,
+    "URL",
+    // Padding to align with IDs 9
     NULL,
     
     // GUI Actions (10-14)
