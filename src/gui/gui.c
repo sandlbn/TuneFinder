@@ -61,7 +61,7 @@ struct Gadget *listView;
 struct Gadget *statusMsgGad;
 
 // Choices for dropdowns
-const char *codecChoices[] = {"","MP3","AAC", "AAC+", "FLAC", NULL};
+const char *codecChoices[] = {"","MP3","AAC","AAC+","OGG","FLAC",NULL};
 
 static struct Menu *CreateAppMenus(void) {
 	struct NewMenu newMenu[] = {
@@ -740,7 +740,10 @@ BOOL OpenGUI(void) {
 	// Get font metrics
 	font_width = s->RastPort.TxWidth;
 	font_height = s->RastPort.TxHeight;
-    border_height = s->RastPort.BorderHeight;
+    // Get border height
+    border_height = s->WBorTop + s->Font->ta_YSize + 1;
+    DEBUG("%d", border_height);
+
 
 
 	if (!LoadCountryConfig(FULL_COUNTRY_CONFIG_PATH, &countryConfig)) {
@@ -778,8 +781,8 @@ BOOL OpenGUI(void) {
 	ng.ng_VisualInfo = vi;
 
 	// Name String gadget
-	ng.ng_LeftEdge = font_width * 10;  // Move right to accommodate label
-	ng.ng_TopEdge = font_height + 10;
+	ng.ng_LeftEdge = font_width * 10; // Move right to accommodate label
+	ng.ng_TopEdge = border_height + font_height;
 	ng.ng_Width = font_width * 22;
 	ng.ng_Height = font_height + 4;
 	ng.ng_GadgetText = GetTFString(MSG_NAME);
@@ -929,7 +932,6 @@ BOOL OpenGUI(void) {
 	                        WA_Gadgets, glist,
 	                        WA_PubScreen, s,
 	                        TAG_DONE);
-
 	if (!window) {
 		DEBUG("Failed to create window");
 		goto cleanup;
