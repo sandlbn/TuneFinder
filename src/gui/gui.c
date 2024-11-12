@@ -727,7 +727,7 @@ BOOL OpenGUI(void) {
 	struct Screen *s;
 	void *vi;
 	struct List *site_labels;
-	ULONG font_width, font_height;
+	ULONG font_width, font_height, border_height;
 
 	DEBUG("Starting GUI initialization...");
 
@@ -740,6 +740,8 @@ BOOL OpenGUI(void) {
 	// Get font metrics
 	font_width = s->RastPort.TxWidth;
 	font_height = s->RastPort.TxHeight;
+    border_height = s->RastPort.BorderHeight;
+
 
 	if (!LoadCountryConfig(FULL_COUNTRY_CONFIG_PATH, &countryConfig)) {
 		DEBUG("Failed to load country configuration");
