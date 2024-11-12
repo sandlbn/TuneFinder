@@ -1,0 +1,74 @@
+; TuneFinder Installer Script
+; Version: 1.0
+
+(set @app-name "TuneFinder")
+(set @default-dest "Work:")
+
+(welcome)
+
+(set #complete-path
+ (tackon
+   (askdir
+     (prompt "Choose the destination directory")
+     (help @default-dest)
+     (default @default-dest)
+   )
+   @app-name
+ )
+)
+
+(makedir #complete-path
+ (infos)
+)
+
+; Ask about catalog installation
+(if 
+   (askbool
+       (prompt "Would you like to install language catalogs?")
+       (help "Select Yes to choose which language catalogs to install")
+       (default 1)
+   )
+   (
+       (makedir (tackon #complete-path "Catalogs") (infos))
+
+       ; Polish catalog
+       (if 
+           (askbool
+               (prompt "Install Polish (Polski) translation?")
+               (help "Select Yes to install Polish language support")
+               (default 0)
+           )
+           (
+               (makedir (tackon (tackon #complete-path "Catalogs") "polski") (infos))
+               (copyfiles
+                   (source "Catalogs/polski/tunefinder.catalog")
+                   (dest (tackon (tackon #complete-path "Catalogs") "polski"))
+               )
+           )
+       )
+
+       ;(if 
+       ;    (askbool
+       ;        (prompt "Install German (Deutsch) translation?")
+       ;        (help "Select Yes to install German language support")
+       ;        (default 0)
+       ;    )
+       ;    (
+       ;        (makedir (tackon (tackon #complete-path "Catalogs") "deutsch") (infos))
+       ;        (copyfiles
+       ;            (source "Catalogs/deutsch/tunefinder.catalog")
+       ;            (dest (tackon (tackon #complete-path "Catalogs") "deutsch"))
+       ;        )
+       ;    )
+       ;)
+   )
+)
+
+; Copy main executable
+(copyfiles
+   (source "TuneFinder")
+   (dest #complete-path)
+)
+
+
+(exit)

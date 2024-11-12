@@ -12,6 +12,7 @@
 #define API_ENDPOINT "/json/stations/search"
 #define MAX_URL_LENGTH 2048
 #define DEFAULT_LIMIT 100
+#define MAX_LIMIT 9999
 #define HTTPS_ALL -1
 #define HTTPS_TRUE 1
 #define HTTPS_FALSE 0

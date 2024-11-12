@@ -395,14 +395,25 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                                         DEBUG("%s", msg);
                                     }
                                 }
-                    if (limitStr && *limitStr) {
-                        int tempLimit;
-                        if (sscanf(limitStr, "%d", &tempLimit) == 1) {
-                            settings->limit = tempLimit;
-                        } else {
-                            settings->limit = DEFAULT_LIMIT;
-                        }
-                    }
+                                if (limitStr && *limitStr) {
+                                    int tempLimit;
+                                    if (sscanf(limitStr, "%d", &tempLimit) == 1) {  // Parse successful
+                                        if (tempLimit >= 0 && tempLimit <= MAX_LIMIT) {  
+                                            settings->limit = tempLimit;
+                                        } else {
+                                            char msg[MAX_STATUS_MSG_LEN];
+                                            GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, DEFAULT_LIMIT);
+                                            UpdateStatusMessage(msg);
+                                            settings->limit = DEFAULT_LIMIT;
+                                        }
+                                    } else {  // Parse failed
+                                        char msg[MAX_STATUS_MSG_LEN];
+                                        GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, DEFAULT_LIMIT);
+                                        UpdateStatusMessage(msg);
+                                        settings->limit = DEFAULT_LIMIT;
+                                    }
+                                }
+
                     
                                 if (SaveSettings(settings)) {
                                     success = TRUE;
