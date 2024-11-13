@@ -33,10 +33,9 @@ static const char *built_in_strings[] = {
     "Cancel",
     "Play",
     "Quit",
-    
-    // Padding to align with IDs 15-19
-    NULL,
-    NULL,
+    "Save Single",
+    "Stop",
+    // Padding to align with IDs 17-19
     NULL,
     NULL,
     NULL,
@@ -139,7 +138,7 @@ static const char *built_in_strings[] = {
     // Error Messages - External Programs (90-91)
     "Failed to start playback",
     "AmigaAMP is not running",
-    
+    "Playback stopped",
     NULL  // Final terminator
 };
 BOOL InitLocaleSystem(void)

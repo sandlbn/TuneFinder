@@ -101,7 +101,6 @@ void UpdateStatusMessage(const char *message)
 		GT_SetGadgetAttrs(statusMsgGad, window, NULL,
 		                  GTTX_Text, (STRPTR)message,
 		                  TAG_DONE);
-		GT_RefreshWindow(window, NULL);
 	}
 
 #ifdef DEBUG_BUILD

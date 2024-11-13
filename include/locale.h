@@ -22,7 +22,8 @@
 #define MSG_CANCEL            12
 #define MSG_PLAY              13
 #define MSG_QUIT              14
-
+#define MSG_SAVE_SINGLE       15
+#define MSG_STOP              16
 // GUI States (Status messages and titles)
 #define MSG_READY             20
 #define MSG_SETTINGS          21
@@ -75,7 +76,7 @@
 // Error Messages - External Programs
 #define MSG_FAILED_START_PLAYBACK  90  // "Failed to start playback"
 #define MSG_AMIGAAMP_NOT_RUNNING   91  // "AmigaAMP is not running"
-
+#define MSG_STOPPING_PLAYBACK      92
 BOOL InitLocaleSystem(void);
 void CleanupLocaleSystem(void);
 const char* GetTFString(LONG stringNum);

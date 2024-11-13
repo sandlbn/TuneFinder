@@ -27,6 +27,7 @@ struct RadioStation {
 struct ExtNode {
     struct Node node;
     char *displayText;
+    char *name;
     char *url;
     char *codec;
     char *country;

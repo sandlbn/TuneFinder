@@ -44,6 +44,7 @@ void *visualInfo = NULL;
 #define ITEM_SETTINGS    0   // for Settings
 #define ITEM_ABOUT       1   // for About
 #define ITEM_QUIT        3   // for Quit (after separator)
+struct ExtNode *currentStation;  // Track currently selected station
 
 
 struct Menu *menuStrip = NULL;
@@ -59,7 +60,11 @@ struct Gadget *searchButton;
 struct Gadget *saveButton;
 struct Gadget *listView;
 struct Gadget *statusMsgGad;
-
+struct Gadget *playButton;
+struct Gadget *stopButton;
+struct Gadget *saveSingleButton;
+struct Gadget *stationDetailGad;
+struct Gadget *stationNameGad;
 // Choices for dropdowns
 const char *codecChoices[] = {"","MP3","AAC","AAC+","OGG","FLAC",NULL};
 
@@ -80,51 +85,6 @@ static struct Menu *CreateAppMenus(void) {
 	}
 
 	return menuStrip;
-}
-void DrawWrappedText(struct RastPort *rp, STRPTR text, WORD xStart, WORD *yPos, WORD maxWidth) {
-	WORD textLen = strlen(text);
-	WORD charWidth;
-	WORD totalWidth = 0;
-	WORD lastSpace = -1;
-	WORD lineStart = 0;
-	WORD i;
-
-	for (i = 0; i < textLen; i++) {
-		charWidth = TextLength(rp, &text[i], 1);
-
-		// Check if adding this character would exceed maxWidth
-		if (totalWidth + charWidth > maxWidth || text[i] == '\n') {
-			// If we found a space in this line, break there
-			if (lastSpace != -1) {
-				Move(rp, xStart, *yPos);
-				Text(rp, &text[lineStart], lastSpace - lineStart);
-				lineStart = lastSpace + 1;
-				*yPos += 14; // Line height
-				totalWidth = 0;
-				i = lastSpace;  // Resume from after the last space
-				lastSpace = -1;
-			} else {
-				// No space found, force break
-				Move(rp, xStart, *yPos);
-				Text(rp, &text[lineStart], i - lineStart);
-				lineStart = i;
-				*yPos += 14;
-				totalWidth = 0;
-			}
-		} else {
-			if (text[i] == ' ') {
-				lastSpace = i;
-			}
-			totalWidth += charWidth;
-		}
-	}
-
-	// Draw remaining text
-	if (lineStart < textLen) {
-		Move(rp, xStart, *yPos);
-		Text(rp, &text[lineStart], textLen - lineStart);
-		*yPos += 14;
-	}
 }
 
 BOOL InitLibraries(void) {
@@ -264,145 +224,6 @@ void SaveSingleStation(struct ExtNode *station) {
 	FreeAslRequest(fileReq);
 }
 
-struct Window* OpenDetailsWindow(struct ExtNode *station) {
-	struct Screen *screen = LockPubScreen(NULL);
-	struct Window *detailWindow;
-	struct Gadget *glist = NULL, *gad;
-	struct NewGadget ng;
-	void *vi;
-	WORD windowWidth = 400;
-	WORD windowHeight = 250;  // Increased height for wrapped text
-
-	if (!screen) return NULL;
-
-	WORD leftEdge = (screen->Width - windowWidth) / 2;
-	WORD topEdge = (screen->Height - windowHeight) / 2;
-
-	vi = GetVisualInfo(screen, TAG_DONE);
-	if (!vi) {
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-
-	gad = CreateContext(&glist);
-	if (!gad) {
-		FreeVisualInfo(vi);
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-
-	// Save button
-	ng.ng_LeftEdge = windowWidth/2 - 90;
-	ng.ng_TopEdge = windowHeight - 30;  // Adjusted position
-	ng.ng_Width = 80;
-	ng.ng_Height = 15;
-	ng.ng_GadgetText = GetTFString(MSG_SAVE);
-	ng.ng_TextAttr = screen->Font;
-	ng.ng_GadgetID = 1;
-	ng.ng_Flags = PLACETEXT_IN;
-	ng.ng_VisualInfo = vi;
-
-	gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-	if (!gad) {
-		FreeGadgets(glist);
-		FreeVisualInfo(vi);
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-	// AmigaAMP button
-	ng.ng_LeftEdge = windowWidth/2 + 10;
-	ng.ng_GadgetText = GetTFString(MSG_PLAY);
-	ng.ng_GadgetID = 2;
-
-	gad = CreateGadget(BUTTON_KIND, gad, &ng, TAG_DONE);
-	if (!gad) {
-		FreeGadgets(glist);
-		FreeVisualInfo(vi);
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-
-	detailWindow = OpenWindowTags(NULL,
-	                              WA_Title, GetTFString(MSG_STATION_DETAILS),
-	                              WA_Left, leftEdge,
-	                              WA_Top, topEdge,
-	                              WA_Width, windowWidth,
-	                              WA_Height, windowHeight,
-	                              WA_IDCMP, IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_REFRESHWINDOW,
-	                              WA_Gadgets, glist,
-	                              WA_DragBar, TRUE,
-	                              WA_DepthGadget, TRUE,
-	                              WA_CloseGadget, TRUE,
-	                              WA_Activate, TRUE,
-	                              WA_SmartRefresh, TRUE,
-	                              WA_PubScreen, screen,
-	                              TAG_DONE);
-
-	if (!detailWindow) {
-		FreeGadgets(glist);
-		FreeVisualInfo(vi);
-		UnlockPubScreen(NULL, screen);
-		return NULL;
-	}
-
-	detailWindow->UserData = (void*)station;
-
-	struct RastPort *rp = detailWindow->RPort;
-	WORD textY = detailWindow->BorderTop + 20;
-	WORD labelX = 20;
-	WORD contentX = 100;
-	WORD maxWidth = windowWidth - contentX - 20;  // Maximum width for wrapped text
-    char label[256];
-	SetAPen(rp, 1);
-	SetBPen(rp, 0);
-    
-	// Draw Name field
-    sprintf(label, "%s:",GetTFString(MSG_NAME));
-	Move(rp, labelX, textY);
-	Text(rp, label, 5);
-	DrawWrappedText(rp, station->displayText, contentX, &textY, maxWidth);
-
-	// Add some spacing between fields
-	textY += 10;
-
-	// Draw URL field
-    sprintf(label, "%s:",GetTFString(MSG_URL));
-	Move(rp, labelX, textY);
-	Text(rp, label, 4);
-	DrawWrappedText(rp, station->url, contentX, &textY, maxWidth);
-
-	textY += 10;
-
-	// Draw Codec field
-    sprintf(label, "%s:",GetTFString(MSG_CODEC));
-	Move(rp, labelX, textY);
-	Text(rp, label, 6);
-	Move(rp, contentX, textY);
-	Text(rp, station->codec, strlen(station->codec));
-	textY += 20;
-
-	// Draw Bitrate field
-    sprintf(label, "%s:",GetTFString(MSG_BITRATE));
-	Move(rp, labelX, textY);
-	Text(rp, label, 8);
-	char bitrateBuf[20];
-	sprintf(bitrateBuf, "%ld kbps", station->bitrate);
-	Move(rp, contentX, textY);
-	Text(rp, bitrateBuf, strlen(bitrateBuf));
-	textY += 20;
-
-	// Draw Country field
-    sprintf(label, "%s:",GetTFString(MSG_COUNTRY));
-	Move(rp, labelX, textY);
-	Move(rp, labelX, textY);
-	Text(rp, label, 8);
-	Move(rp, contentX, textY);
-	Text(rp, station->country, strlen(station->country));
-
-	UnlockPubScreen(NULL, screen);
-	return detailWindow;
-}
-
 void HandleSave(void) {
 	struct FileRequester *fileReq;
 	char filepath[256];
@@ -440,75 +261,43 @@ void HandleSave(void) {
 	FreeAslRequest(fileReq);
 }
 
+
 void HandleListSelect(struct IntuiMessage *imsg) {
-	UWORD selection = imsg->Code;
-	struct Node *node = browserList->lh_Head;
-	struct Window *detailWindow;
-	struct IntuiMessage *msg;
-	BOOL done = FALSE;
-
-	while (selection-- && node->ln_Succ) {
-		node = node->ln_Succ;
-	}
-
-	if (node->ln_Succ) {
-		struct ExtNode *ext = (struct ExtNode *)node;
-		detailWindow = OpenDetailsWindow(ext);
-		if (!detailWindow) return;
-
-		while (!done) {
-			WaitPort(detailWindow->UserPort);
-
-			while ((msg = GT_GetIMsg(detailWindow->UserPort))) {
-				UWORD class = msg->Class;
-				UWORD code = msg->Code;
-				struct Gadget *gad = (struct Gadget *)msg->IAddress;
-
-				switch(msg->Class) {
-				case IDCMP_CLOSEWINDOW:
-					done = TRUE;
-					break;
-
-				case IDCMP_GADGETUP:
-					switch(gad->GadgetID) {
-					case 1: // Save button
-						SaveSingleStation(ext);
-						break;
-
-					case 2: // Play button
-						if (IsAmigaAMPRunning()) {
-							if (OpenStreamInAmigaAMP(ext->url)) {
-								// Success - show status in main window
-								char msg[MAX_STATUS_MSG_LEN];
-                                GetTFFormattedString(msg, sizeof(msg), MSG_PLAYING_STATION, ext->displayText);
-								UpdateStatusMessage(msg);
-							} else {
-								char msg[MAX_STATUS_MSG_LEN];
-                                GetTFFormattedString(msg, sizeof(msg), MSG_FAILED_START_PLAYBACK, ext->displayText);
-								UpdateStatusMessage(msg);
-
-							}
-						} else {
-								char msg[MAX_STATUS_MSG_LEN];
-                                GetTFFormattedString(msg, sizeof(msg), MSG_AMIGAAMP_NOT_RUNNING, ext->displayText);
-								UpdateStatusMessage(msg);
-
-						}
-						break;
-					}
-					break;
-
-				case IDCMP_REFRESHWINDOW:
-					GT_BeginRefresh(detailWindow);
-					GT_EndRefresh(detailWindow, TRUE);
-					break;
-				}
-				GT_ReplyIMsg(msg);
-			}
-		}
-
-		CloseWindow(detailWindow);
-	}
+    UWORD selection = imsg->Code;
+    struct Node *node = browserList->lh_Head;
+    
+    while (selection-- && node->ln_Succ) {
+        node = node->ln_Succ;
+    }
+    
+    if (node->ln_Succ) {
+        struct ExtNode *ext = (struct ExtNode *)node;
+        currentStation = ext;
+        GT_SetGadgetAttrs(playButton, window, NULL,
+                         GA_Disabled, FALSE,
+                         TAG_DONE);
+        GT_SetGadgetAttrs(stopButton, window, NULL,
+                         GA_Disabled, FALSE,
+                         TAG_DONE);
+        char nameText[62];
+        snprintf(nameText, 62, "%.61s", ext->name);
+        GT_SetGadgetAttrs(stationNameGad, window, NULL,
+                 GTTX_Text, nameText,
+                 TAG_DONE);
+        char detailText[100];
+        snprintf(detailText, sizeof(detailText), 
+                "%s: %s %s: %ld %s: %s",
+                GetTFString(MSG_CODEC), ext->codec,
+                GetTFString(MSG_COUNTRY), ext->bitrate,
+                GetTFString(MSG_COUNTRY), ext->country
+                );
+                
+        GT_SetGadgetAttrs(stationDetailGad, window, NULL,
+                         GTTX_Text, detailText,
+                         TAG_DONE);
+                         
+        RefreshGList(stationNameGad, window, NULL, 2);  // Refresh both gadgets
+    }
 }
 
 void HandleSearch(void) {
@@ -617,6 +406,7 @@ void HandleSearch(void) {
 		}
 
 		ext->displayText = displayText;
+        ext->name = strdup(stations[i].name ? stations[i].name : "");
 		ext->url = strdup(stations[i].url ? stations[i].url : "");
 		ext->codec = strdup(stations[i].codec ? stations[i].codec : GetTFString(MSG_UNKNOWN));
 		ext->country = strdup(stations[i].country ? stations[i].country : "??");
@@ -642,23 +432,54 @@ void HandleSearch(void) {
 	}
 }
 void HandleGadgetUp(struct IntuiMessage *imsg) {
-	UWORD gadgetID = ((struct Gadget *)imsg->IAddress)->GadgetID;
+    UWORD gadgetID = ((struct Gadget *)imsg->IAddress)->GadgetID;
+    char msg[MAX_STATUS_MSG_LEN];
 
-	switch(gadgetID) {
-	case 8:
-		HandleSearch();
-		break;
-
-	case 9:
-		HandleListSelect(imsg);
-		break;
-
-	case 10:
-		HandleSave();
-		break;
-	}
+    switch(gadgetID) {
+        case 8:  // Search button
+            HandleSearch();
+            break;
+            
+        case 9:  // ListView
+            HandleListSelect(imsg);
+            break;
+            
+        case 10:  // Save all button
+            HandleSave();
+            break;
+            
+        case 11:  // Save Single button
+            if (currentStation) {
+                SaveSingleStation(currentStation);
+            }
+            break;
+            
+        case 12:  // Stop button
+            if (IsAmigaAMPRunning()) {
+                StopAmigaAMP();
+                GetTFFormattedString(msg, sizeof(msg), MSG_STOPPING_PLAYBACK);
+                UpdateStatusMessage(msg);
+            } else {
+                GetTFFormattedString(msg, sizeof(msg), MSG_AMIGAAMP_NOT_RUNNING);
+                UpdateStatusMessage(msg);
+            }
+            break;
+            
+        case 13:  // Play button
+            if (currentStation) {
+                if (IsAmigaAMPRunning()) {
+                    if (!OpenStreamInAmigaAMP(currentStation->url)) {
+                        GetTFFormattedString(msg, sizeof(msg), MSG_FAILED_START_PLAYBACK);
+                        UpdateStatusMessage(msg);
+                    }
+                } else {
+                    GetTFFormattedString(msg, sizeof(msg), MSG_AMIGAAMP_NOT_RUNNING);
+                    UpdateStatusMessage(msg);
+                }
+            }
+            break;
+    }
 }
-
 void HandleMenuPick(UWORD menuNumber) {
 	struct MenuItem *item;
 	UWORD menuNum, itemNum;
@@ -861,47 +682,110 @@ BOOL OpenGUI(void) {
 	                            TAG_DONE);
 	if (!searchButton) DEBUG("Failed to create search button");
 
-	// ListView
-	ng.ng_LeftEdge = font_width * 2;
-	ng.ng_TopEdge += font_height + 12;
-	ng.ng_Width = font_width * 60;
-	ng.ng_Height = (font_height + 4) * 10;
-	ng.ng_GadgetText = NULL;
-	ng.ng_GadgetID = 9;
-	ng.ng_Flags = PLACETEXT_LEFT;
+// ListView
+    ng.ng_LeftEdge = font_width * 2;
+    ng.ng_TopEdge += font_height + 12;
+    ng.ng_Width = font_width * 60;
+    ng.ng_Height = (font_height + 4) * 8;
+    ng.ng_GadgetText = NULL;
+    ng.ng_GadgetID = 9;
+    ng.ng_Flags = PLACETEXT_LEFT;
 
-	listView = CreateGadget(LISTVIEW_KIND, searchButton, &ng,
-	                        GTLV_Labels, site_labels,
-	                        GTLV_ReadOnly, FALSE,
-	                        TAG_DONE);
-	if (!listView) DEBUG("Failed to create listview");
+    listView = CreateGadget(LISTVIEW_KIND, searchButton, &ng,
+                            GTLV_Labels, site_labels,
+                            GTLV_ReadOnly, FALSE,
+                            TAG_DONE);
+    if (!listView) DEBUG("Failed to create listview");
 
-	// Save button
-	ng.ng_TopEdge += ng.ng_Height + 12;
-	ng.ng_Width = font_width * 10;
-	ng.ng_Height = font_height + 4;
-	ng.ng_GadgetText = GetTFString(MSG_SAVE);
-	ng.ng_Flags = PLACETEXT_IN;
-	ng.ng_GadgetID = 10;
+    // Status text (right under ListView)
+    ng.ng_TopEdge += ng.ng_Height + 4;
+    ng.ng_Width = font_width * 60;
+    ng.ng_Height = font_height + 4;
+    ng.ng_GadgetText = NULL;
+    ng.ng_Flags = 0;
+    ng.ng_GadgetID = 14;
+    ng.ng_Flags = PLACETEXT_LEFT | NG_HIGHLABEL;
 
-	saveButton = CreateGadget(BUTTON_KIND, listView, &ng,
-	                          TAG_DONE);
-	if (!saveButton) DEBUG("Failed to create save button");
+    statusMsgGad = CreateGadget(TEXT_KIND, listView, &ng,
+                               GTTX_Text, GetTFString(MSG_READY),
+                               GTST_MaxChars, 51,
+                               TAG_DONE);
+    if (!statusMsgGad) DEBUG("Failed to create status gadget");
 
-	// Status text
-	ng.ng_LeftEdge = font_width * 14;
-	ng.ng_Width = font_width * 32;
-	ng.ng_GadgetText = NULL;
-	ng.ng_Flags = 0;
-	ng.ng_GadgetID = 11;
+    // Action buttons row
+    ng.ng_TopEdge += font_height + 8;
+    ng.ng_Height = font_height + 6;  // Slightly taller buttons
+    ng.ng_Width = (font_width * 60 - font_width * 6) / 4;  // Equal width for all buttons, leaving space for gaps
+    ng.ng_Flags = PLACETEXT_IN;
 
-	statusMsgGad = CreateGadget(TEXT_KIND, saveButton, &ng,
-	                            GTTX_Text, GetTFString(MSG_READY),
-                                GTST_MaxChars, 51,
-	                            TAG_DONE);
-	if (!statusMsgGad) DEBUG("Failed to create status gadget");
+    // Save button (first)
+    ng.ng_LeftEdge = font_width * 2;
+    ng.ng_GadgetText = GetTFString(MSG_SAVE);
+    ng.ng_GadgetID = 10;
 
-	// Calculate window size based on gadget positions - add extra space for labels
+    saveButton = CreateGadget(BUTTON_KIND, statusMsgGad, &ng,
+                             GT_Underscore, '_',
+                             TAG_DONE);
+    if (!saveButton) DEBUG("Failed to create save button");
+
+    // Save Single button (second)
+    ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
+    ng.ng_GadgetText = GetTFString(MSG_SAVE_SINGLE);
+    ng.ng_GadgetID = 11;
+
+    saveSingleButton = CreateGadget(BUTTON_KIND, saveButton, &ng,
+                                   GT_Underscore, '_',
+                                   TAG_DONE);
+    if (!saveSingleButton) DEBUG("Failed to create save single button");
+
+    // Stop button (third)
+    ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
+    ng.ng_GadgetText = GetTFString(MSG_STOP);
+    ng.ng_GadgetID = 12;
+
+    stopButton = CreateGadget(BUTTON_KIND, saveSingleButton, &ng,
+                             GT_Underscore, '_',
+                             GA_Disabled, TRUE, 
+                             TAG_DONE);
+    if (!stopButton) DEBUG("Failed to create stop button");
+
+    // Play button (fourth)
+    ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
+    ng.ng_GadgetText = GetTFString(MSG_PLAY);
+    ng.ng_GadgetID = 13;
+
+    playButton = CreateGadget(BUTTON_KIND, stopButton, &ng,
+                             GT_Underscore, '_',
+                             GA_Disabled, TRUE, 
+                             TAG_DONE);
+    if (!playButton) DEBUG("Failed to create play button");
+
+    // Station name text (first line)
+    ng.ng_LeftEdge = font_width * 2;
+    ng.ng_TopEdge += font_height + 8;
+    ng.ng_Width = font_width * 60;
+    ng.ng_Height = font_height + 4;
+    ng.ng_GadgetText = NULL;
+    ng.ng_Flags = 0;
+    ng.ng_GadgetID = 15;
+
+    stationNameGad = CreateGadget(TEXT_KIND, playButton, &ng,
+                                 GTTX_Text, "",
+                                 GTST_MaxChars, 100,
+                                 TAG_DONE);
+    if (!stationNameGad) DEBUG("Failed to create station name gadget");
+
+    // Station details text (second line)
+    ng.ng_TopEdge += font_height + 4;
+    ng.ng_GadgetID = 16;
+
+    stationDetailGad = CreateGadget(TEXT_KIND, stationNameGad, &ng,
+                                   GTTX_Text, "",
+                                   GTST_MaxChars, 100,
+                                   TAG_DONE);
+    if (!stationDetailGad) DEBUG("Failed to create station detail gadget");
+
+    	// Calculate window size based on gadget positions - add extra space for labels
 	ULONG window_width = font_width * 64;  // Increased to accommodate labels
 	ULONG window_height = ng.ng_TopEdge + font_height + 15;
 
