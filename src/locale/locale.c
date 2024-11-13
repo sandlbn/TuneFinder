@@ -129,9 +129,8 @@ static const char *built_in_strings[] = {
     "Timeout waiting for data",
     "Failed to create socket",
     "Failed to allocate buffers",
-    
-    // Padding to align with IDs 87-89
-    NULL,
+    "Invalid host",
+    // Padding to align with IDs 88-89
     NULL,
     NULL,
     

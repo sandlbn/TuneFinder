@@ -368,7 +368,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
 
                         // Validate host
                         if (!hostStr || !*hostStr || strlen(hostStr) >= MAX_HOST_LEN) {
-                            UpdateStatusMessage("Invalid host");
+                            UpdateStatusMessage(GetTFString(MSG_INVALID_HOST));
                             inputValid = FALSE;
                         }
 

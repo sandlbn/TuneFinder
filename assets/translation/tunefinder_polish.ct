@@ -158,6 +158,9 @@ Nie mozna utworzyc polaczenia
 MSG_FAILED_ALL_BUFF
 Blad alokacji pamieci
 ;
+MSG_INVALID_HOST
+Bledny adres
+;
 MSG_FAILED_START_PLAYBACK
 Blad odtwarzania
 ;

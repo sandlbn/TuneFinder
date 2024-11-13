@@ -72,7 +72,7 @@
 #define MSG_TIMEOUT                84  // "Timeout waiting for data"
 #define MSG_FAILED_CR_SOC          85  // "Failed to create socket"
 #define MSG_FAILED_ALL_BUFF        86  // "Failed to allocate buffers"
-
+#define MSG_INVALID_HOST           87  // Invalid host
 // Error Messages - External Programs
 #define MSG_FAILED_START_PLAYBACK  90  // "Failed to start playback"
 #define MSG_AMIGAAMP_NOT_RUNNING   91  // "AmigaAMP is not running"

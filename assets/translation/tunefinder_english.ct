@@ -158,6 +158,9 @@ Failed to create socket
 MSG_FAILED_ALL_BUFF
 Failed to allocate buffers
 ;
+MSG_INVALID_HOST
+Invalid host
+;
 MSG_FAILED_START_PLAYBACK
 Failed to start playback
 ;
