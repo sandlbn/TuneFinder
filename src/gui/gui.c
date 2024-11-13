@@ -686,6 +686,7 @@ BOOL OpenGUI(void) {
 
     listView = CreateGadget(LISTVIEW_KIND, searchButton, &ng,
                             GTLV_Labels, site_labels,
+                            GTLV_ShowSelected, NULL, 
                             GTLV_ReadOnly, FALSE,
                             TAG_DONE);
     if (!listView) DEBUG("Failed to create listview");
