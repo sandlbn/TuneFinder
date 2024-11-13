@@ -71,8 +71,8 @@ static const char *built_in_strings[] = {
     // Status Messages with Parameters (40-46)
     "Found %d stations",
     "Playing: %s",
-    "Settings loaded: %s:%d",
-    "Settings saved: %s:%d",
+    "Settings loaded.",
+    "Settings saved.",
     "Search completed. Found %d stations.",
     "File saved: %s",
     "Settings saved: %s:%u",
