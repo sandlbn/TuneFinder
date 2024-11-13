@@ -383,13 +383,11 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
 
                         // Validate limit
                         int tempLimit;
-                        if (!limitStr || sscanf(limitStr, "%d", &tempLimit) != 1 || 
-                            tempLimit <= 0) {
+                        if (!limitStr || sscanf(limitStr, "%d", &tempLimit) != 1 || tempLimit < 0) {
                             GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT, DEFAULT_LIMIT);
                             UpdateStatusMessage(msg);
                             inputValid = FALSE;
                         }
-
                         if (inputValid) {
                             strncpy(settings->host, hostStr, MAX_HOST_LEN-1);
                             settings->host[MAX_HOST_LEN-1] = '\0';
