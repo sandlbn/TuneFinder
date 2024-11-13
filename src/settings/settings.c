@@ -184,10 +184,11 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
     // Get font metrics for consistent spacing
     ULONG font_width = screen->RastPort.TxWidth;
     ULONG font_height = screen->RastPort.TxHeight;
+    ULONG border_height = screen->WBorTop + screen->Font->ta_YSize + 1;
     
     // Calculate layout metrics
     WORD leftMargin = font_width * 2;            // Left margin
-    WORD topMargin = font_height + 10;            // Top margin
+    WORD topMargin = border_height + font_height;            // Top margin
     WORD rowHeight = font_height + 6;            // Height of each row
     WORD rowSpacing = font_height / 2;           // Space between rows
     WORD labelWidth = font_width * 10;           // Width for labels

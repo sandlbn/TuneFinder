@@ -558,8 +558,6 @@ BOOL OpenGUI(void) {
 	font_height = s->RastPort.TxHeight;
     // Get border height
     border_height = s->WBorTop + s->Font->ta_YSize + 1;
-    DEBUG("%d", border_height);
-
 
 
 	if (!LoadCountryConfig(FULL_COUNTRY_CONFIG_PATH, &countryConfig)) {
@@ -757,7 +755,7 @@ BOOL OpenGUI(void) {
 
     // Station name text (first line)
     ng.ng_LeftEdge = font_width * 2;
-    ng.ng_TopEdge += font_height + 8;
+    ng.ng_TopEdge += ng.ng_Height + 4;
     ng.ng_Width = font_width * 60;
     ng.ng_Height = font_height + 4;
     ng.ng_GadgetText = NULL;
