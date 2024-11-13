@@ -42,6 +42,12 @@ Play
 MSG_QUIT (14//)
 Quit
 ;
+MSG_SAVE_SINGLE (15//)
+Quit
+;
+MSG_STOP (16//)
+Quit
+;
 ; GUI States
 MSG_READY (20//)
 Ready
@@ -166,4 +172,7 @@ Failed to start playback
 ;
 MSG_AMIGAAMP_NOT_RUNNING (91//)
 AmigaAMP is not running
+;
+MSG_STOPPING_PLAYBACK (92//)
+Playback stopped
 ;

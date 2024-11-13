@@ -76,7 +76,8 @@
 // Error Messages - External Programs
 #define MSG_FAILED_START_PLAYBACK  90  // "Failed to start playback"
 #define MSG_AMIGAAMP_NOT_RUNNING   91  // "AmigaAMP is not running"
-#define MSG_STOPPING_PLAYBACK      92
+#define MSG_STOPPING_PLAYBACK      92 // Playback stopped
+
 BOOL InitLocaleSystem(void);
 void CleanupLocaleSystem(void);
 const char* GetTFString(LONG stringNum);

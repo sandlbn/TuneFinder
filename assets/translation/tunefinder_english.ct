@@ -41,6 +41,12 @@ Play
 MSG_QUIT
 Quit
 ;
+MSG_SAVE_SINGLE
+Quit
+;
+MSG_STOP
+Quit
+;
 MSG_READY
 Ready
 ;
@@ -157,4 +163,7 @@ Failed to start playback
 ;
 MSG_AMIGAAMP_NOT_RUNNING
 AmigaAMP is not running
+;
+MSG_STOPPING_PLAYBACK
+Playback stopped
 ;
