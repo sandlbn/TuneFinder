@@ -41,8 +41,8 @@
 // Status Messages with Parameters
 #define MSG_FOUND_STATIONS     40  // "Found %d stations"
 #define MSG_PLAYING_STATION    41  // "Playing: %s"
-#define MSG_SETTINGS_LOADED    42  // "Settings loaded: %s:%d"
-#define MSG_SETTINGS_SAVED     43  // "Settings saved: %s:%d"
+#define MSG_SETTINGS_LOADED    42  // "Settings loaded."
+#define MSG_SETTINGS_SAVED     43  // "Settings saved."
 #define MSG_SEARCH_COMPLETED   44  // "Search completed. Found %d stations."
 #define MSG_FILE_SAVED         45  // "File saved: %s"
 #define MSG_SET_SAVED          46  // "Settings saved: %s:%u"

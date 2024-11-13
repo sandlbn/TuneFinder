@@ -288,7 +288,7 @@ void HandleListSelect(struct IntuiMessage *imsg) {
         snprintf(detailText, sizeof(detailText), 
                 "%s: %s %s: %ld %s: %s",
                 GetTFString(MSG_CODEC), ext->codec,
-                GetTFString(MSG_COUNTRY), ext->bitrate,
+                GetTFString(MSG_BITRATE), ext->bitrate,
                 GetTFString(MSG_COUNTRY), ext->country
                 );
                 
@@ -497,12 +497,7 @@ void HandleMenuPick(UWORD menuNumber) {
 		case ITEM_SETTINGS:
 			DEBUG("Settings selected");
 			if (CreateSettingsWindow(&currentSettings, window)) {
-				char msg[MAX_STATUS_MSG_LEN];
-                GetTFFormattedString(msg, sizeof(msg), MSG_SETTINGS_SAVED, currentSettings.host, currentSettings.port);
-
-				//snprintf(msg, MAX_STATUS_MSG_LEN, "Settings saved: %s:%d",
-				 //        currentSettings.host, currentSettings.port);
-				UpdateStatusMessage(msg);
+				UpdateStatusMessage(GetTFString(MSG_SETTINGS_SAVED));
 			}
 			break;
 
