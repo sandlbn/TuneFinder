@@ -140,7 +140,7 @@ BOOL LoadSettings(struct APISettings *settings) {
         if (len > 0) {
             limitStr[len] = '\0';
             int tempLimit = 0;
-            if (sscanf(limitStr, "%d", &tempLimit) == 1 && tempLimit > 0) {
+            if (sscanf(limitStr, "%d", &tempLimit) == 1 && tempLimit >= 0) {
                 settings->limit = tempLimit;
                 limitLoaded = TRUE;
             } else {
