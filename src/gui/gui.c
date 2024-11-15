@@ -287,6 +287,7 @@ void HandleSave(void) {
 
 
 void HandleListSelect(struct IntuiMessage *imsg) {
+	char nameText[62];
     UWORD selection = imsg->Code;
     struct Node *node = browserList->lh_Head;
     
@@ -303,7 +304,6 @@ void HandleListSelect(struct IntuiMessage *imsg) {
         GT_SetGadgetAttrs(stopButton, window, NULL,
                          GA_Disabled, FALSE,
                          TAG_DONE);
-        char nameText[62];
         snprintf(nameText, 62, "%.61s", ext->name);
         GT_SetGadgetAttrs(stationNameGad, window, NULL,
                  GTTX_Text, nameText,
@@ -662,8 +662,11 @@ static ULONG RenderFunc(struct Hook *hook, struct Node *node, struct LVDrawMsg *
     Text(rp, buffer, textLength);
     // Draw country
     if (ext->country) {
-        Move(rp, msg->lvdm_Bounds.MinX + nameWidth + codecWidth + bitrateWidth + 4, y);
-        Text(rp, ext->country, strlen(ext->country));
+        ULONG textLength = strlen(ext->country);
+        ULONG textWidth = TextLength(rp, ext->country, textLength);
+        Move(rp, msg->lvdm_Bounds.MinX + nameWidth + codecWidth + bitrateWidth + countryWidth - textWidth - 4, y);
+        Text(rp, ext->country, textLength);
+
     }
 
     // Ghost if disabled
