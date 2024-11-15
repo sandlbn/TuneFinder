@@ -7,6 +7,7 @@
 #include <clib/exec_protos.h>
 #include <clib/intuition_protos.h>
 #include <clib/gadtools_protos.h>
+#include <proto/alib.h>
 #include <clib/alib_protos.h>
 #include <clib/graphics_protos.h>
 #include <proto/dos.h>
@@ -14,6 +15,10 @@
 #include <proto/exec.h>
 #include <exec/memory.h>
 #include <proto/graphics.h>
+#include <graphics/gfx.h>
+#include <graphics/gfxbase.h>
+#include <graphics/gfxmacros.h>
+#include <utility/hooks.h>
 #include <intuition/screens.h>
 #include <intuition/gadgetclass.h>
 #include <proto/gadtools.h>
@@ -26,6 +31,16 @@
 #include "../../include/amigaamp.h"
 #include "../../include/locale.h"
 #include "../../include/version.h"
+
+#ifdef __GNUC__
+extern void geta4(void);   
+#endif
+
+#define MENU_PROJECT     0   // Menu number for Project menu
+#define ITEM_SETTINGS    0   // for Settings
+#define ITEM_ABOUT       1   // for About
+#define ITEM_QUIT        3   // for Quit (after separator)
+#define MAX_STATION_NAME 40 
 
 struct CountryConfig countryConfig;
 struct RastPort *RastPort;
@@ -41,13 +56,8 @@ struct Library *SocketBase = NULL;
 struct GfxBase *GfxBase = NULL;
 struct Library *AslBase = NULL;
 void *visualInfo = NULL;
-#define MENU_PROJECT     0   // Menu number for Project menu
-#define ITEM_SETTINGS    0   // for Settings
-#define ITEM_ABOUT       1   // for About
-#define ITEM_QUIT        3   // for Quit (after separator)
+
 struct ExtNode *currentStation;  // Track currently selected station
-
-
 struct Menu *menuStrip = NULL;
 struct APISettings currentSettings;
 // GUI Elements
@@ -68,7 +78,7 @@ struct Gadget *stationDetailGad;
 struct Gadget *stationNameGad;
 // Choices for dropdowns
 const char *codecChoices[] = {"","MP3","AAC","AAC+","OGG","FLAC",NULL};
-
+static struct Hook renderHook;
 static struct Menu *CreateAppMenus(void) {
 	struct NewMenu newMenu[] = {
 		{ NM_TITLE,  GetTFString(MSG_PROJECT),     NULL,     0, 0L, NULL },
@@ -86,6 +96,19 @@ static struct Menu *CreateAppMenus(void) {
 	}
 
 	return menuStrip;
+}
+
+static UWORD GhostPattern[2] = {
+    0x4444,
+    0x1111
+};
+
+static VOID Ghost(struct RastPort *rp, UWORD pen, UWORD x0, UWORD y0, UWORD x1, UWORD y1)
+{
+    SetABPenDrMd(rp, pen, 0, JAM1);
+    SetAfPt(rp, GhostPattern, 1);
+    RectFill(rp, x0, y0, x1, y1);
+    SetAfPt(rp, NULL, 0);
 }
 
 BOOL InitLibraries(void) {
@@ -540,14 +563,127 @@ void HandleMenuPick(UWORD menuNumber) {
 		}
 	}
 }
+
+static ULONG RenderFunc(struct Hook *hook, struct Node *node, struct LVDrawMsg *msg)
+{
+    geta4();
+
+    struct RastPort *rp ;
+    struct DrawInfo *drawInfo;
+    UWORD *pens;
+    struct ExtNode *ext;
+    char buffer[32];
+    char nameBuffer[MAX_STATION_NAME + 1];
+    WORD x, y;
+    WORD totalWidth;
+    WORD nameWidth, codecWidth, bitrateWidth, countryWidth;
+    UWORD bgColor, fgColor;  
+    WORD charWidth;
+
+    if (!msg || msg->lvdm_MethodID != LV_DRAW)
+        return LVCB_UNKNOWN;
+
+
+    rp = msg->lvdm_RastPort;
+    drawInfo = msg->lvdm_DrawInfo;
+    pens = drawInfo->dri_Pens;
+    ext = (struct ExtNode *)node;
+
+    if (!rp || !drawInfo || !ext)
+        return LVCB_UNKNOWN;
+
+    // Set colors based on selection state
+    if (msg->lvdm_State == LVR_SELECTED || msg->lvdm_State == LVR_SELECTEDDISABLED) {
+        bgColor = pens[FILLPEN];
+        fgColor = pens[FILLTEXTPEN];
+    } else {
+        bgColor = pens[BACKGROUNDPEN];
+        fgColor = pens[TEXTPEN];
+    }
+
+    // Set up pens and drawing mode
+    SetABPenDrMd(rp, fgColor, bgColor, JAM2);
+    charWidth = rp->TxWidth;
+    codecWidth = charWidth * 6;    
+    bitrateWidth = charWidth * 6; 
+    countryWidth = charWidth * 4; 
+
+    // Calculate column widths
+    totalWidth = msg->lvdm_Bounds.MaxX - msg->lvdm_Bounds.MinX;
+
+    nameWidth = totalWidth - codecWidth - bitrateWidth - countryWidth;
+    if (nameWidth < charWidth * 40) {  // Minimum 40 characters
+        nameWidth = charWidth * 40;
+    }
+    // Clear the background with selection color
+    SetAPen(rp, bgColor);
+    RectFill(rp, msg->lvdm_Bounds.MinX, msg->lvdm_Bounds.MinY,
+             msg->lvdm_Bounds.MaxX, msg->lvdm_Bounds.MaxY);
+
+    // Set text color
+    SetAPen(rp, fgColor);
+
+    // Draw vertical separators at new positions
+    x = msg->lvdm_Bounds.MinX + nameWidth;
+    Move(rp, x, msg->lvdm_Bounds.MinY);
+    Draw(rp, x, msg->lvdm_Bounds.MaxY);
+
+    x += codecWidth;
+    Move(rp, x, msg->lvdm_Bounds.MinY);
+    Draw(rp, x, msg->lvdm_Bounds.MaxY);
+
+    x += bitrateWidth;
+    Move(rp, x, msg->lvdm_Bounds.MinY);
+    Draw(rp, x, msg->lvdm_Bounds.MaxY);
+
+    // Calculate v. centering
+    y = msg->lvdm_Bounds.MinY + ((msg->lvdm_Bounds.MaxY - msg->lvdm_Bounds.MinY - rp->TxHeight) / 2) + rp->TxBaseline;
+
+    // Draw name
+    if (ext->name) {
+        cleanNonAscii(nameBuffer, ext->name, MAX_STATION_NAME + 1);
+        Move(rp, msg->lvdm_Bounds.MinX + 4, y);
+        Text(rp, nameBuffer, strlen(nameBuffer));
+    }
+
+    // Draw codec
+    if (ext->codec) {
+        ULONG textLength = strlen(ext->codec);
+        ULONG textWidth = TextLength(rp, ext->codec, textLength);
+        Move(rp, msg->lvdm_Bounds.MinX + nameWidth + codecWidth - textWidth - 4, y);
+        Text(rp, ext->codec, textLength);
+    }
+
+    // Draw bitrate
+    sprintf(buffer, "%ld", ext->bitrate);  
+    ULONG textLength = strlen(buffer);
+    ULONG textWidth = TextLength(rp, buffer, textLength);
+    Move(rp, msg->lvdm_Bounds.MinX + nameWidth + codecWidth + bitrateWidth - textWidth - 4, y);
+    Text(rp, buffer, textLength);
+    // Draw country
+    if (ext->country) {
+        Move(rp, msg->lvdm_Bounds.MinX + nameWidth + codecWidth + bitrateWidth + 4, y);
+        Text(rp, ext->country, strlen(ext->country));
+    }
+
+    // Ghost if disabled
+    if (msg->lvdm_State == LVR_NORMALDISABLED || msg->lvdm_State == LVR_SELECTEDDISABLED) {
+        Ghost(rp, pens[BLOCKPEN], msg->lvdm_Bounds.MinX, msg->lvdm_Bounds.MinY,
+              msg->lvdm_Bounds.MaxX, msg->lvdm_Bounds.MaxY);
+    }
+
+    return LVCB_OK;
+}
+
 BOOL OpenGUI(void) {
 	struct Gadget *glist = NULL, *gad;
 	struct NewGadget ng;
 	struct Screen *s;
+	static struct Hook renderHook;
 	void *vi;
 	struct List *site_labels;
 	ULONG font_width, font_height, border_height;
-
+	
 	DEBUG("Starting GUI initialization...");
 
 	s = LockPubScreen(NULL);
@@ -677,9 +813,13 @@ BOOL OpenGUI(void) {
 	searchButton = CreateGadget(BUTTON_KIND, hideBrokenCheckBox, &ng,
 	                            TAG_DONE);
 	if (!searchButton) DEBUG("Failed to create search button");
+	
 
-// ListView
-    ng.ng_LeftEdge = font_width * 2;
+	// ListView
+    renderHook.h_Entry = (HOOKFUNC)HookEntry; // Standard entry stub
+	renderHook.h_SubEntry = (HOOKFUNC)RenderFunc;
+
+	ng.ng_LeftEdge = font_width * 2;
     ng.ng_TopEdge += font_height + 12;
     ng.ng_Width = font_width * 60;
     ng.ng_Height = (font_height + 4) * 8;
@@ -688,7 +828,11 @@ BOOL OpenGUI(void) {
     ng.ng_Flags = PLACETEXT_LEFT;
 
     listView = CreateGadget(LISTVIEW_KIND, searchButton, &ng,
+							GA_Immediate, TRUE,
                             GTLV_Labels, site_labels,
+							GA_RelVerify, TRUE,
+							GTLV_CallBack, &renderHook,
+							GTLV_ScrollWidth, 16,
                             GTLV_ShowSelected, NULL, 
                             GTLV_ReadOnly, FALSE,
                             TAG_DONE);
@@ -806,6 +950,7 @@ BOOL OpenGUI(void) {
 	                        WFLG_SMART_REFRESH,
 	                        WA_IDCMP, BUTTONIDCMP |
 	                        IDCMP_CLOSEWINDOW |
+							LISTVIEWIDCMP |
 	                        IDCMP_REFRESHWINDOW |
 	                        IDCMP_GADGETUP |
 	                        IDCMP_MENUPICK |
