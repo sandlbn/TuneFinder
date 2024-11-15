@@ -91,10 +91,10 @@ MSG_PLAYING_STATION
 Abspielen: %s
 ;
 MSG_SETTINGS_LOADED
-Einstellungen geladen: %s:%d
+Einstellungen geladen.
 ;
 MSG_SETTINGS_SAVED
-Einstellungen gespeichert: %s:%d
+Einstellungen gespeichert.
 ;
 MSG_SEARCH_COMPLETED
 Suche beendet. %d gefundene Sender.
@@ -103,9 +103,9 @@ MSG_FILE_SAVED
 Datei gespeichert: %s
 ;
 MSG_SET_SAVED
-Einstellungen gespeichert: %s:%u
+Einstellungen gespeichert: %s:%u Limit:%u
 ;
-MSG_NO_SAVED
+MSG_NO_STATIONS
 Keine Stationen gefunden
 ;
 ; Error Messages - Settings Related

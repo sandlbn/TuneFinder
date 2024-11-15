@@ -15,6 +15,8 @@ ASSETS_DIR = assets
 AMINET_DIR = $(ASSETS_DIR)/aminet
 ICON_DIR = $(ASSETS_DIR)/icon
 RELEASE_DIR = release
+FLEXCAT = flexcat
+CD_FILE = assets/translation/tunefinder.cd
 
 # Program settings
 CC = m68k-amigaos-gcc
@@ -89,6 +91,11 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	cd $(RELEASE_DIR) && lha -ao5 ../$(AMINET_NAME).lha $(AMINET_NAME)
 	$(info Aminet release created: $(AMINET_NAME).lha)
 
+catalogs:
+	$(info Generating translation catalogs...)
+	$(FLEXCAT) $(CD_FILE) assets/translation/polski/tunefinder.ct CATALOG assets/translation/polski/tunefinder.catalog
+	$(FLEXCAT) $(CD_FILE) assets/translation/deutsch/tunefinder.ct CATALOG assets/translation/deutsch/tunefinder.catalog
+
 aminet-clean:
 	$(info Cleaning Aminet release files...)
 	$(RM) -rf $(RELEASE_DIR)
@@ -128,7 +135,9 @@ clean:
 	@$(RM) -rf $(BUILDDIR)
 	@$(RM) -f $(OUTDIR)/$(PROGRAM_NAME)
 	@$(RM) -f $(OUTDIR)/$(PROGRAM_NAME).map
-	
+	@$(RM) assets/translation/polski/tunefinder.catalog
+	@$(RM) assets/translation/deutsch/tunefinder.catalog
+
 debug-print:
 	@echo "Source Directory: $(SRCDIR)"
 	@echo "Build Directory: $(BUILDDIR)"
