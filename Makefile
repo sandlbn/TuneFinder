@@ -69,9 +69,23 @@ all: release
 aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	$(info Creating Aminet release...)
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)
+	# Copy main program and info
 	cp $(OUTDIR)/$(PROGRAM_NAME) $(RELEASE_DIR)/$(AMINET_NAME)/
 	cp $(AMINET_DIR)/$(PROGRAM_NAME).README $(RELEASE_DIR)/$(AMINET_NAME)/
 	cp $(ICON_DIR)/$(PROGRAM_NAME).info $(RELEASE_DIR)/$(AMINET_NAME)/
+
+	# Create and copy guide
+	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Docs
+	cp assets/amigaguide/tunefinder.guide $(RELEASE_DIR)/$(AMINET_NAME)/Docs/
+	cp assets/amigaguide/tunefinder.guide.info $(RELEASE_DIR)/$(AMINET_NAME)/Docs/ || true
+
+	# Create and copy translations
+	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski
+	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch
+	cp assets/translation/polski/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski/ 
+	cp assets/translation/deutsch/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch/ || true
+
+	# Create archive
 	cd $(RELEASE_DIR) && lha -ao5 ../$(AMINET_NAME).lha $(AMINET_NAME)
 	$(info Aminet release created: $(AMINET_NAME).lha)
 

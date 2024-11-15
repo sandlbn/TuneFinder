@@ -2,7 +2,7 @@ Short:        Search and display online radio stations
 Author:       marcin@spoczynski.com (Marcin Spoczynski)
 Uploader:     marcin@spoczynski.com (Marcin Spoczynski)
 Type:         comm/misc
-Version:      1.00
+Version:      1.1
 Architecture: m68k-amigaos >= 3.1
 Distribution: Aminet
 Replaces: comm/misc/TuneFinder.lha 
@@ -95,5 +95,16 @@ Fixes:
 
 - Fixed text padding in msg text gadget
 
+TuneFinder 1.00 (15.11.2024)
 
-Special thanks to Flype and Paluch for their help testing TuneFinder!
+Changes since version 1.0:
+- Redefined GUI to single screen layout
+- Added configurable result limit in settings
+- Improved save settings functionality
+- Enhanced GUI highlighting and visibility
+- Improved REXX communications
+- Added German translation (Thomas Blatt)
+- Added Polish translation
+- Added Amigaguide doc
+
+Special thanks to Flype, Thomas, Ponki1986 and Paluch for their help testing TuneFinder!

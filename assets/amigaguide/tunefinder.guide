@@ -1,0 +1,119 @@
+@database TuneFinder.guide
+@node Main "TuneFinder User Guide"
+@{fg shine}TuneFinder User Guide@{fg text}
+
+TuneFinder is an AmigaOS 3.x application 
+for browsing and saving Internet radio stations.
+
+@{b}Contents:@{ub}
+@{"Basic Usage" link BASIC}
+@{"Search Options" link SEARCH}
+@{"Settings" link SETTINGS}
+@{"Saving Stations" link SAVING}
+@{"Translation" link TRANS}
+@{"Countries" link COUNTRIES}
+
+@endnode
+
+@node BASIC "Basic Usage"
+@{fg shine}Basic Usage@{fg text}
+
+TuneFinder allows you to search and play Internet radio stations.
+
+To use TuneFinder:
+1. Enter search criteria in the fields.
+2. Click "Search" to find stations.
+3. Select a station from the list.
+4. Use Play/Stop buttons to control playback in AmigaAMP.
+
+@{"Back to Main" link Main}
+@endnode
+
+@node SEARCH "Search Options"
+@{fg shine}Search Options@{fg text}
+
+The main window provides several search fields:
+
+@{b}Name@{ub} - Enter the station name or part of it to search for specific stations.
+
+@{b}Tags@{ub} - Enter tags separated by commas (e.g., "rock,metal,alternative").
+
+@{b}Country@{ub} - Select a country from the dropdown menu.
+
+@{b}Codec@{ub} - Choose a specific audio codec (MP3, AAC, AAC+, OGG, FLAC).
+
+@{b}Additional Filters@{ub}:
+- HTTPS Only: Show only stations using secure connections.
+- Hide Broken: Hide stations with broken links.
+
+@{"Back to Main" link Main}
+@endnode
+
+@node SETTINGS "Settings"
+@{fg shine}Settings@{fg text}
+
+Access settings through the Project -> Settings menu.
+
+API Settings window contains:
+- API Host: Radio Browser API server address.
+- API Port: Server port number (usually 80).
+- Limit: Maximum number of results to display (0 for unlimited, default 100).
+
+@{"Back to Main" link Main}
+@endnode
+
+@node SAVING "Saving Stations"
+@{fg shine}Saving Stations@{fg text}
+
+TuneFinder offers two ways to save stations:
+
+@{b}Save Single@{ub} - Select a station, click "Save Single," choose location and filename to create a PLS playlist with the selected station.
+
+@{fg shine}Save All@{fg text} - Search for stations, click "Save All," choose location and filename to create a PLS playlist with all found stations.
+
+@{"Back to Main" link Main}
+@endnode
+
+@node TRANS "Translation"
+@{fg shine}Translation Support@{fg text}
+
+TuneFinder supports multiple languages through Amiga's catalog system.
+
+To create a new translation:
+1. Create a .ct file based on the assets/translation template.
+2. Replace English text with translations.
+3. Keep MSG_ identifiers and semicolons.
+4. Update language code in header.
+5. Use `flexcat` to generate catalog:
+
+`flexcat tunefinder.cd yourlanguage.ct CATALOG LOCALE:Catalogs/yourlanguage/tunefinder.catalog`
+
+Source code: [https://github.com/sandlbn/TuneFinder](https://github.com/sandlbn/TuneFinder)
+
+@{"Back to Main" link Main}
+@endnode
+
+@node COUNTRIES "Countries"
+@{fg shine}Countries@{fg text}
+
+To add new countries to TuneFinder:
+
+1. Navigate to "ENVARC:TuneFinder/countries.cfg"
+2. Edit the file with any text editor
+3. Add each country on a new line using format:  CODE:Name
+   For example:
+   PL:Poland
+   US:United States
+   GB:United Kingdom
+   SE:Sweden
+   NO:Norway
+   DK:Denmark
+
+The code must be a 2-letter country code according to
+ISO 3166-1 alpha-2 standard.
+Changes will take effect after restarting TuneFinder.
+
+Default entries will be created automatically if the file doesn't exist.
+
+@{"Back to Main" link Main}
+@endnode

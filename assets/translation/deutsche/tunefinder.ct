@@ -1,0 +1,184 @@
+; tunefinder_german.ct
+; Catalog description for TuneFinder
+; $VER: tunefinder.cd 1.0 (14.11.2024)
+## version $VER: Tunefinder.catalog 1.0
+## Codeset 0
+## language deutsch
+; GUI Labels
+MSG_NAME
+Name
+;
+MSG_COUNTRY
+Land
+;
+MSG_CODEC
+Codec
+;
+MSG_TAGS
+Tags
+;
+MSG_BITRATE
+Bitrate
+;
+MSG_UNKNOWN
+Unbekannt
+;
+MSG_LIMIT
+Limit
+;
+MSG_URL
+Url
+;
+; GUI Actions
+MSG_SEARCH
+Suchen
+;
+MSG_SAVE
+Speichern
+;
+MSG_CANCEL
+Abbrechen
+;
+MSG_PLAY
+Abspielen
+;
+MSG_QUIT
+Beenden
+;
+MSG_SAVE_SINGLE
+Einzeln Abspeichern
+;
+MSG_STOP
+Gestoppt
+;
+; GUI States
+MSG_READY
+Bereit
+;
+MSG_SETTINGS
+Einstellungen
+;
+MSG_API_SETTINGS
+API Einstellungen
+;
+MSG_STATION_DETAILS
+Senderinformationen
+;
+MSG_PROJECT
+Projekt
+;
+MSG_ABOUT
+Über
+;
+; Options and Settings
+MSG_HOST
+API Host
+;
+MSG_PORT
+API Port
+;
+MSG_HTTPS_ONLY
+Nur HTTPS
+;
+MSG_HIDE_BROKEN
+Verberge unvollständige Sender
+;
+; Status Messages with Parameters
+MSG_FOUND_STATIONS
+%d gefundene Sender
+;
+MSG_PLAYING_STATION
+Abspielen: %s
+;
+MSG_SETTINGS_LOADED
+Einstellungen geladen: %s:%d
+;
+MSG_SETTINGS_SAVED
+Einstellungen gespeichert: %s:%d
+;
+MSG_SEARCH_COMPLETED
+Suche beendet. %d gefundene Sender.
+;
+MSG_FILE_SAVED
+Datei gespeichert: %s
+;
+MSG_SET_SAVED
+Einstellungen gespeichert: %s:%u
+;
+MSG_NO_SAVED
+Keine Stationen gefunden
+;
+; Error Messages - Settings Related
+MSG_INVALID_PORT
+Ungültige Port Nummer, behalte Aktuellen: %ld
+;
+MSG_FAILED_WRITE_PORT_SET
+Schreiben der Porteinstellung fehlgeschlagen
+;
+MSG_FAILED_WRITE_HOST_SETTING
+Schreiben der Hosteinstellumgen fehlgeschlagen
+;
+MSG_INVALID_LOCALE
+Ungültiger lokaler Wert, behalte Aktuellen: %ld
+;
+MSG_FAILED_WRITE_LIMIT_SET
+Schreiben der eingeschränkten Einstellungen fehlgeschlagen
+;
+; Error Messages - File Operations
+MSG_FAILED_FILE_SAVE
+Datei konnte nicht gespeichert werden
+;
+MSG_FAILED_ACCESS
+Zugriff fehlgeschlagen %s
+;
+MSG_FAILED_CREAT_PORT_FILE
+Fehler beim Erstellen der Port-Einstellungsdatei: %s
+;
+MSG_FAILED_CREAT_HOST_SET_FILE
+Fehler beim Erstellen der Host-Einstellungsdatei: %s
+;
+MSG_FAILED_CREAT_LIMIT_FILE
+Fehler beim Erstellen der eingeschränkten Einstellungsdatei: %s
+;
+; Error Messages - Directory Operations
+MSG_CREATED_SET_DIR 
+Erstellter Einstellungspfad: %s
+;
+MSG_FAIL_CREATE_SET_DIR
+Fehler beim Erstellen vom Verzeichnis: %s
+;
+; Error Messages - Network Related
+MSG_HTTP_REQ_FAILED
+HTTP Anfrage gescheitert
+;
+MSG_FAILED_RESOLV_HOST
+Auflösen des Hosts fehlgeschlagen
+;
+MSG_FAILED_CONN_SERV
+Verbindung zum Server fehlgeschlagen
+;
+MSG_FAILED_SEND_REQ
+Anfrage konnte nicht gesendet werden
+;
+MSG_TIMEOUT
+Zeitüberschreitung beim Warten auf Daten
+;
+MSG_FAILED_CR_SOC
+Sockel konnte nicht erstellt werden
+;
+MSG_FAILED_ALL_BUFF
+Puffer konnte nicht zugewiesen werden
+;
+MSG_INVALID_HOST
+Ungültiger Host
+;
+; Error Messages - External Programs
+MSG_FAILED_START_PLAYBACK
+Wiedergabe konnte nicht gestartet werden
+;
+MSG_AMIGAAMP_NOT_RUNNING
+AmigaAMP ist nicht geöffnet
+;
+MSG_STOPPING_PLAYBACK
+Wiedergabe gestoppt
+;

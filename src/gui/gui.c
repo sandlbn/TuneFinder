@@ -25,6 +25,7 @@
 #include "../../include/country_config.h"
 #include "../../include/amigaamp.h"
 #include "../../include/locale.h"
+#include "../../include/version.h"
 
 struct CountryConfig countryConfig;
 struct RastPort *RastPort;
@@ -501,21 +502,23 @@ void HandleMenuPick(UWORD menuNumber) {
 			}
 			break;
 
-		case ITEM_ABOUT:
-			DEBUG("About selected");
-			{
-				struct EasyStruct es = {
-					sizeof(struct EasyStruct),
-					0,
-					"About TuneFinder",
-					"TuneFinder v1.0\n\n"
-					"Created by sandlbn\n"
-					"An Internet radio browser for AmigaOS 3.x",
-					"OK"
-				};
-				EasyRequest(window, &es, NULL, NULL);
-			}
-			break;
+        case ITEM_ABOUT:
+            DEBUG("About selected");
+            {
+                struct EasyStruct es = {
+                    sizeof(struct EasyStruct),
+                    0,
+                    "About " VERS,
+                    VERS "\n\n"
+                    "Created by " AUTHOR "\n"
+                    "An Internet radio browser for AmigaOS 3.x\n\n"
+                    "Translations:\n"
+                    TRANSLATION,
+                    "OK"
+                };
+                EasyRequest(window, &es, NULL, NULL);
+            }
+            break;
 
 		case ITEM_QUIT:
 			DEBUG("Quit selected");
