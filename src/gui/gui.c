@@ -642,8 +642,14 @@ static ULONG RenderFunc(struct Hook *hook, struct Node *node, struct LVDrawMsg *
     // Draw name
     if (ext->name) {
         cleanNonAscii(nameBuffer, ext->name, MAX_STATION_NAME + 1);
-        Move(rp, msg->lvdm_Bounds.MinX + 4, y);
-        Text(rp, nameBuffer, strlen(nameBuffer));
+        ULONG nameLen = strlen(nameBuffer);
+        if (nameLen > 0) {
+            DEBUG("Drawing name: %s (len: %ld)", nameBuffer, nameLen);
+            Move(rp, msg->lvdm_Bounds.MinX + 4, y);
+            Text(rp, nameBuffer, nameLen);
+        } else {
+            DEBUG("Name buffer is empty after cleaning");
+        }
     }
 
     // Draw codec

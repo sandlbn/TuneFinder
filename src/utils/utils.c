@@ -202,7 +202,12 @@ BOOL EnsureSettingsPath(void) {
 
 void cleanNonAscii(char *dst, const char *src, size_t maxLen) 
 {
-    size_t i, j; 
+    if (!dst || !src || maxLen == 0) {
+        DEBUG("Invalid parameters in cleanNonAscii");
+        return;
+    }
+
+    int i, j;
     for (i = 0, j = 0; src[i] != '\0' && j < maxLen - 1; i++) {
         // Only copy printable ASCII characters (32-126)
         if (src[i] >= 32 && src[i] <= 126) {
@@ -210,4 +215,9 @@ void cleanNonAscii(char *dst, const char *src, size_t maxLen)
         }
     }
     dst[j] = '\0';  // Ensure null termination
+    
+    if (j == 0) {
+        DEBUG("No valid characters found in source string");
+        strcpy(dst, "Unknown");  
+    }
 }
