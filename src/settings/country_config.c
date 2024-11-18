@@ -2,6 +2,7 @@
 #include <string.h>
 #include <proto/exec.h>
 #include <proto/dos.h>
+#include <ctype.h> 
 #include "../../include/country_config.h"
 #include "../../include/config.h"
 #include "../../include/utils.h"
@@ -9,17 +10,17 @@
 BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
     BPTR file;
     char buffer[256];
-    
+
     // Initialize config
     config->count = 0;
     config->entries = AllocVec(sizeof(struct CountryEntry) * MAX_COUNTRIES, MEMF_CLEAR);
-    config->choices = AllocVec(sizeof(STRPTR) * (MAX_COUNTRIES + 1), MEMF_CLEAR); // +1 for NULL terminator
+    config->choices = AllocVec(sizeof(STRPTR) * (MAX_COUNTRIES + 1), MEMF_CLEAR);
     
     if (!config->entries || !config->choices) {
         DEBUG("Failed to allocate memory for country config");
         return FALSE;
     }
-    
+
     // Add empty choice as first option
     config->choices[0] = AllocVec(1, MEMF_CLEAR);
     if (!config->choices[0]) {
@@ -27,11 +28,9 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
     }
     config->choices[0][0] = '\0';
     config->count = 1;
-    
-    // Create full path
+
     file = Open(filename, MODE_OLDFILE);
     if (!file) {
-        // If file doesn't exist, create default entries
         AddCountry(config, "PL", "Poland");
         AddCountry(config, "US", "United States");
         AddCountry(config, "GB", "United Kingdom");
@@ -39,31 +38,50 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
         AddCountry(config, "CZ", "Czech");
         AddCountry(config, "JP", "Japan");
         AddCountry(config, "AT", "Austria");
-        AddCountry(config, "FR", "France");  
-        AddCountry(config, "CA", "Canada");  
-        AddCountry(config, "ES", "Spain");  
-        AddCountry(config, "SE", "Sweden");  
-        AddCountry(config, "NO", "Norway");  
-        AddCountry(config, "DK", "Denmark");  
-
+        AddCountry(config, "FR", "France");
+        AddCountry(config, "CA", "Canada");
+        AddCountry(config, "ES", "Spain");
+        AddCountry(config, "SE", "Sweden");
+        AddCountry(config, "NO", "Norway");
+        AddCountry(config, "DK", "Denmark");
         SaveCountryConfig(filename, config);
         return TRUE;
     }
-    
+
     while (FGets(file, buffer, sizeof(buffer))) {
         char code[COUNTRY_CODE_LEN];
         char name[COUNTRY_NAME_LEN];
-        
+        char *ptr, *nameStart;
+
         // Remove newline
         char *newline = strchr(buffer, '\n');
         if (newline) *newline = '\0';
-        
-        // Parse line (format: "CODE:Name")
-        if (sscanf(buffer, "%2s:%31s", code, name) == 2) {
-            AddCountry(config, code, name);
+
+        // Find colon separator
+        ptr = strchr(buffer, ':');
+        if (ptr) {
+            // Extract code (first 2 characters)
+            strncpy(code, buffer, 2);
+            code[2] = '\0';
+
+            // Skip colon and get full name
+            nameStart = ptr + 1;
+            strncpy(name, nameStart, COUNTRY_NAME_LEN - 1);
+            name[COUNTRY_NAME_LEN - 1] = '\0';
+
+            // Trim trailing whitespace
+            ptr = name + strlen(name) - 1;
+            while (ptr >= name && isspace((unsigned char)*ptr)) {
+                *ptr = '\0';
+                ptr--;
+            }
+
+            if (strlen(code) == 2 && strlen(name) > 0) {
+                AddCountry(config, code, name);
+            }
         }
     }
-    
+
     Close(file);
     return TRUE;
 }
