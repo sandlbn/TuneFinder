@@ -1,0 +1,110 @@
+Kurz:          Online-Radiosender suchen und anzeigen
+Verfasser:     marcin@spoczynski.com (Marcin Spoczynski)
+Uploader:      marcin@spoczynski.com (Marcin Spoczynski)
+Typ:           comm/misc
+Version:       1.00
+Zielplattform: m68k-amigaos >= 3.1
+Distribution:  Aminet
+Ersetzt:       comm/misc/TuneFinder.lha 
+
+Beschreibung:
+TuneFinder ermöglicht die Suche und Anzeige von Online-Radiosendern mit
+verschiedenen Filteroptionen, einschließlich Länder-, Codec- und Tag-Stream-Filter. 
+Die Ergebnisse werden in einer Liste mit detaillierten Senderinformationen angezeigt.
+Die App bietet die Möglichkeit, die Auswahl entweder als komplette Wiedergabeliste oder
+einzelne Senderdateien dazustellen.
+
+Hauptmerkmale:
+- GUI mit filterbarer Suche
+- PLS-Wiedergabeliste kompatibel mit AmigaAMP für nahtloses Abspielen
+- PLS-Wiedergabeliste kann direkt von der TuneFinder-Schnittstelle aus abgespielt werden
+- Optionen zum Speichern der Ergebnisse als PLS-Wiedergabeliste oder einzelner Senderdateien für
+  kompatible Mediaplayer
+- Native AmigaOS GUI-Schnittstelle
+
+HINZUFÜGEN NEUER LÄNDER
+-------------------
+
+Um neue Länder zu TuneFinder hinzuzufügen:
+
+1. Navigieren Sie zu ENVARC:TuneFinder/countries.cfg
+2. Bearbeiten Sie die Datei mit einem beliebigen Texteditor
+3. Fügen Sie jedes Land in einer neuen Zeile im Format: CODE:Name ein
+   Zum Beispiel:
+   PL:Polen
+   US:Vereinigte Staaten
+   GB:Vereinigtes Königreich
+   SE:Schweden
+   NO:Norwegen
+   DK:Dänemark
+
+Der Code muss ein 2-Buchstaben-Ländercode nach dem ISO 3166-1 alpha-2 Standard sein.
+Änderungen werden erst nach einem Neustart von TuneFinder wirksam.
+
+Standardeinträge werden automatisch erstellt, wenn die Datei nicht vorhanden ist.
+
+Version 0.2 (beta release)
+
+- Die Handhabung der bsdsocket.library in UAE, die keine Zeitüberschreitungen unterstützten, wurde korrigiert.
+- Konfiguration für API-Host hinzugefügt.
+- Quellcode auf https://github.com/sandlbn/TuneFinder veröffentlicht.
+
+TuneFinder 0.3 (03.11.2024)
+
+Neue Funktionen:
+
+- Benutzer-konfigurierbare Länderliste über ENVARC:config/countries.cfg hinzugefügt
+- Automatische Generierung von Sendernamen für einzelne Sendereinträge hinzugefügt
+- Bessere Menüunterstützung für Optionen, Einstellungen, Über und Beenden
+Behebungen:
+- Behebung von GUI-Stabilitätsproblemen auf verschiedenen Amiga-Systemen
+- Korrektur der Fensterinitialisierung für AmigaOS 3.0
+- Verbessertes Menü-Handling und Sichtbarkeit
+- Ordentliches Aufräumen von GUI-Ressourcen hinzugefügt
+- Bessere Fehlerbehandlung und Debugging-Meldungen hinzugefügt
+
+TuneFinder 0.4 (05.11.2024)
+
+Neue Funktionen:
+
+- Verbesserte Stations-Detail-Ansicht
+- Vergrößertes Fenster für bessere Lesbarkeit
+- Sauberes Layout mit korrekten Abständen zwischen den Feldern hinzugefügt
+- Behebungen:
+- Textüberlauf im Stations-Detailfenster behoben
+- Speicherlecks in der Listenverarbeitung behoben
+- Ungenutzte Variablen und Funktionen entfernt
+- Probleme mit dem Sperren/Entsperren des Bildschirms behoben
+
+TuneFinder 0.99 (08.11.2024)
+
+- Verbesserte Sender-Detail-Ansicht und GUI-Aufbau.
+- Es wurde die Möglichkeit hinzugefügt, Streams direkt aus dem Sender-Detailfenster abzuspielen.
+
+Behoben:
+
+- Unstimmigkeiten im Einstellungs-Verzeichnis zwischen Länder- und API-Einstellungen behoben.
+
+TuneFinder 1.00 (09.11.2024)
+
+- Verbesserte Erstellung des Einstellungsfensters
+
+Behoben:
+
+- Text-Padding im MSG-Text-Gadget behoben
+
+TuneFinder 1.1 (15.11.2024)
+
+Änderungen seit Version 1.0:
+
+- Umstellung der GUI auf ein einziges Bildschirmlayout
+- Konfigurierbares Ergebnislimit in den Einstellungen hinzugefügt
+- Verbesserte Funktion zum Speichern von Einstellungen
+- Verbesserte GUI-Hervorhebung und Sichtbarkeit
+- Verbesserte REXX-Kommunikation
+- Deutsche Übersetzung hinzugefügt (Thomas Blatt)
+- Polnische Übersetzung hinzugefügt
+- Amigaguide-Dokument hinzugefügt
+
+
+Besonderen Dank an Flype, TommySammy, Ponki1986 und Paluch für ihre Hilfe beim Testen von TuneFinder!

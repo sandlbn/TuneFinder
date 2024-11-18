@@ -74,6 +74,7 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	# Copy main program and info
 	cp $(OUTDIR)/$(PROGRAM_NAME) $(RELEASE_DIR)/$(AMINET_NAME)/
 	cp $(AMINET_DIR)/$(PROGRAM_NAME).README $(RELEASE_DIR)/$(AMINET_NAME)/
+	cp $(AMINET_DIR)/$(PROGRAM_NAME)_deutsch.README $(RELEASE_DIR)/$(AMINET_NAME)/
 	cp $(ICON_DIR)/$(PROGRAM_NAME).info $(RELEASE_DIR)/$(AMINET_NAME)/
 
 	# Create and copy guide
