@@ -114,7 +114,9 @@ char* build_search_url(const struct APISettings *settings, const struct SearchPa
         }
     }
     if (space_left > 0 && settings->limit != 0) {
-        const int limit = params->limit > 0 ? params->limit : settings->limit;
+        const int paramLimit = (int)params->limit;
+        const int settingsLimit = (int)settings->limit;
+        const int limit = paramLimit > 0 ? paramLimit : settingsLimit;
         pos += snprintf(url + pos, space_left, "limit=%d", limit);
     }
     
@@ -125,7 +127,25 @@ char* build_search_url(const struct APISettings *settings, const struct SearchPa
     DEBUG("Built URL: %s", url);
     return url;
 }
+static void UpdateSearchStatus(int chunk_count) {
+    static int dot_count = 0;
+    char dot_buffer[MAX_STATUS_MSG_LEN];
+    char dots[4] = {0};
+    int i;
 
+    // Create dots string
+    for(i = 0; i < (dot_count % 4); i++) {
+        dots[i] = '.';
+    }
+    // Format message with dots
+    sprintf(dot_buffer, "%s%s", GetTFString(MSG_SEARCHING), dots);
+    UpdateStatusMessage(dot_buffer);
+    // Increment dot counter
+    dot_count++;
+    if (dot_count >= 4) {
+        dot_count = 0;
+    }
+}
 char* make_http_request(const struct APISettings *settings, const char *path) {
     int sockfd = -1;
     char *response = NULL;
@@ -142,6 +162,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     int retry_count = 0;
     const int MAX_RETRIES = 3;
     char msg[MAX_STATUS_MSG_LEN];
+    int chunk_count;
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
@@ -200,7 +221,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     while (1) {
         struct timeval select_timeout;
         ULONG read_mask;
-        
+
         select_timeout.tv_sec = 5;
         select_timeout.tv_usec = 0;
         
@@ -231,6 +252,8 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
                 DEBUG("Connection closed by server");
                 break;
             }
+            UpdateSearchStatus(chunk_count);
+            chunk_count += 1;
             
             DEBUG("Received %d bytes", bytes_received);
 
@@ -330,7 +353,9 @@ struct RadioStation* parse_stations_json(const char *json_str, int *count) {
         struct json_object *name_obj, *url_obj, *codec_obj, *bitrate_obj, *country_obj;
         const char *name, *url, *codec, *country;
         int bitrate;
-        
+
+        UpdateSearchStatus(i);
+
         if (json_object_object_get_ex(station_obj, "name", &name_obj) &&
             json_object_object_get_ex(station_obj, "url", &url_obj) &&
             json_object_object_get_ex(station_obj, "codec", &codec_obj) &&

@@ -31,6 +31,7 @@
 #define MSG_STATION_DETAILS   23
 #define MSG_PROJECT           24
 #define MSG_ABOUT             25
+#define MSG_SEARCHING         26
 
 // Options and Settings
 #define MSG_HOST              30

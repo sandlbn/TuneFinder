@@ -67,6 +67,9 @@ Project
 MSG_ABOUT (25//)
 About
 ;
+MSG_SEARCHING (26//)
+Searching
+;
 ; Options and Settings
 MSG_HOST (30//)
 API Host

@@ -47,9 +47,8 @@ static const char *built_in_strings[] = {
     "Station Details",
     "Project",
     "About",
-    
-    // Padding to align with IDs 26-29
-    NULL,
+    "Searching",
+    // Padding to align with IDs 27-29
     NULL,
     NULL,
     NULL,
