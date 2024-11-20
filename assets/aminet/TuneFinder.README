@@ -107,4 +107,10 @@ Changes since version 1.0:
 - Added Polish translation
 - Added Amigaguide doc
 
+TuneFinder 1.2 (xx.11.2024)
+
+- Added Italian translation (Samir Hawamdeh)
+- Added German readme
+- Fix Countries List - not displaying names with spaces properly
+
 Special thanks to Flype, Thomas, Ponki1986 and Paluch for their help testing TuneFinder!
