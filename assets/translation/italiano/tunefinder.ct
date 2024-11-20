@@ -43,6 +43,8 @@ MSG_URL
 URL
 ; Url
 ;
+; GUI Actions
+;
 MSG_SEARCH
 Cerca
 ; Search
@@ -71,6 +73,8 @@ MSG_STOP
 Stop
 ; Stop
 ;
+; GUI States
+;
 MSG_READY
 Pronto
 ; Ready
@@ -96,8 +100,10 @@ Informazioni...
 ; About
 ;
 MSG_SEARCHING
-Cercando
+Ricerca
 ; Searching
+;
+; Options and Settings
 ;
 MSG_HOST
 Host API
@@ -114,6 +120,8 @@ Solo HTTPS
 MSG_HIDE_BROKEN
 Nascondi Incomplete
 ; Hide Broken
+;
+; Status Messages with Parameters
 ;
 MSG_FOUND_STATIONS
 Trovate %d stazioni
@@ -147,6 +155,8 @@ MSG_NO_STATIONS
 Nessuna stazione trovata
 ; No stations found
 ;
+; Error Messages - Settings Related
+;
 MSG_INVALID_PORT
 Numero porta non valido, rimasto sulla corrente: %ld
 ; Invalid port number, keeping current: %ld
@@ -166,6 +176,8 @@ Valore locale non valido, rimasto sul corrente: %ld
 MSG_FAILED_WRITE_LIMIT_SET
 Impossibile scrivere le impostazioni limite
 ; Failed to write limit setting
+;
+; Error Messages - File Operations
 ;
 MSG_FAILED_FILE_SAVE
 Impossibile salvare il file
@@ -187,6 +199,8 @@ MSG_FAILED_CREAT_LIMIT_FILE
 Impossibile creare il file delle impostazioni limite: %s
 ; Failed to create limit settings file: %s
 ;
+; Error Messages - Directory Operations
+;
 MSG_CREATED_SET_DIR
 Impostazione directory creata: %s
 ; Created settings directory: %s
@@ -194,6 +208,8 @@ Impostazione directory creata: %s
 MSG_FAIL_CREATE_SET_DIR
 Impossibile creare la directory: %s
 ; Failed to create directory: %s
+;
+; Error Messages - Network Related
 ;
 MSG_HTTP_REQ_FAILED
 Richiesta HTTP fallita
@@ -226,6 +242,8 @@ Impossibile allocare i buffer
 MSG_INVALID_HOST
 Host non valido
 ; Invalid host
+;
+; Error Messages - External Programs
 ;
 MSG_FAILED_START_PLAYBACK
 Impossibile avviare la riproduzione

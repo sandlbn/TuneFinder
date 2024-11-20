@@ -31,19 +31,20 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
 
     file = Open(filename, MODE_OLDFILE);
     if (!file) {
-        AddCountry(config, "PL", "Poland");
-        AddCountry(config, "US", "United States");
-        AddCountry(config, "GB", "United Kingdom");
-        AddCountry(config, "DE", "Germany");
-        AddCountry(config, "CZ", "Czech");
-        AddCountry(config, "JP", "Japan");
         AddCountry(config, "AT", "Austria");
-        AddCountry(config, "FR", "France");
         AddCountry(config, "CA", "Canada");
-        AddCountry(config, "ES", "Spain");
-        AddCountry(config, "SE", "Sweden");
-        AddCountry(config, "NO", "Norway");
+        AddCountry(config, "CZ", "Czech");
+        AddCountry(config, "DE", "Germany");
         AddCountry(config, "DK", "Denmark");
+        AddCountry(config, "ES", "Spain");
+        AddCountry(config, "FR", "France");
+        AddCountry(config, "GB", "United Kingdom");
+        AddCountry(config, "IT", "Italy");
+        AddCountry(config, "JP", "Japan");
+        AddCountry(config, "NO", "Norway");
+        AddCountry(config, "PL", "Poland");
+        AddCountry(config, "SE", "Sweden");
+        AddCountry(config, "US", "United States");
         SaveCountryConfig(filename, config);
         return TRUE;
     }
