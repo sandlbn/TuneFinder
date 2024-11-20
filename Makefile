@@ -85,8 +85,10 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	# Create and copy translations
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch
+	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano
 	cp assets/translation/polski/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski/ 
-	cp assets/translation/deutsch/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch/ || true
+	cp assets/translation/deutsch/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch/ 
+	cp assets/translation/italiano/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano/ 
 
 	# Create archive
 	cd $(RELEASE_DIR) && lha -ao5 ../$(AMINET_NAME).lha $(AMINET_NAME)
@@ -96,6 +98,7 @@ catalogs:
 	$(info Generating translation catalogs...)
 	$(FLEXCAT) $(CD_FILE) assets/translation/polski/tunefinder.ct CATALOG assets/translation/polski/tunefinder.catalog
 	$(FLEXCAT) $(CD_FILE) assets/translation/deutsch/tunefinder.ct CATALOG assets/translation/deutsch/tunefinder.catalog
+	$(FLEXCAT) $(CD_FILE) assets/translation/italiano/tunefinder.ct CATALOG assets/translation/italiano/tunefinder.catalog
 
 aminet-clean:
 	$(info Cleaning Aminet release files...)
@@ -138,6 +141,7 @@ clean:
 	@$(RM) -f $(OUTDIR)/$(PROGRAM_NAME).map
 	@$(RM) assets/translation/polski/tunefinder.catalog
 	@$(RM) assets/translation/deutsch/tunefinder.catalog
+	@$(RM) assets/translation/italiano/tunefinder.catalog
 
 debug-print:
 	@echo "Source Directory: $(SRCDIR)"

@@ -65,6 +65,9 @@ Projekt
 MSG_ABOUT
 O programie
 ;
+MSG_SEARCHING
+Szukam
+;
 MSG_HOST
 Host API
 ;

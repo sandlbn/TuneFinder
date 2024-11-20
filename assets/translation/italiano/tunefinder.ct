@@ -1,0 +1,241 @@
+## version $VER: tunefinder.catalog 1.0 (20.11.2024)
+## codeset 0
+## language italiano
+## chunk AUTH Translated by Samir Hawamdeh (http://www.betatesting.it/backforthefuture)
+;
+; ATO Italia
+; Compiled with FlexCat 2.18 PPC (AmigaOS4)
+; flexcat tunefinder.cd tunefinder_italian.ct catalog=tunefinder.catalog
+;
+; Italian translation of TuneFinder
+;
+; GUI Labels
+;
+MSG_NAME
+Nome
+; Name
+;
+MSG_COUNTRY
+Paese
+; Country
+;
+MSG_CODEC
+Codec
+; Codec
+;
+MSG_TAGS
+Tags
+; Tags
+;
+MSG_BITRATE
+Bitrate
+; Bitrate
+;
+MSG_UNKNOWN
+Sconosciuto
+; Unknown
+;
+MSG_LIMIT
+Limite
+; Limit
+;
+MSG_URL
+URL
+; Url
+;
+MSG_SEARCH
+Cerca
+; Search
+;
+MSG_SAVE
+Salva
+; Save
+;
+MSG_CANCEL
+Annulla
+; Cancel
+;
+MSG_PLAY
+Play
+; Play
+;
+MSG_QUIT
+Esci
+; Quit
+;
+MSG_SAVE_SINGLE
+Salva Singola
+; Save Single
+;
+MSG_STOP
+Stop
+; Stop
+;
+MSG_READY
+Pronto
+; Ready
+;
+MSG_SETTINGS
+Impostazioni...
+; Settings
+;
+MSG_API_SETTINGS
+Impostazioni API
+; API Settings
+;
+MSG_STATION_DETAILS
+Dettagli Stazione
+; Station Details
+;
+MSG_PROJECT
+Progetto
+; Project
+;
+MSG_ABOUT
+Informazioni...
+; About
+;
+MSG_SEARCHING
+Cercando
+; Searching
+;
+MSG_HOST
+Host API
+; API Host
+;
+MSG_PORT
+Porta API
+; API Port
+;
+MSG_HTTPS_ONLY
+Solo HTTPS
+; HTTPS Only
+;
+MSG_HIDE_BROKEN
+Nascondi Incomplete
+; Hide Broken
+;
+MSG_FOUND_STATIONS
+Trovate %d stazioni
+; Found %d stations
+;
+MSG_PLAYING_STATION
+In Riproduzione: %s
+; Playing: %s
+;
+MSG_SETTINGS_LOADED
+Impostazioni caricate
+; Settings loaded.
+;
+MSG_SETTINGS_SAVED
+Impostazioni salvate
+; Settings saved.
+;
+MSG_SEARCH_COMPLETED
+Ricerca completata. Trovate %d stazioni
+; Search completed. Found %d stations.
+;
+MSG_FILE_SAVED
+File salvato: %s
+; File saved: %s
+;
+MSG_SET_SAVED
+Impostazioni salvate: %s:%u Limite: %u
+; Settings saved: %s:%u Limit: %u
+;
+MSG_NO_STATIONS
+Nessuna stazione trovata
+; No stations found
+;
+MSG_INVALID_PORT
+Numero porta non valido, rimasto sulla corrente: %ld
+; Invalid port number, keeping current: %ld
+;
+MSG_FAILED_WRITE_PORT_SET
+Impossibile scrivere le impostazioni porta
+; Failed to write port setting
+;
+MSG_FAILED_WRITE_HOST_SETTING
+Impossibile scrivere le impostazioni host
+; Failed to write host setting
+;
+MSG_INVALID_LOCALE
+Valore locale non valido, rimasto sul corrente: %ld
+; Invalid locale value, keeping current: %ld
+;
+MSG_FAILED_WRITE_LIMIT_SET
+Impossibile scrivere le impostazioni limite
+; Failed to write limit setting
+;
+MSG_FAILED_FILE_SAVE
+Impossibile salvare il file
+; Failed to save file
+;
+MSG_FAILED_ACCESS
+Impossibile accedere a %s
+; Failed to access %s
+;
+MSG_FAILED_CREAT_PORT_FILE
+Impossibile creare il file delle impostazioni porta: %s
+; Failed to create port settings file: %s
+;
+MSG_FAILED_CREAT_HOST_SET_FILE
+Impossibile creare il file delle impostazioni host: %s
+; Failed to create host settings file: %s
+;
+MSG_FAILED_CREAT_LIMIT_FILE
+Impossibile creare il file delle impostazioni limite: %s
+; Failed to create limit settings file: %s
+;
+MSG_CREATED_SET_DIR
+Impostazione directory creata: %s
+; Created settings directory: %s
+;
+MSG_FAIL_CREATE_SET_DIR
+Impossibile creare la directory: %s
+; Failed to create directory: %s
+;
+MSG_HTTP_REQ_FAILED
+Richiesta HTTP fallita
+; HTTP request failed
+;
+MSG_FAILED_RESOLV_HOST
+Impossibile risolvere l'host
+; Failed to resolve host
+;
+MSG_FAILED_CONN_SERV
+Impossibile connettersi al server
+; Failed to connect to server
+;
+MSG_FAILED_SEND_REQ
+Impossibile inviare la richiesta
+; Failed to send request
+;
+MSG_TIMEOUT
+Timeout in attesa dei dati
+; Timeout waiting for data
+;
+MSG_FAILED_CR_SOC
+Impossibile creare il socket
+; Failed to create socket
+;
+MSG_FAILED_ALL_BUFF
+Impossibile allocare i buffer
+; Failed to allocate buffers
+;
+MSG_INVALID_HOST
+Host non valido
+; Invalid host
+;
+MSG_FAILED_START_PLAYBACK
+Impossibile avviare la riproduzione
+; Failed to start playback
+;
+MSG_AMIGAAMP_NOT_RUNNING
+AmigaAMP non è in esecuzione
+; AmigaAMP is not running
+;
+MSG_STOPPING_PLAYBACK
+Riproduzione interrotta
+; Playback stopped
+;
