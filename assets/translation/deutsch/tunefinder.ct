@@ -70,6 +70,9 @@ Projekt
 MSG_ABOUT
 Über
 ;
+MSG_SEARCHING
+Suche
+;
 ; Options and Settings
 MSG_HOST
 API Host
