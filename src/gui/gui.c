@@ -379,7 +379,7 @@ void HandleSearch(void) {
 	                  TAG_DONE);
 	params.hidebroken = broken ? 1 : 0;
 
-	params.limit = DEFAULT_LIMIT;
+	params.limit = currentSettings.limit;
 
 	urlPath = build_search_url(&currentSettings, &params);
 	if (!urlPath) {

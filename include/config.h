@@ -3,7 +3,6 @@
 
 #define WINDOW_WIDTH    640
 #define WINDOW_HEIGHT   300
-#define MAX_ENTRIES     100
 #define V_List 19561
 #define V_Node 20079
 #define V_cstr 19938
