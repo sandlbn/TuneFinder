@@ -146,6 +146,7 @@ static void UpdateSearchStatus(int chunk_count) {
         dot_count = 0;
     }
 }
+ 
 char* make_http_request(const struct APISettings *settings, const char *path) {
     int sockfd = -1;
     char *response = NULL;
@@ -154,7 +155,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     char request[512];
     char *chunk_buffer = NULL;
     char *response_buffer = NULL;
-    size_t buffer_size = INITIAL_BUFFER_SIZE;
+    size_t buffer_size;
     size_t total_size = 0;
     int bytes_received;
     char *json_start;
@@ -164,18 +165,26 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     char msg[MAX_STATUS_MSG_LEN];
     int chunk_count;
 
+    buffer_size = GetOptimalBufferSize();
+    DEBUG("Initial buffer size: %ld bytes", buffer_size);
+
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         UpdateStatusMessage(GetTFString(MSG_FAILED_CR_SOC));
         return NULL;
     }
     
-    
     chunk_buffer = malloc(READ_CHUNK_SIZE);
-    response_buffer = malloc(INITIAL_BUFFER_SIZE);
+    response_buffer = malloc(buffer_size);
     if (!chunk_buffer || !response_buffer) {
-        UpdateStatusMessage(GetTFString(MSG_FAILED_ALL_BUFF));
-        goto cleanup;
+        if (!response_buffer && buffer_size > INITIAL_BUFFER_SIZE) {
+            buffer_size = INITIAL_BUFFER_SIZE;
+            response_buffer = malloc(buffer_size);
+        }
+        if (!chunk_buffer || !response_buffer) {
+            UpdateStatusMessage(GetTFString(MSG_FAILED_ALL_BUFF));
+            goto cleanup;
+        }
     }
 
     snprintf(msg, MAX_STATUS_MSG_LEN, "Resolving host: %s", settings->host);
@@ -260,8 +269,11 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
             if (total_size + bytes_received + 1 > buffer_size) {
                 size_t new_size = buffer_size * 2;
                 if (new_size > MAX_BUFFER_SIZE) {
-                    DEBUG("Response too large");
-                    goto cleanup;
+                    new_size = buffer_size + (1024 * 1024);  // Try adding 1MB
+                    if (new_size > MAX_BUFFER_SIZE) {
+                        DEBUG("Response too large");
+                        goto cleanup;
+                    }
                 }
                 
                 DEBUG("Growing buffer from %lu to %lu bytes", 
@@ -315,7 +327,6 @@ cleanup:
     
     return response;
 }
-
 struct RadioStation* parse_stations_json(const char *json_str, int *count) {
     struct json_object *root;
     struct RadioStation *stations = NULL;
