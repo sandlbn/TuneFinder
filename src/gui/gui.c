@@ -379,7 +379,7 @@ void HandleSearch(void) {
 	                  TAG_DONE);
 	params.hidebroken = broken ? 1 : 0;
 
-	params.limit = DEFAULT_LIMIT;
+	params.limit = currentSettings.limit;
 
 	urlPath = build_search_url(&currentSettings, &params);
 	if (!urlPath) {
@@ -712,6 +712,27 @@ BOOL OpenGUI(void) {
 		DEBUG("Failed to load country configuration");
 		UnlockPubScreen(NULL, s);
 		return FALSE;
+	}
+	if (countryConfig.count > 0) {
+		WORD maxChars = 20; // Base number for safety
+		if (font_width > 0) {
+			// Calculate max chars based on actual font width
+			maxChars = (font_width * 15) / font_width;  // Using same width as gadget - label
+		}
+		
+		for (int i = 0; i < countryConfig.count; i++) {
+			if (countryConfig.entries[i].name) {
+				size_t len = strlen(countryConfig.entries[i].name);
+				if (len > maxChars) {
+					STRPTR truncated = AllocVec(maxChars + 1, MEMF_CLEAR);
+					if (truncated) {
+						strncpy(truncated, countryConfig.entries[i].name, maxChars);
+						truncated[maxChars] = '\0';
+						countryConfig.choices[i] = truncated;
+					}
+				}
+			}
+		}
 	}
 
 	vi = GetVisualInfo(s, TAG_END);

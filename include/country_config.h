@@ -2,9 +2,9 @@
 #ifndef COUNTRY_CONFIG_H
 #define COUNTRY_CONFIG_H
 #include <settings.h> 
-#define MAX_COUNTRIES 50
+#define MAX_COUNTRIES 255
 #define COUNTRY_CODE_LEN 3
-#define COUNTRY_NAME_LEN 32
+#define COUNTRY_NAME_LEN 50
 
 struct CountryEntry {
     char code[COUNTRY_CODE_LEN];
