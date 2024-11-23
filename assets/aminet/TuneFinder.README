@@ -1,14 +1,14 @@
-Short:        Search and display online radio stations
+Short:        Search and play online radio stations
 Author:       marcin@spoczynski.com (Marcin Spoczynski)
 Uploader:     marcin@spoczynski.com (Marcin Spoczynski)
 Type:         comm/misc
-Version:      1.1
+Version:      1.2
 Architecture: m68k-amigaos >= 3.1
 Distribution: Aminet
 Replaces: comm/misc/TuneFinder.lha 
 
 Description:
-TuneFinder enables users to search and display online radio stations with
+TuneFinder enables users to search and play online radio stations with
 various filter options, including country, codec, tags stream filters. Results
 are displayed in a list with detailed station information, and the app
 includes options to save selections as either a complete playlist or
@@ -107,12 +107,15 @@ Changes since version 1.0:
 - Added Polish translation
 - Added Amigaguide doc
 
-TuneFinder 1.2 (xx.11.2024)
+TuneFinder 1.2 (23.11.2024)
 
 - Added Italian translation (Samir Hawamdeh)
-- Added German readme
+- Added German readme (Thomas Blatt)
+- Added new icons (Thomas Blatt)
 - Added new memory allocation algo
 - Increased max amount of countries 
+- Added example countries config (Alexander Gent)
 - Fix Countries List - not displaying names with spaces properly
 - Fix API settings limit defaults to 100
-Special thanks to Flype, Thomas, Ponki1986 and Paluch for their help testing TuneFinder!
+
+Special thanks to Flype, Thomas, Ponki1986, Samir, Alexander, Paluch and many others for their help testing TuneFinder!

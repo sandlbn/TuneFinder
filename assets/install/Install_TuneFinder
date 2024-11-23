@@ -1,0 +1,166 @@
+; TuneFinder Installer Script
+
+(set @app-name "TuneFinder")
+
+(welcome 
+    "Welcome to the TuneFinder installation program.\n\n"
+    "This will install TuneFinder version 1.2 on your system."
+)
+
+(set default-dest
+    (askdir
+        (prompt "Choose destination directory for TuneFinder")
+        (help "Please select the drawer where you want to install TuneFinder")
+        (default "SYSTEM:")
+    )
+)
+
+(set prog-dest
+    (tackon default-dest @app-name)
+)
+
+(if (exists prog-dest)
+    (
+        (set overwrite-check
+            (askbool
+                (prompt "Directory already exists. Overwrite existing files?")
+                (help "Select Yes to overwrite existing files, or No to abort installation")
+                (default 0)
+            )
+        )
+        (if (not overwrite-check)
+            (exit (quiet))
+        )
+    )
+)
+
+; Create main program directory
+(makedir prog-dest
+    (infos)
+)
+
+; Create subdirectories
+(makedir (tackon prog-dest "Catalogs")
+    (infos)
+)
+(makedir (tackon prog-dest "Docs")
+    (infos)
+)
+(makedir (tackon prog-dest "Example")
+    (infos)
+)
+
+; Ask for language catalogs
+(set install-german
+    (askbool
+        (prompt "Do you want to install German (Deutsch) language catalog?")
+        (help "Select Yes to install German language support")
+        (default 1)
+    )
+)
+
+(set install-italian
+    (askbool
+        (prompt "Do you want to install Italian (Italiano) language catalog?")
+        (help "Select Yes to install Italian language support")
+        (default 1)
+    )
+)
+
+(set install-polish
+    (askbool
+        (prompt "Do you want to install Polish (Polski) language catalog?")
+        (help "Select Yes to install Polish language support")
+        (default 1)
+    )
+)
+
+; Copy main program files
+(copyfiles
+    (source "TuneFinder")
+    (dest prog-dest)
+    (prompt "Copying TuneFinder program")
+)
+
+(copyfiles
+    (source "TuneFinder.info")
+    (dest prog-dest)
+    (prompt "Copying TuneFinder program icon")
+)
+
+; Copy documentation
+(copyfiles
+    (source "Docs/tunefinder.guide")
+    (dest (tackon prog-dest "Docs"))
+    (prompt "Copying documentation")
+)
+
+(copyfiles
+    (source "Docs/tunefinder.guide.info")
+    (dest (tackon prog-dest "Docs"))
+)
+
+; Copy example file
+(copyfiles
+    (source "Example/example_countries.cfg")
+    (dest (tackon prog-dest "Example"))
+    (prompt "Copying example configuration")
+)
+
+; Copy catalogs based on user selection
+(if install-german
+    (
+        (makedir (tackon prog-dest "Catalogs/deutsch"))
+        (copyfiles
+            (source "Catalogs/deutsch/tunefinder.catalog")
+            (dest (tackon prog-dest "Catalogs/deutsch"))
+            (prompt "Copying German catalog")
+        )
+    )
+)
+
+(if install-italian
+    (
+        (makedir (tackon prog-dest "Catalogs/italiano"))
+        (copyfiles
+            (source "Catalogs/italiano/tunefinder.catalog")
+            (dest (tackon prog-dest "Catalogs/italiano"))
+            (prompt "Copying Italian catalog")
+        )
+    )
+)
+
+(if install-polish
+    (
+        (makedir (tackon prog-dest "Catalogs/polski"))
+        (copyfiles
+            (source "Catalogs/polski/tunefinder.catalog")
+            (dest (tackon prog-dest "Catalogs/polski"))
+            (prompt "Copying Polish catalog")
+        )
+    )
+)
+
+; Copy README files
+(copyfiles
+    (source "TuneFinder.README")
+    (dest prog-dest)
+    (prompt "Copying README files")
+)
+
+(copyfiles
+    (source "TuneFinder_deutsch.README")
+    (dest prog-dest)
+)
+
+; Copy drawer icon
+(copyfiles
+    (source "Icons/TuneFinder.info")
+    (dest default-dest)
+    (prompt "Copying drawer icon")
+)
+
+(complete "TuneFinder has been successfully installed.\n\n"
+          "You can find it in:\n"
+          prog-dest
+)
