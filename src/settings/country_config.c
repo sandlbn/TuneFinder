@@ -32,8 +32,9 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
     file = Open(filename, MODE_OLDFILE);
     if (!file) {
         AddCountry(config, "AT", "Austria");
+        AddCountry(config, "AU", "Australia");
         AddCountry(config, "CA", "Canada");
-        AddCountry(config, "CZ", "Czech");
+        AddCountry(config, "CZ", "Czech Republic");
         AddCountry(config, "DE", "Germany");
         AddCountry(config, "DK", "Denmark");
         AddCountry(config, "ES", "Spain");
@@ -41,7 +42,9 @@ BOOL LoadCountryConfig(const char *filename, struct CountryConfig *config) {
         AddCountry(config, "GB", "United Kingdom");
         AddCountry(config, "IT", "Italy");
         AddCountry(config, "JP", "Japan");
+        AddCountry(config, "NL", "Netherlands");
         AddCountry(config, "NO", "Norway");
+        AddCountry(config, "NZ", "New Zealand");
         AddCountry(config, "PL", "Poland");
         AddCountry(config, "SE", "Sweden");
         AddCountry(config, "US", "United States");

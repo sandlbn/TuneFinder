@@ -3,7 +3,6 @@
 
 #define WINDOW_WIDTH    640
 #define WINDOW_HEIGHT   300
-#define MAX_ENTRIES     100
 #define V_List 19561
 #define V_Node 20079
 #define V_cstr 19938
@@ -16,8 +15,10 @@
 #define HTTPS_ALL -1
 #define HTTPS_TRUE 1
 #define HTTPS_FALSE 0
-#define INITIAL_BUFFER_SIZE (64 * 1024)    // Start with 32KB
-#define MAX_BUFFER_SIZE (1024 * 1024)       // Max 1024KB
+#define INITIAL_BUFFER_SIZE (64 * 1024)  // 64 kb :) 
+#define MIN_BUFFER_SIZE (512 * 1024)     // 512KB minimum
+#define MAX_BUFFER_SIZE (64 * 1024 * 1024) // 4MB maximum
+#define PREFERRED_BUFFER_SIZE (8 * 1024 * 1024) // 8MB preferred
 #define READ_CHUNK_SIZE (8 * 1024)         // Read 8KB at a time
 #define MAX_STATUS_MSG_LEN 256 
 #define PLS_HEADER "[playlist]\n"

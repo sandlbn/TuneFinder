@@ -75,12 +75,23 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	cp $(OUTDIR)/$(PROGRAM_NAME) $(RELEASE_DIR)/$(AMINET_NAME)/
 	cp $(AMINET_DIR)/$(PROGRAM_NAME).README $(RELEASE_DIR)/$(AMINET_NAME)/
 	cp $(AMINET_DIR)/$(PROGRAM_NAME)_deutsch.README $(RELEASE_DIR)/$(AMINET_NAME)/
+	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Icons
 	cp $(ICON_DIR)/$(PROGRAM_NAME).info $(RELEASE_DIR)/$(AMINET_NAME)/
+	cp $(ICON_DIR)/$(PROGRAM_NAME)Drawer.info $(RELEASE_DIR)/$(AMINET_NAME).info
+	cp $(ICON_DIR)/$(PROGRAM_NAME)Drawer.info $(RELEASE_DIR)/$(AMINET_NAME)/Icons/TuneFinder.info
 
 	# Create and copy guide
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Docs
 	cp assets/amigaguide/tunefinder.guide $(RELEASE_DIR)/$(AMINET_NAME)/Docs/
 	cp assets/amigaguide/tunefinder.guide.info $(RELEASE_DIR)/$(AMINET_NAME)/Docs/ || true
+
+	# Copy examples 
+	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Example
+	cp assets/example/example_countries.cfg $(RELEASE_DIR)/$(AMINET_NAME)/Example/example_countries.cfg
+
+	# Copy installer
+	cp assets/icon/Install.info $(RELEASE_DIR)/$(AMINET_NAME)/Install_TuneFinder.info
+	cp assets/install/Install_TuneFinder $(RELEASE_DIR)/$(AMINET_NAME)/Install_TuneFinder
 
 	# Create and copy translations
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski
@@ -91,7 +102,7 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	cp assets/translation/italiano/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano/ 
 
 	# Create archive
-	cd $(RELEASE_DIR) && lha -ao5 ../$(AMINET_NAME).lha $(AMINET_NAME)
+	cd $(RELEASE_DIR) && lha -ag0o5 ../$(AMINET_NAME).lha .
 	$(info Aminet release created: $(AMINET_NAME).lha)
 
 catalogs:

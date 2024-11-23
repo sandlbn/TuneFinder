@@ -115,5 +115,7 @@ Changes will take effect after restarting TuneFinder.
 
 Default entries will be created automatically if the file doesn't exist.
 
+The full list of countries with ISO codes is located in the Example folder.
+
 @{"Back to Main" link Main}
 @endnode
