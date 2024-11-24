@@ -86,5 +86,9 @@ to generate the catalog file, then place the generated catalog in your LOCALE:Ca
 4. Select a station to view details
 5. Use "Save" to create a PLS playlist file or "Play" to play selected station in the AmigaAmp
 
+## Screenshot
+
+![TuneFinder in action](assets/screenshot/screenshot.png)
+
 ## Credits
 Created by sandlbn
