@@ -106,5 +106,16 @@ TuneFinder 1.1 (15.11.2024)
 - Polnische Übersetzung hinzugefügt
 - Amigaguide-Dokument hinzugefügt
 
+TuneFinder 1.2 (23.11.2024)
 
-Besonderen Dank an Flype, TommySammy, Ponki1986 und Paluch für ihre Hilfe beim Testen von TuneFinder!
+- Italienische Übersetzung hinzugefügt (Samir Hawamdeh)
+- Deutsches README hinzugefügt (Thomas Blatt)
+- Neue Icons hinzugefügt (Thomas Blatt)
+- Neuer Speicherzuweisungs-Algorithmus hinzugefügt
+- Maximale Anzahl von Ländern erhöht
+- Beispiele für Länderkonfigurationen hinzugefügt (Alexander Gent)
+- Länderliste behoben - Namen mit Leerzeichen wurden nicht korrekt angezeigt
+- API-Standard Einstellungsbegrenzung auf 100 angehoben
+
+
+Besonderen Dank an Flype, TommySammy, Ponki1986, Samir, Alexander, Paluch und viele andere für ihre Hilfe beim Testen von TuneFinder!

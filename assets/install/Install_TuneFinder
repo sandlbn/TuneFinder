@@ -53,7 +53,7 @@
 ; Ask for language catalogs
 (set install-german
     (askbool
-        (prompt "Do you want to install German (Deutsch) language catalog?")
+        (prompt "Do you want to install German (Deutsch) language catalog by Thomas Blatt?")
         (help "Select Yes to install German language support")
         (default 1)
     )
@@ -61,7 +61,7 @@
 
 (set install-italian
     (askbool
-        (prompt "Do you want to install Italian (Italiano) language catalog?")
+        (prompt "Do you want to install Italian (Italiano) language catalog by Samir Hawamdeh?")
         (help "Select Yes to install Italian language support")
         (default 1)
     )
