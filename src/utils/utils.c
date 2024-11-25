@@ -226,6 +226,10 @@ void cleanNonAscii(char *dst, const char *src, size_t maxLen)
 
 // Function to determine optimal buffer size
 ULONG GetOptimalBufferSize(void) {
+    #ifdef __AMIGAOS4__
+    // OS4 specific memory handling
+    return 2 * 1024 * 1024;  // Return 2MB fixed size
+    #else
     struct MemHeader *mh;
     ULONG largest = 0;
     ULONG available = 0;
@@ -263,6 +267,7 @@ ULONG GetOptimalBufferSize(void) {
     
     DEBUG("Memory available: %ld bytes, Selected buffer size: %ld bytes", available, bufferSize);
     return bufferSize;
+    #endif
 }
 
 void *AllocateResponseBuffer(void) {
