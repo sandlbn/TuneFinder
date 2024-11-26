@@ -165,7 +165,7 @@ char* make_http_request(const struct APISettings *settings, const char *path) {
     char msg[MAX_STATUS_MSG_LEN];
     int chunk_count;
 
-    buffer_size = GetOptimalBufferSize();
+    buffer_size = PREFERRED_BUFFER_SIZE;
     DEBUG("Initial buffer size: %ld bytes", buffer_size);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);

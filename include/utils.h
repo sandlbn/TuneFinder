@@ -11,6 +11,4 @@ void UpdateStatusMessage(const char *message);
 void SanitizeAmigaFilename(const char *input, char *output, size_t maxLen);
 BOOL EnsureSettingsPath(void);
 void cleanNonAscii(char *dst, const char *src, size_t maxLen);
-void *AllocateResponseBuffer(void);
-ULONG GetOptimalBufferSize(void);
 #endif /* UTILS_H */
