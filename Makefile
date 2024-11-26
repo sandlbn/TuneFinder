@@ -51,7 +51,7 @@ OBJECTS = \
 BASE_CCFLAGS = -MP -MMD -Wextra -Wno-unused-function \
  -Wno-discarded-qualifiers -Wno-int-conversion \
  -Wno-volatile-register-var -fno-lto -noixemul \
- -fbaserel -lamiga -lm -D__AMIGAOS4__ $(CPU_FLAGS) \
+ -fbaserel -lamiga -lm -D__AMIGAOS3__ $(CPU_FLAGS) \
  -I$(INCDIR) -I$(SDKDIR) -I$(NDKDIR) -Iinclude
  
 ifdef DEBUG
