@@ -53,7 +53,7 @@ MSG_READY (20//)
 Ready
 ;
 MSG_SETTINGS (21//)
-Settings
+Settings...
 ;
 MSG_API_SETTINGS (22//)
 API Settings
@@ -65,7 +65,7 @@ MSG_PROJECT (24//)
 Project
 ;
 MSG_ABOUT (25//)
-About
+About...
 ;
 MSG_SEARCHING (26//)
 Searching

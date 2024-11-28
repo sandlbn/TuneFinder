@@ -51,7 +51,7 @@ MSG_READY
 Gotowy
 ;
 MSG_SETTINGS
-Ustawienia
+Ustawienia...
 ;
 MSG_API_SETTINGS
 Ustawienia API
@@ -63,7 +63,7 @@ MSG_PROJECT
 Projekt
 ;
 MSG_ABOUT
-O programie
+O programie...
 ;
 MSG_SEARCHING
 Szukam

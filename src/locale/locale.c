@@ -42,11 +42,11 @@ static const char *built_in_strings[] = {
     
     // GUI States (20-25)
     "Ready",
-    "Settings",
+    "Settings...",
     "API Settings",
     "Station Details",
     "Project",
-    "About",
+    "About...",
     "Searching",
     // Padding to align with IDs 27-29
     NULL,
