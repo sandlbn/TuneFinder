@@ -40,7 +40,6 @@ extern void geta4(void);
 #define ITEM_SETTINGS 0  // for Settings
 #define ITEM_ABOUT 1     // for About
 #define ITEM_QUIT 3      // for Quit (after separator)
-#define MAX_STATION_NAME 40
 
 // Library Handles
 struct Library *IntuitionBase = NULL;
@@ -117,23 +116,23 @@ static VOID Ghost(struct RastPort *rp, UWORD pen, UWORD x0, UWORD y0, UWORD x1,
 }
 
 BOOL InitLibraries(void) {
-  IntuitionBase = OpenLibrary("intuition.library", 40);
+  IntuitionBase = OpenLibrary("intuition.library", 37);
   if (!IntuitionBase) return FALSE;
 
-  GfxBase = (struct GfxBase *)OpenLibrary("graphics.library", 40);
+  GfxBase = (struct GfxBase *)OpenLibrary("graphics.library", 37);
   if (!GfxBase) {
     CloseLibrary(IntuitionBase);
     return FALSE;
   }
 
-  GadToolsBase = OpenLibrary("gadtools.library", 40);
+  GadToolsBase = OpenLibrary("gadtools.library", 37);
   if (!GadToolsBase) {
     CloseLibrary(IntuitionBase);
     CloseLibrary((struct Library *)GfxBase);
     return FALSE;
   }
 
-  AslBase = OpenLibrary("asl.library", 40);
+  AslBase = OpenLibrary("asl.library", 37);
   if (!AslBase) {
     CloseLibrary(GadToolsBase);
     CloseLibrary(IntuitionBase);
@@ -141,7 +140,7 @@ BOOL InitLibraries(void) {
     return FALSE;
   }
 
-  DOSBase = OpenLibrary("dos.library", 40);
+  DOSBase = OpenLibrary("dos.library", 37);
   if (!DOSBase) {
     CloseLibrary(AslBase);
     CloseLibrary(GadToolsBase);
