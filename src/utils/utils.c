@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <dos/dos.h>
 #include <proto/exec.h>
@@ -13,6 +14,7 @@
 #include <clib/alib_protos.h>
 #include "../../include/utils.h"
 #include "../../include/config.h"
+#include "../../include/settings.h"
 #include "../../include/gui.h"
 
 
@@ -111,15 +113,17 @@ void UpdateStatusMessage(const char *message)
 }
 void free_labels(struct List *l)
 {
-	struct Node *n;
-
-	while ((n = RemHead(l)))
-	{
-		deallocate(n->ln_Name, V_cstr);
-		deallocate(n, V_Node);
-	}
-
-	deallocate(l, V_List);
+    struct Node *n;
+    while ((n = RemHead(l))) {
+        struct ExtNode *ext = (struct ExtNode *)n;
+        if (ext->name) free(ext->name);
+        if (ext->url) free(ext->url);
+        if (ext->codec) free(ext->codec);
+        if (ext->country) free(ext->country);
+        deallocate(n->ln_Name, V_cstr);
+        deallocate(n, V_Node);
+    }
+    deallocate(l, V_List);
 }
 
 

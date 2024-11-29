@@ -18,10 +18,4 @@ BOOL PreviousTrackAmigaAMP(void);
 BOOL SetVolumeAmigaAMP(LONG volume);
 BOOL QuitAmigaAMP(void);
 
-// Error codes
-#define AMIGAAMP_OK           0
-#define AMIGAAMP_NOT_RUNNING  1
-#define AMIGAAMP_COMM_ERROR   2
-#define AMIGAAMP_PORT_ERROR   3
-
 #endif /* AMIGAAMP_H */

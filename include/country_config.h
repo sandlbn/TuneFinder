@@ -1,6 +1,6 @@
-/* COUNTRY_CONFIG_H */
 #ifndef COUNTRY_CONFIG_H
 #define COUNTRY_CONFIG_H
+
 #include <settings.h> 
 #define MAX_COUNTRIES 255
 #define COUNTRY_CODE_LEN 3
@@ -23,4 +23,3 @@ BOOL SaveCountryConfig(const char *filename, struct CountryConfig *config);
 BOOL AddCountry(struct CountryConfig *config, const char *code, const char *name);
 
 #endif
-/* COUNTRY_CONFIG_H */

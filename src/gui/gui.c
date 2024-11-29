@@ -24,7 +24,6 @@
 #include <proto/gadtools.h>
 #include "../../include/config.h"
 #include "../../include/network.h"
-#include "../../include/gui_layout.h"
 #include "../../include/utils.h"
 #include "../../include/data.h"
 #include "../../include/country_config.h"
@@ -35,32 +34,37 @@
 #ifdef __GNUC__
 extern void geta4(void);   
 #endif
+// Menu Constants
+#define MENU_PROJECT      0   // Menu number for Project menu
+#define ITEM_SETTINGS     0   // for Settings
+#define ITEM_ABOUT        1   // for About
+#define ITEM_QUIT         3   // for Quit (after separator)
+#define MAX_STATION_NAME  40
 
-#define MENU_PROJECT     0   // Menu number for Project menu
-#define ITEM_SETTINGS    0   // for Settings
-#define ITEM_ABOUT       1   // for About
-#define ITEM_QUIT        3   // for Quit (after separator)
-#define MAX_STATION_NAME 40 
-
-struct CountryConfig countryConfig;
-struct RastPort *RastPort;
-struct MsgPort *WindowPort;
-
-// Global variables
-BOOL running = FALSE;
-struct Window *window = NULL;
-struct List *browserList = NULL;
+// Library Handles
 struct Library *IntuitionBase = NULL;
 struct Library *GadToolsBase = NULL;
 struct Library *SocketBase = NULL;
 struct GfxBase *GfxBase = NULL;
 struct Library *AslBase = NULL;
-void *visualInfo = NULL;
 
-struct ExtNode *currentStation;  // Track currently selected station
+// Core GUI Structures
+struct Window *window = NULL;
 struct Menu *menuStrip = NULL;
+void *visualInfo = NULL;
+struct CountryConfig countryConfig;
+struct RastPort *RastPort;
+struct MsgPort *WindowPort;
+
+// Data Structures
+struct List *browserList = NULL;
+struct ExtNode *currentStation;  // Track currently selected station
 struct APISettings currentSettings;
-// GUI Elements
+
+// State Variables
+BOOL running = FALSE;
+
+// Gadget Elements
 struct Gadget *nameStrGad;
 struct Gadget *countryCodeCycle;
 struct Gadget *codecCycle;
@@ -76,26 +80,30 @@ struct Gadget *stopButton;
 struct Gadget *saveSingleButton;
 struct Gadget *stationDetailGad;
 struct Gadget *stationNameGad;
-// Choices for dropdowns
+
+// Data Arrays and Choices
 const char *codecChoices[] = {"","MP3","AAC","AAC+","OGG","FLAC",NULL};
+
+// Hooks and Menu Structures
 static struct Hook renderHook;
+
 static struct Menu *CreateAppMenus(void) {
-	struct NewMenu newMenu[] = {
-		{ NM_TITLE,  GetTFString(MSG_PROJECT),     NULL,     0, 0L, NULL },
-		{ NM_ITEM,   GetTFString(MSG_SETTINGS), "S",      0, 0L, NULL },
-		{ NM_ITEM,   GetTFString(MSG_ABOUT),    "?",      0, 0L, NULL },
-		{ NM_ITEM,   NM_BARLABEL,   NULL,     0, 0L, NULL },
-		{ NM_ITEM,   GetTFString(MSG_QUIT),        "Q",      0, 0L, NULL },
-		{ NM_END,    NULL,          NULL,     0, 0L, NULL }
-	};
+    struct NewMenu newMenu[] = {
+        { NM_TITLE,  GetTFString(MSG_PROJECT),     NULL,     0, 0L, NULL },
+        { NM_ITEM,   GetTFString(MSG_SETTINGS), "S",      0, 0L, NULL },
+        { NM_ITEM,   GetTFString(MSG_ABOUT),    "?",      0, 0L, NULL },
+        { NM_ITEM,   NM_BARLABEL,   NULL,     0, 0L, NULL },
+        { NM_ITEM,   GetTFString(MSG_QUIT),        "Q",      0, 0L, NULL },
+        { NM_END,    NULL,          NULL,     0, 0L, NULL }
+    };
 
-	struct Menu *menuStrip = CreateMenusA(newMenu, NULL);
-	if (!menuStrip) {
-		DEBUG("Failed to create menus");
-		return NULL;
-	}
+    struct Menu *menuStrip = CreateMenusA(newMenu, NULL);
+    if (!menuStrip) {
+        DEBUG("Failed to create menus");
+        return NULL;
+    }
 
-	return menuStrip;
+    return menuStrip;
 }
 
 static UWORD GhostPattern[2] = {
@@ -168,39 +176,39 @@ void CleanupLibraries(void) {
 }
 
 void CleanupGUI(void) {
-	DEBUG("Starting GUI cleanup...");
+    DEBUG("Starting GUI cleanup...");
 
-	if (window) {
-		if (menuStrip) {
-			ClearMenuStrip(window);
-			FreeMenus(menuStrip);
-			menuStrip = NULL;
-		}
+    if (window) {
+        if (menuStrip) {
+            ClearMenuStrip(window);
+            FreeMenus(menuStrip);
+            menuStrip = NULL;
+        }
 
-		struct Gadget *glist = (struct Gadget *)window->UserData;
-		CloseWindow(window);
-		window = NULL;
+        struct Gadget *glist = (struct Gadget *)window->UserData;
+        CloseWindow(window);
+        window = NULL;
 
-		if (glist) {
-			FreeGadgets(glist);
-		}
-	}
+        if (glist) {
+            FreeGadgets(glist);
+        }
+    }
 
-	if (browserList) {
-		free_labels(browserList);
-		browserList = NULL;
-	}
+    if (browserList) {
+        free_labels(browserList);
+        browserList = NULL;
+        currentStation = NULL;  
+    }
 
-	if (visualInfo) {
-		FreeVisualInfo(visualInfo);
-		visualInfo = NULL;
-	}
-	if (&countryConfig) {
-		FreeCountryConfig(&countryConfig);
-	}
-	DEBUG("GUI cleanup completed");
+    if (visualInfo) {
+        FreeVisualInfo(visualInfo);
+        visualInfo = NULL;
+    }
+    if (&countryConfig) {
+        FreeCountryConfig(&countryConfig);
+    }
+    DEBUG("GUI cleanup completed");
 }
-
 
 
 struct List* CreateInitialList(void) {
@@ -407,7 +415,18 @@ void HandleSearch(void) {
 	if (browserList) {
 		struct Node *node;
 		while ((node = RemHead(browserList))) {
+			struct ExtNode *ext = (struct ExtNode *)node;
+			
+			// Free all allocated strings
+			if (ext->name) free(ext->name);
+			if (ext->url) free(ext->url);
+			if (ext->codec) free(ext->codec);
+			if (ext->country) free(ext->country);
+			
+			// Free the displayText/ln_Name
 			deallocate(node->ln_Name, V_cstr);
+			
+			// Free the node itself
 			deallocate(node, V_Node);
 		}
 	}
