@@ -7,7 +7,8 @@
 BOOL IsAmigaAMPRunning(void);
 BOOL SendCommandToAmigaAMP(const char *command);
 BOOL OpenStreamInAmigaAMP(const char *streamURL);
-BOOL OpenStreamInAmigaAMPWithName(const char *streamURL, const char *stationName);
+BOOL OpenStreamInAmigaAMPWithName(const char *streamURL,
+                                  const char *stationName);
 
 // Additional control functions
 BOOL StopAmigaAMP(void);
