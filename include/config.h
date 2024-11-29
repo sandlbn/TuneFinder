@@ -1,8 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define WINDOW_WIDTH    640
-#define WINDOW_HEIGHT   300
 #define V_List 19561
 #define V_Node 20079
 #define V_cstr 19938
@@ -16,7 +14,6 @@
 #define HTTPS_TRUE 1
 #define HTTPS_FALSE 0
 #define INITIAL_BUFFER_SIZE (64 * 1024)  // 64 kb :) 
-#define MIN_BUFFER_SIZE (512 * 1024)     // 512KB minimum
 #define MAX_BUFFER_SIZE (64 * 1024 * 1024) // 4MB maximum
 #define PREFERRED_BUFFER_SIZE (2 * 1024 * 1024) // 2MB preferred
 #define READ_CHUNK_SIZE (8 * 1024)         // Read 8KB at a time
@@ -27,9 +24,7 @@
 #define PLS_TITLE_ENTRY "Title%d=%s\n"
 #define PLS_LENGTH_ENTRY "Length%d=-1\n"
 #define DEFAULT_PLS_FILENAME "radio.pls"
-#define COL_NAME_WIDTH    30
-#define COL_CODEC_WIDTH   8
-#define COL_BITRATE_WIDTH 8
+#define MAX_STATION_NAME 40
 
 #ifdef DEBUG_BUILD
     #define DEBUG(msg, ...) printf("DEBUG [%s:%d]: " msg "\n", __func__, __LINE__, ##__VA_ARGS__)
