@@ -467,9 +467,10 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
 
     case 12:  // Stop button
       if (IsAmigaAMPRunning()) {
-        StopAmigaAMP();
-        GetTFFormattedString(msg, sizeof(msg), MSG_STOPPING_PLAYBACK);
-        UpdateStatusMessage(msg);
+        if (StopAmigaAMP()) {
+          GetTFFormattedString(msg, sizeof(msg), MSG_STOPPING_PLAYBACK);
+          UpdateStatusMessage(msg);
+        }
       } else {
         GetTFFormattedString(msg, sizeof(msg), MSG_AMIGAAMP_NOT_RUNNING);
         UpdateStatusMessage(msg);
@@ -481,6 +482,13 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
         if (IsAmigaAMPRunning()) {
           if (!OpenStreamInAmigaAMP(currentStation->url)) {
             GetTFFormattedString(msg, sizeof(msg), MSG_FAILED_START_PLAYBACK);
+            UpdateStatusMessage(msg);
+          } else {
+            char nameBuffer[MAX_STATION_NAME + 1];
+            cleanNonAscii(nameBuffer, currentStation->name,
+                          MAX_STATION_NAME + 1);
+            GetTFFormattedString(msg, sizeof(msg), MSG_PLAYING_STATION,
+                                 nameBuffer);
             UpdateStatusMessage(msg);
           }
         } else {

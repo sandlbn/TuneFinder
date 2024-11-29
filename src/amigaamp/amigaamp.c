@@ -13,6 +13,12 @@
 #define MAX_COMMAND_LENGTH 128
 #define TEMP_PLS_PATH "RAM:amigaamp.pls"
 
+void ClearMsgPort(struct MsgPort *port) {
+  struct Message *msg;
+  while ((msg = GetMsg(port))) {
+    ReplyMsg(msg);
+  }
+}
 static void CleanupRexxMessage(struct MsgPort *replyPort, struct RexxMsg *rexxMsg) {
     if (rexxMsg) {
         DeleteRexxMsg(rexxMsg);
@@ -63,122 +69,127 @@ BOOL IsAmigaAMPRunning(void) {
 }
 
 BOOL SendCommandToAmigaAMP(const char *command) {
-    struct MsgPort *replyPort = NULL;
-    struct MsgPort *amigaampPort = NULL;
-    struct RexxMsg *rexxMsg = NULL;
-    struct Message *reply = NULL;
-    BOOL success = FALSE;
-    ULONG waitSignal;
+  struct MsgPort *replyPort = NULL;
+  struct MsgPort *amigaampPort = NULL;
+  struct RexxMsg *rexxMsg = NULL;
+  struct Message *reply = NULL;
+  BOOL success = FALSE;
+  ULONG waitSignal;
 
-    // Validate input
-    if (!command || !*command) {
-        DEBUG("Invalid command (NULL or empty)");
-        return FALSE;
-    }
+  // Validate input
+  if (!command || !*command) {
+    DEBUG("Invalid command (NULL or empty)");
+    return FALSE;
+  }
 
-    DEBUG("Sending command to AmigaAMP: %s", command);
+  DEBUG("Sending command to AmigaAMP: %s", command);
 
-    // Create reply port
-    replyPort = CreateMsgPort();
-    if (!replyPort) {
-        DEBUG("Failed to create reply port");
-        return FALSE;
-    }
-    waitSignal = 1L << replyPort->mp_SigBit;
+  // Create reply port
+  replyPort = CreateMsgPort();
+  if (!replyPort) {
+    DEBUG("Failed to create reply port");
+    return FALSE;
+  }
+  waitSignal = 1L << replyPort->mp_SigBit;
 
-    Forbid();  // Prevent task switching
-    
-    // Find AmigaAMP port
-    amigaampPort = FindPort(AMIGAAMP_PORT_NAME);
-    if (!amigaampPort) {
-        DEBUG("AmigaAMP port not found");
-        Permit();  // Don't forget to Permit() before early return
-        DeleteMsgPort(replyPort);
-        return FALSE;
-    }
+  Forbid();  // Prevent task switching
 
-    // Create Rexx message
-    rexxMsg = CreateRexxMsg(replyPort, NULL, AMIGAAMP_PORT_NAME);
-    if (!rexxMsg) {
-        DEBUG("Failed to create RexxMsg");
-        Permit();  // Don't forget to Permit() before early return
-        DeleteMsgPort(replyPort);
-        return FALSE;
-    }
+  // Find AmigaAMP port
+  amigaampPort = FindPort(AMIGAAMP_PORT_NAME);
+  if (!amigaampPort) {
+    DEBUG("AmigaAMP port not found");
+    Permit();  // Don't forget to Permit() before early return
+    DeleteMsgPort(replyPort);
+    return FALSE;
+  }
 
-    // Setup message
-    rexxMsg->rm_Args[0] = (STRPTR)command;
-    rexxMsg->rm_Action = RXCOMM;
+  // Create Rexx message
+  rexxMsg = CreateRexxMsg(replyPort, NULL, AMIGAAMP_PORT_NAME);
+  if (!rexxMsg) {
+    DEBUG("Failed to create RexxMsg");
+    Permit();  // Don't forget to Permit() before early return
+    DeleteMsgPort(replyPort);
+    return FALSE;
+  }
 
-    // Send message while still Forbid()
-    PutMsg(amigaampPort, (struct Message *)rexxMsg);
-    
-    Permit();  // Allow task switching again after message is sent
+  // Setup message
+  rexxMsg->rm_Args[0] = (STRPTR)command;
+  rexxMsg->rm_Action = RXCOMM;
 
-    // Wait for response with timeout
-    if (Wait(waitSignal | SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) {
-        DEBUG("Command canceled by user");
-        goto cleanup;
-    }
+  // Send message while still Forbid()
+  PutMsg(amigaampPort, (struct Message *)rexxMsg);
 
-    // Get response
-    Forbid();  // Protect message retrieval
-    reply = GetMsg(replyPort);
-    Permit();
-    
-    if (!reply) {
-        DEBUG("No response received");
-        goto cleanup;
-    }
+  Permit();  // Allow task switching again after message is sent
 
-    if (reply != (struct Message *)rexxMsg) {
-        DEBUG("Received unexpected message");
-        goto cleanup;
-    }
+  // Wait for response with timeout
+  if (Wait(waitSignal | SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) {
+    DEBUG("Command canceled by user");
+    goto cleanup;
+  }
 
-    // Check result
-    if (rexxMsg->rm_Result1 == 0) {
-        if (rexxMsg->rm_Result2) {
-            // If there's a response string
-            STRPTR resultString = (STRPTR)rexxMsg->rm_Result2;
-            DEBUG("Command executed successfully with response: %s", resultString);
-        } else {
-            DEBUG("Command executed successfully");
-        }
-        success = TRUE;
+  // Get response
+  Forbid();  // Protect message retrieval
+  reply = GetMsg(replyPort);
+  Permit();
+
+  if (!reply) {
+    DEBUG("No response received");
+    goto cleanup;
+  }
+
+  if (reply != (struct Message *)rexxMsg) {
+    DEBUG("Received unexpected message");
+    goto cleanup;
+  }
+
+  // Check result
+  if (rexxMsg->rm_Result1 == 0) {
+    if (rexxMsg->rm_Result2) {
+      // If there's a response string
+      STRPTR resultString = (STRPTR)rexxMsg->rm_Result2;
+      DEBUG("Command executed successfully with response: %s", resultString);
     } else {
-        // Detailed error reporting
-        switch (rexxMsg->rm_Result1) {
-            case 1:
-                DEBUG("Program not found");
-                break;
-            case 5:
-                DEBUG("Command string error");
-                break;
-            case 10:
-                DEBUG("Command failed");
-                break;
-            case 20:
-                DEBUG("Port not found");
-                break;
-            case 30:
-                DEBUG("No memory available");
-                break;
-            default:
-                DEBUG("Command failed with error: %ld", rexxMsg->rm_Result1);
-                break;
-        }
+      DEBUG("Command executed successfully");
     }
-
+    success = TRUE;
+  } else {
+    // Detailed error reporting
+    switch (rexxMsg->rm_Result1) {
+      case 1:
+        DEBUG("Program not found");
+        break;
+      case 5:
+        DEBUG("Command string error");
+        break;
+      case 10:
+        DEBUG("Command failed");
+        break;
+      case 20:
+        DEBUG("Port not found");
+        break;
+      case 30:
+        DEBUG("No memory available");
+        break;
+      default:
+        DEBUG("Command failed with error: %ld", rexxMsg->rm_Result1);
+        break;
+    }
+  }
+  if (reply) {
+    if (reply != (struct Message *)rexxMsg) {
+      ReplyMsg(reply);
+    }
+  }
+  ClearMsgPort(replyPort);
 cleanup:
-    // If we got a reply with a result string, free it
-    if (success && rexxMsg->rm_Result2) {
-        DeleteArgstring((UBYTE *)rexxMsg->rm_Result2);
-    }
+  // If we got a reply with a result string, free it
+  if (success && rexxMsg->rm_Result2) {
+    DeleteArgstring((UBYTE *)rexxMsg->rm_Result2);
+  }
 
-    // Cleanup
-    CleanupRexxMessage(replyPort, rexxMsg);
-    return success;
+  // Cleanup
+  CleanupRexxMessage(replyPort, rexxMsg);
+  return success;
 }
 static BOOL CreateTemporaryPLS(const char *streamURL, const char *stationName) {
     BPTR fh;
