@@ -2,8 +2,8 @@ Short:        Search and play online radio stations
 Author:       marcin@spoczynski.com (Marcin Spoczynski)
 Uploader:     marcin@spoczynski.com (Marcin Spoczynski)
 Type:         comm/misc
-Version:      1.2
-Architecture: m68k-amigaos >= 3.1
+Version:      1.3
+Architecture: m68k-amigaos >= 3.0
 Distribution: Aminet
 Replaces: comm/misc/TuneFinder.lha 
 
@@ -22,6 +22,7 @@ Main features:
 - Options to save results as a PLS playlist or individual station files for
   compatible media players
 - Native AmigaOS GUI interface
+- Favorites management
 
 ADDING NEW COUNTRIES
 -------------------
@@ -117,5 +118,13 @@ TuneFinder 1.2 (23.11.2024)
 - Added example countries config (Alexander Gent)
 - Fix Countries List - not displaying names with spaces properly
 - Fix API settings limit defaults to 100
+
+TuneFinder 1.3 (30.11.2024)
+- Added favorites management system
+- Added Favorites menu item under Project menu
+- Added Fav+ and Fav- buttons for adding/removing favorites
+- Stations can be saved to and loaded from favorites list
+- Renamed Save buttons to 'All' and 'One' for better fit
+- Bug fixes and UI improvements
 
 Special thanks to Flype, Thomas, Ponki1986, Samir, Alexander, Paluch and many others for their help testing TuneFinder!

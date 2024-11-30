@@ -22,15 +22,15 @@ static const char *built_in_strings[] = {
     NULL,
 
     // GUI Actions (10-14)
-    "Search", "Save", "Cancel", "Play", "Quit", "Save Single", "Stop",
+    "Search", "Save All", "Cancel", "Play", "Quit", "Save One", "Stop",
     // Padding to align with IDs 17-19
     NULL, NULL, NULL,
 
     // GUI States (20-25)
     "Ready", "Settings...", "API Settings", "Station Details", "Project",
-    "About...", "Searching",
-    // Padding to align with IDs 27-29
-    NULL, NULL, NULL,
+    "About...", "Searching", "Favorites",
+    // Padding to align with IDs 28-29
+    NULL, NULL,
 
     // Options and Settings (30-33)
     "API Host", "API Port", "HTTPS Only", "Hide Broken",
@@ -41,17 +41,18 @@ static const char *built_in_strings[] = {
     // Status Messages with Parameters (40-46)
     "Found %d stations", "Playing: %s", "Settings loaded.", "Settings saved.",
     "Search completed. Found %d stations.", "File saved: %s",
-    "Settings saved: %s:%u", "No stations found",
-    // Padding to align with IDs 48-49
-    NULL, NULL,
+    "Settings saved: %s:%u", "No stations found", "Added to favorites", "Station removed from favorites",
+    // No more padding
 
     // Error Messages - Settings Related (50-52)
     "Invalid port number, keeping current: %ld", "Failed to write port setting",
     "Failed to write host setting",
     "Invalid locale value, keeping current: %ld",
     "Failed to write limit setting",
-    // Padding to align with IDs 54-59
-    NULL, NULL, NULL, NULL, NULL,
+    "Failed to add to favorites",
+    "Failed to remove from favorites",
+    // Padding to align with IDs 56-59
+    NULL, NULL, NULL,
 
     // Error Messages - File Operations (60-63)
     "Failed to save file", "Failed to access %s",

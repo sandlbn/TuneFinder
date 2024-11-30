@@ -27,6 +27,7 @@
 #include "../../include/config.h"
 #include "../../include/country_config.h"
 #include "../../include/data.h"
+#include "../../include/favorites.h"
 #include "../../include/locale.h"
 #include "../../include/network.h"
 #include "../../include/utils.h"
@@ -38,8 +39,9 @@ extern void geta4(void);
 // Menu Constants
 #define MENU_PROJECT 0   // Menu number for Project menu
 #define ITEM_SETTINGS 0  // for Settings
-#define ITEM_ABOUT 1     // for About
-#define ITEM_QUIT 3      // for Quit (after separator)
+#define ITEM_FAVORITES 1 // For Favortes
+#define ITEM_ABOUT 2     // for About
+#define ITEM_QUIT 4      // for Quit (after separator)
 
 // Library Handles
 struct Library *IntuitionBase = NULL;
@@ -80,6 +82,8 @@ struct Gadget *stopButton;
 struct Gadget *saveSingleButton;
 struct Gadget *stationDetailGad;
 struct Gadget *stationNameGad;
+struct Gadget *favoriteButton;
+struct Gadget *unfavoriteButton;
 
 // Data Arrays and Choices
 const char *codecChoices[] = {"", "MP3", "AAC", "AAC+", "OGG", "FLAC", NULL};
@@ -91,6 +95,7 @@ static struct Menu *CreateAppMenus(void) {
   struct NewMenu newMenu[] = {
       {NM_TITLE, GetTFString(MSG_PROJECT), NULL, 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_SETTINGS), "S", 0, 0L, NULL},
+      {NM_ITEM, GetTFString(MSG_FAVORITES), "F", 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_ABOUT), "?", 0, 0L, NULL},
       {NM_ITEM, NM_BARLABEL, NULL, 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_QUIT), "Q", 0, 0L, NULL},
@@ -248,6 +253,49 @@ void SaveSingleStation(struct ExtNode *station) {
   FreeAslRequest(fileReq);
 }
 
+void RefreshFavoritesList(void) {
+  struct List *favorites;
+
+  // First clear current selection
+  currentStation = NULL;
+
+  // Clear station details first
+  GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, "", TAG_DONE);
+  GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, "", TAG_DONE);
+
+  // Disable all relevant buttons
+  GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+  GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+  GT_SetGadgetAttrs(favoriteButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+  GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, TRUE,
+                    TAG_DONE);
+
+  // Load new favorites list
+  favorites = LoadFavorites();
+  if (favorites) {
+    // Clear old list
+    if (browserList) {
+      // First detach list from listview to prevent invalid access
+      GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, NULL, TAG_DONE);
+      free_labels(browserList);
+    }
+
+    browserList = favorites;
+
+    // Update the listview with new list
+    GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, browserList,
+                      GTLV_Selected, ~0,  // Clear selection
+                      TAG_DONE);
+
+    // Force a refresh of the listview
+    RefreshGList(listView, window, NULL, 1);
+  }
+
+  // Make sure window is updated
+  RefreshWindowFrame(window);
+}
+
+
 void HandleSave(void) {
   struct FileRequester *fileReq;
   char filepath[256];
@@ -282,34 +330,48 @@ void HandleSave(void) {
 }
 
 void HandleListSelect(struct IntuiMessage *imsg) {
-  char nameText[62];
-  UWORD selection = imsg->Code;
-  struct Node *node = browserList->lh_Head;
+    char nameText[62];
+    UWORD selection = imsg->Code;
+    struct Node *node = browserList->lh_Head;
+    while (selection-- && node->ln_Succ) {
+        node = node->ln_Succ;
+    }
+    if (node->ln_Succ) {
+        struct ExtNode *ext = (struct ExtNode *)node;
+        currentStation = ext;
 
-  while (selection-- && node->ln_Succ) {
-    node = node->ln_Succ;
-  }
-
-  if (node->ln_Succ) {
-    struct ExtNode *ext = (struct ExtNode *)node;
-    currentStation = ext;
-    GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, FALSE, TAG_DONE);
-    GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, FALSE, TAG_DONE);
-    snprintf(nameText, 62, "%.61s", ext->name);
-    GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, nameText,
-                      TAG_DONE);
-    char detailText[100];
-    snprintf(detailText, sizeof(detailText), "%s: %s %s: %ld %s: %s",
-             GetTFString(MSG_CODEC), ext->codec, GetTFString(MSG_BITRATE),
-             ext->bitrate, GetTFString(MSG_COUNTRY), ext->country);
-
-    GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, detailText,
-                      TAG_DONE);
-
-    RefreshGList(stationNameGad, window, NULL, 2);  // Refresh both gadgets
-  }
+        // Enable play and stop buttons
+        GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, FALSE, TAG_DONE);
+        GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, FALSE, TAG_DONE);
+        
+        // Set up favorite buttons based on whether station is in favorites
+        BOOL inFavorites = IsStationInFavorites(ext);
+        GT_SetGadgetAttrs(favoriteButton, window, NULL,
+                         GA_Disabled, inFavorites,
+                         TAG_DONE);
+        GT_SetGadgetAttrs(unfavoriteButton, window, NULL,
+                         GA_Disabled, !inFavorites,
+                         TAG_DONE);
+        
+        // Update station info display
+        snprintf(nameText, 62, "%.61s", ext->name);
+        GT_SetGadgetAttrs(stationNameGad, window, NULL,
+                         GTTX_Text, nameText,
+                         TAG_DONE);
+        
+        char detailText[100];
+        snprintf(detailText, sizeof(detailText), "%s: %s %s: %ld %s: %s",
+                GetTFString(MSG_CODEC), ext->codec,
+                GetTFString(MSG_BITRATE), ext->bitrate,
+                GetTFString(MSG_COUNTRY), ext->country);
+        
+        GT_SetGadgetAttrs(stationDetailGad, window, NULL,
+                         GTTX_Text, detailText,
+                         TAG_DONE);
+        
+        RefreshGList(stationNameGad, window, NULL, 2);  // Refresh both gadgets
+    }
 }
-
 void HandleSearch(void) {
   STRPTR nameValue = NULL;
   STRPTR stateValue = NULL;
@@ -496,6 +558,33 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
         }
       }
       break;
+
+    case 17:  // Favorite button
+      if (currentStation) {
+        if (SaveFavorite(currentStation)) {
+          // Enable unfavorite button after successful save
+          GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, FALSE,
+                            TAG_DONE);
+        }
+      }
+      break;
+
+    case 18:  // Unfavorite button
+      if (currentStation) {
+        struct MenuItem *item = ItemAddress(
+            menuStrip, FULLMENUNUM(MENU_PROJECT, ITEM_FAVORITES, NOSUB));
+        if (RemoveFavorite(currentStation)) {
+          // Disable unfavorite button after successful removal
+          GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, TRUE,
+                            TAG_DONE);
+
+          // Check if we're viewing favorites and refresh if needed
+          if (item && (item->Flags & CHECKED)) {
+            RefreshFavoritesList();
+          }
+        }
+      }
+      break;
   }
 }
 void HandleMenuPick(UWORD menuNumber) {
@@ -552,6 +641,16 @@ void HandleMenuPick(UWORD menuNumber) {
           }
         }
         break;
+        case ITEM_FAVORITES: {
+          // Toggle checkmark for favorites menu item
+          item->Flags ^= CHECKED;
+          // If we're switching to favorites view
+          
+          if (item->Flags & CHECKED) {
+            RefreshFavoritesList();
+          }
+          break;
+        }
     }
   }
 }
@@ -867,11 +966,15 @@ BOOL OpenGUI(void) {
                    GTST_MaxChars, 51, TAG_DONE);
   if (!statusMsgGad) DEBUG("Failed to create status gadget");
 
+  // Size for buttons
+
+  WORD regularWidth = (font_width * 60 - font_width * 10) / 5;
+  WORD smallWidth = (regularWidth / 2);
+
   // Action buttons row
   ng.ng_TopEdge += font_height + 8;
   ng.ng_Height = font_height + 6;  // Slightly taller buttons
-  ng.ng_Width = (font_width * 60 - font_width * 6) /
-                4;  // Equal width for all buttons, leaving space for gaps
+  ng.ng_Width = regularWidth;
   ng.ng_Flags = PLACETEXT_IN;
 
   // Save button (first)
@@ -892,16 +995,34 @@ BOOL OpenGUI(void) {
       CreateGadget(BUTTON_KIND, saveButton, &ng, GT_Underscore, '_', TAG_DONE);
   if (!saveSingleButton) DEBUG("Failed to create save single button");
 
-  // Stop button (third)
+  // Favorite button (third)
+
   ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
+  ng.ng_Width = smallWidth;
+  ng.ng_GadgetText = "Fav+";
+  ng.ng_GadgetID = 17;
+  favoriteButton =
+      CreateGadget(BUTTON_KIND, saveSingleButton, &ng,GT_Underscore, '_', TAG_DONE);
+
+  // Unfavorite button
+
+  ng.ng_LeftEdge += ng.ng_Width + font_width *2;
+  ng.ng_GadgetText = "Fav-";
+  ng.ng_GadgetID = 18;
+  unfavoriteButton =
+      CreateGadget(BUTTON_KIND, favoriteButton, &ng, GT_Underscore, '_', GA_Disabled, TRUE, TAG_DONE);
+
+  // Stop button (fourth)
+  ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
+  ng.ng_Width = regularWidth;
   ng.ng_GadgetText = GetTFString(MSG_STOP);
   ng.ng_GadgetID = 12;
 
-  stopButton = CreateGadget(BUTTON_KIND, saveSingleButton, &ng, GT_Underscore,
+  stopButton = CreateGadget(BUTTON_KIND, unfavoriteButton, &ng, GT_Underscore,
                             '_', GA_Disabled, TRUE, TAG_DONE);
   if (!stopButton) DEBUG("Failed to create stop button");
 
-  // Play button (fourth)
+  // Play button (fifth)
   ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
   ng.ng_GadgetText = GetTFString(MSG_PLAY);
   ng.ng_GadgetID = 13;
