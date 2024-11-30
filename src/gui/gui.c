@@ -38,8 +38,9 @@ extern void geta4(void);
 // Menu Constants
 #define MENU_PROJECT 0   // Menu number for Project menu
 #define ITEM_SETTINGS 0  // for Settings
-#define ITEM_ABOUT 1     // for About
-#define ITEM_QUIT 3      // for Quit (after separator)
+#define ITEM_FAVORITES 1 // For Favortes
+#define ITEM_ABOUT 2     // for About
+#define ITEM_QUIT 4      // for Quit (after separator)
 
 // Library Handles
 struct Library *IntuitionBase = NULL;
@@ -80,6 +81,8 @@ struct Gadget *stopButton;
 struct Gadget *saveSingleButton;
 struct Gadget *stationDetailGad;
 struct Gadget *stationNameGad;
+struct Gadget *favoriteButton;
+struct Gadget *unfavoriteButton;
 
 // Data Arrays and Choices
 const char *codecChoices[] = {"", "MP3", "AAC", "AAC+", "OGG", "FLAC", NULL};
@@ -91,6 +94,7 @@ static struct Menu *CreateAppMenus(void) {
   struct NewMenu newMenu[] = {
       {NM_TITLE, GetTFString(MSG_PROJECT), NULL, 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_SETTINGS), "S", 0, 0L, NULL},
+      {NM_ITEM, GetTFString(MSG_FAVORITES), "F", 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_ABOUT), "?", 0, 0L, NULL},
       {NM_ITEM, NM_BARLABEL, NULL, 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_QUIT), "Q", 0, 0L, NULL},
@@ -867,11 +871,15 @@ BOOL OpenGUI(void) {
                    GTST_MaxChars, 51, TAG_DONE);
   if (!statusMsgGad) DEBUG("Failed to create status gadget");
 
+  // Size for buttons
+
+  WORD regularWidth = (font_width * 60 - font_width * 10) / 5;
+  WORD smallWidth = (regularWidth / 2);
+
   // Action buttons row
   ng.ng_TopEdge += font_height + 8;
   ng.ng_Height = font_height + 6;  // Slightly taller buttons
-  ng.ng_Width = (font_width * 60 - font_width * 6) /
-                4;  // Equal width for all buttons, leaving space for gaps
+  ng.ng_Width = regularWidth;
   ng.ng_Flags = PLACETEXT_IN;
 
   // Save button (first)
@@ -892,16 +900,34 @@ BOOL OpenGUI(void) {
       CreateGadget(BUTTON_KIND, saveButton, &ng, GT_Underscore, '_', TAG_DONE);
   if (!saveSingleButton) DEBUG("Failed to create save single button");
 
-  // Stop button (third)
+  // Favorite button (third)
+
   ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
+  ng.ng_Width = smallWidth;
+  ng.ng_GadgetText = "Fav+";
+  ng.ng_GadgetID = 17;
+  favoriteButton =
+      CreateGadget(BUTTON_KIND, saveSingleButton, &ng,GT_Underscore, '_', TAG_DONE);
+
+  // Unfavorite button
+
+  ng.ng_LeftEdge += ng.ng_Width + font_width *2;
+  ng.ng_GadgetText = "Fav-";
+  ng.ng_GadgetID = 18;
+  unfavoriteButton =
+      CreateGadget(BUTTON_KIND, favoriteButton, &ng, GT_Underscore, '_', GA_Disabled, TRUE, TAG_DONE);
+
+  // Stop button (fourth)
+  ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
+  ng.ng_Width = regularWidth;
   ng.ng_GadgetText = GetTFString(MSG_STOP);
   ng.ng_GadgetID = 12;
 
-  stopButton = CreateGadget(BUTTON_KIND, saveSingleButton, &ng, GT_Underscore,
+  stopButton = CreateGadget(BUTTON_KIND, unfavoriteButton, &ng, GT_Underscore,
                             '_', GA_Disabled, TRUE, TAG_DONE);
   if (!stopButton) DEBUG("Failed to create stop button");
 
-  // Play button (fourth)
+  // Play button (fifth)
   ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
   ng.ng_GadgetText = GetTFString(MSG_PLAY);
   ng.ng_GadgetID = 13;
