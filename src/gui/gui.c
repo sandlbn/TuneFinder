@@ -27,6 +27,7 @@
 #include "../../include/config.h"
 #include "../../include/country_config.h"
 #include "../../include/data.h"
+#include "../../include/favorites.h"
 #include "../../include/locale.h"
 #include "../../include/network.h"
 #include "../../include/utils.h"
@@ -286,34 +287,48 @@ void HandleSave(void) {
 }
 
 void HandleListSelect(struct IntuiMessage *imsg) {
-  char nameText[62];
-  UWORD selection = imsg->Code;
-  struct Node *node = browserList->lh_Head;
+    char nameText[62];
+    UWORD selection = imsg->Code;
+    struct Node *node = browserList->lh_Head;
+    while (selection-- && node->ln_Succ) {
+        node = node->ln_Succ;
+    }
+    if (node->ln_Succ) {
+        struct ExtNode *ext = (struct ExtNode *)node;
+        currentStation = ext;
 
-  while (selection-- && node->ln_Succ) {
-    node = node->ln_Succ;
-  }
-
-  if (node->ln_Succ) {
-    struct ExtNode *ext = (struct ExtNode *)node;
-    currentStation = ext;
-    GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, FALSE, TAG_DONE);
-    GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, FALSE, TAG_DONE);
-    snprintf(nameText, 62, "%.61s", ext->name);
-    GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, nameText,
-                      TAG_DONE);
-    char detailText[100];
-    snprintf(detailText, sizeof(detailText), "%s: %s %s: %ld %s: %s",
-             GetTFString(MSG_CODEC), ext->codec, GetTFString(MSG_BITRATE),
-             ext->bitrate, GetTFString(MSG_COUNTRY), ext->country);
-
-    GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, detailText,
-                      TAG_DONE);
-
-    RefreshGList(stationNameGad, window, NULL, 2);  // Refresh both gadgets
-  }
+        // Enable play and stop buttons
+        GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, FALSE, TAG_DONE);
+        GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, FALSE, TAG_DONE);
+        
+        // Set up favorite buttons based on whether station is in favorites
+        BOOL inFavorites = IsStationInFavorites(ext);
+        GT_SetGadgetAttrs(favoriteButton, window, NULL,
+                         GA_Disabled, inFavorites,
+                         TAG_DONE);
+        GT_SetGadgetAttrs(unfavoriteButton, window, NULL,
+                         GA_Disabled, !inFavorites,
+                         TAG_DONE);
+        
+        // Update station info display
+        snprintf(nameText, 62, "%.61s", ext->name);
+        GT_SetGadgetAttrs(stationNameGad, window, NULL,
+                         GTTX_Text, nameText,
+                         TAG_DONE);
+        
+        char detailText[100];
+        snprintf(detailText, sizeof(detailText), "%s: %s %s: %ld %s: %s",
+                GetTFString(MSG_CODEC), ext->codec,
+                GetTFString(MSG_BITRATE), ext->bitrate,
+                GetTFString(MSG_COUNTRY), ext->country);
+        
+        GT_SetGadgetAttrs(stationDetailGad, window, NULL,
+                         GTTX_Text, detailText,
+                         TAG_DONE);
+        
+        RefreshGList(stationNameGad, window, NULL, 2);  // Refresh both gadgets
+    }
 }
-
 void HandleSearch(void) {
   STRPTR nameValue = NULL;
   STRPTR stateValue = NULL;
@@ -500,6 +515,58 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
         }
       }
       break;
+
+    case 17:  // Favorite button
+      if (currentStation) {
+        if (SaveFavorite(currentStation)) {
+          // Enable unfavorite button after successful save
+          GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, FALSE,
+                            TAG_DONE);
+        }
+      }
+      break;
+
+    case 18:  // Unfavorite button
+      if (currentStation) {
+        if (RemoveFavorite(currentStation)) {
+          // Disable unfavorite button after successful removal
+          GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, TRUE,
+                            TAG_DONE);
+
+          // Check if we're viewing favorites and refresh if needed
+          struct MenuItem *item = ItemAddress(
+              menuStrip, FULLMENUNUM(MENU_PROJECT, ITEM_FAVORITES, NOSUB));
+          if (item && (item->Flags & CHECKED)) {
+            // We're in favorites view, reload the list
+            struct List *favorites = LoadFavorites();
+            if (favorites) {
+              if (browserList) {
+                free_labels(browserList);
+              }
+              browserList = favorites;
+              currentStation = NULL;  // Reset current station
+
+              // Clear station details
+              GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, "",
+                                TAG_DONE);
+              GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, "",
+                                TAG_DONE);
+
+              // Disable play/stop buttons
+              GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, TRUE,
+                                TAG_DONE);
+              GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, TRUE,
+                                TAG_DONE);
+
+              // Update the listview
+              GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels,
+                                browserList, TAG_DONE);
+              RefreshGList(listView, window, NULL, 1);
+            }
+          }
+        }
+      }
+      break;
   }
 }
 void HandleMenuPick(UWORD menuNumber) {
@@ -556,6 +623,38 @@ void HandleMenuPick(UWORD menuNumber) {
           }
         }
         break;
+      case ITEM_FAVORITES: {
+        // Toggle checkmark for favorites menu item
+        item->Flags ^= CHECKED;
+
+        struct List *favorites = LoadFavorites();
+        if (favorites) {
+          if (browserList) {
+            free_labels(browserList);
+          }
+          browserList = favorites;
+          currentStation = NULL;  // Reset current station
+
+          // Clear station details
+          GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, "",
+                            TAG_DONE);
+          GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, "",
+                            TAG_DONE);
+
+          // Disable play/stop buttons
+          GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, TRUE,
+                            TAG_DONE);
+          GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, TRUE,
+                            TAG_DONE);
+
+          if (window && listView) {
+            GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, browserList,
+                              TAG_DONE);
+            RefreshGList(listView, window, NULL, 1);
+          }
+        }
+        break;
+      }
     }
   }
 }

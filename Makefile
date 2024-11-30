@@ -28,6 +28,7 @@ SOURCES = $(SRCDIR)/settings/settings.c \
           $(SRCDIR)/data/data.c \
           $(SRCDIR)/amigaamp/amigaamp.c \
           $(SRCDIR)/locale/locale.c \
+          $(SRCDIR)/favorites/favorites.c \
           $(SRCDIR)/network/network.c \
 		  $(SRCDIR)/utils/utils.c \
           $(SRCDIR)/gui/gui.c \
@@ -40,6 +41,7 @@ OBJECTS = \
     $(BUILDDIR)/data/data.o \
     $(BUILDDIR)/amigaamp/amigaamp.o \
     $(BUILDDIR)/locale/locale.o \
+    $(BUILDDIR)/favorites/favorites.o \
     $(BUILDDIR)/network/network.o \
     $(BUILDDIR)/utils/utils.o \
     $(BUILDDIR)/gui/gui.o \
@@ -128,6 +130,7 @@ dirs:
 	@mkdir -p $(BUILDDIR)/gui
 	@mkdir -p $(BUILDDIR)/amigaamp
 	@mkdir -p $(BUILDDIR)/locale
+	@mkdir -p $(BUILDDIR)/favorite
 	@mkdir -p $(BUILDDIR)/network
 	@mkdir -p $(BUILDDIR)/data
 	@mkdir -p $(BUILDDIR)/utils
