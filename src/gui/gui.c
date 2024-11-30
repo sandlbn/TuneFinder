@@ -253,6 +253,49 @@ void SaveSingleStation(struct ExtNode *station) {
   FreeAslRequest(fileReq);
 }
 
+void RefreshFavoritesList(void) {
+  struct List *favorites;
+
+  // First clear current selection
+  currentStation = NULL;
+
+  // Clear station details first
+  GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, "", TAG_DONE);
+  GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, "", TAG_DONE);
+
+  // Disable all relevant buttons
+  GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+  GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+  GT_SetGadgetAttrs(favoriteButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+  GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, TRUE,
+                    TAG_DONE);
+
+  // Load new favorites list
+  favorites = LoadFavorites();
+  if (favorites) {
+    // Clear old list
+    if (browserList) {
+      // First detach list from listview to prevent invalid access
+      GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, NULL, TAG_DONE);
+      free_labels(browserList);
+    }
+
+    browserList = favorites;
+
+    // Update the listview with new list
+    GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, browserList,
+                      GTLV_Selected, ~0,  // Clear selection
+                      TAG_DONE);
+
+    // Force a refresh of the listview
+    RefreshGList(listView, window, NULL, 1);
+  }
+
+  // Make sure window is updated
+  RefreshWindowFrame(window);
+}
+
+
 void HandleSave(void) {
   struct FileRequester *fileReq;
   char filepath[256];
@@ -528,41 +571,16 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
 
     case 18:  // Unfavorite button
       if (currentStation) {
+        struct MenuItem *item = ItemAddress(
+            menuStrip, FULLMENUNUM(MENU_PROJECT, ITEM_FAVORITES, NOSUB));
         if (RemoveFavorite(currentStation)) {
           // Disable unfavorite button after successful removal
           GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, TRUE,
                             TAG_DONE);
 
           // Check if we're viewing favorites and refresh if needed
-          struct MenuItem *item = ItemAddress(
-              menuStrip, FULLMENUNUM(MENU_PROJECT, ITEM_FAVORITES, NOSUB));
           if (item && (item->Flags & CHECKED)) {
-            // We're in favorites view, reload the list
-            struct List *favorites = LoadFavorites();
-            if (favorites) {
-              if (browserList) {
-                free_labels(browserList);
-              }
-              browserList = favorites;
-              currentStation = NULL;  // Reset current station
-
-              // Clear station details
-              GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, "",
-                                TAG_DONE);
-              GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, "",
-                                TAG_DONE);
-
-              // Disable play/stop buttons
-              GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, TRUE,
-                                TAG_DONE);
-              GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, TRUE,
-                                TAG_DONE);
-
-              // Update the listview
-              GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels,
-                                browserList, TAG_DONE);
-              RefreshGList(listView, window, NULL, 1);
-            }
+            RefreshFavoritesList();
           }
         }
       }
@@ -623,38 +641,16 @@ void HandleMenuPick(UWORD menuNumber) {
           }
         }
         break;
-      case ITEM_FAVORITES: {
-        // Toggle checkmark for favorites menu item
-        item->Flags ^= CHECKED;
-
-        struct List *favorites = LoadFavorites();
-        if (favorites) {
-          if (browserList) {
-            free_labels(browserList);
+        case ITEM_FAVORITES: {
+          // Toggle checkmark for favorites menu item
+          item->Flags ^= CHECKED;
+          // If we're switching to favorites view
+          
+          if (item->Flags & CHECKED) {
+            RefreshFavoritesList();
           }
-          browserList = favorites;
-          currentStation = NULL;  // Reset current station
-
-          // Clear station details
-          GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, "",
-                            TAG_DONE);
-          GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, "",
-                            TAG_DONE);
-
-          // Disable play/stop buttons
-          GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, TRUE,
-                            TAG_DONE);
-          GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, TRUE,
-                            TAG_DONE);
-
-          if (window && listView) {
-            GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, browserList,
-                              TAG_DONE);
-            RefreshGList(listView, window, NULL, 1);
-          }
+          break;
         }
-        break;
-      }
     }
   }
 }

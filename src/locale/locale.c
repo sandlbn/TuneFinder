@@ -22,7 +22,7 @@ static const char *built_in_strings[] = {
     NULL,
 
     // GUI Actions (10-14)
-    "Search", "Save", "Cancel", "Play", "Quit", "Save Single", "Stop",
+    "Search", "Save All", "Cancel", "Play", "Quit", "Save One", "Stop",
     // Padding to align with IDs 17-19
     NULL, NULL, NULL,
 
