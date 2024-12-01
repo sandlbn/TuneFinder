@@ -1,7 +1,7 @@
-## version $VER: tunefinder.catalog 1.0 (09.11.2024)
+## version $VER: tunefinder.ct 1.0 (30.11.2024)
 ## codeset 0
 ## language english
-; GUI Labels
+;
 MSG_NAME
 Name
 ;
@@ -24,13 +24,13 @@ MSG_LIMIT
 Limit
 ;
 MSG_URL
-Url
+URL
 ;
 MSG_SEARCH
 Search
 ;
 MSG_SAVE
-Save
+Save All
 ;
 MSG_CANCEL
 Cancel
@@ -42,10 +42,16 @@ MSG_QUIT
 Quit
 ;
 MSG_SAVE_SINGLE
-Save Single
+Save One
 ;
 MSG_STOP
 Stop
+;
+MSG_FAVORITE
+Fav+
+;
+MSG_UNFAVORITE
+Fav-
 ;
 MSG_READY
 Ready
@@ -67,6 +73,9 @@ About...
 ;
 MSG_SEARCHING
 Searching
+;
+MSG_FAVORITES
+Favorites
 ;
 MSG_HOST
 API Host
@@ -99,10 +108,16 @@ MSG_FILE_SAVED
 File saved: %s
 ;
 MSG_SET_SAVED
-Settings saved: %s:%u Limit: %u
+Settings saved: %s:%u
 ;
-MSG_NO_STATIONS
+MSG_NO_STATION_FOUND
 No stations found
+;
+MSG_FAVORITE_ADDED
+Added to favorites
+;
+MSG_FAVORITE_REMOVED
+Station removed from favorites
 ;
 MSG_INVALID_PORT
 Invalid port number, keeping current: %ld
@@ -113,11 +128,17 @@ Failed to write port setting
 MSG_FAILED_WRITE_HOST_SETTING
 Failed to write host setting
 ;
-MSG_INVALID_LOCALE
-Invalid locale value, keeping current: %ld
+MSG_INVALID_LIMIT
+Invalid limit number, keeping current: %ld
 ;
 MSG_FAILED_WRITE_LIMIT_SET
 Failed to write limit setting
+;
+MSG_FAILED_ADD_FAVORITE
+Failed to add to favorites
+;
+MSG_FAILED_REMOVE_FAVORITE
+Failed to remove from favorites
 ;
 MSG_FAILED_FILE_SAVE
 Failed to save file
