@@ -47,7 +47,7 @@ static const char *built_in_strings[] = {
     // Error Messages - Settings Related (50-52)
     "Invalid port number, keeping current: %ld", "Failed to write port setting",
     "Failed to write host setting",
-    "Invalid locale value, keeping current: %ld",
+    "Invalid limit number, keeping current: %ld",
     "Failed to write limit setting",
     "Failed to add to favorites",
     "Failed to remove from favorites",
