@@ -46,6 +46,7 @@ int main(void) {
     while ((imsg = GT_GetIMsg(window->UserPort))) {
       switch (imsg->Class) {
         case IDCMP_CLOSEWINDOW:
+          SavePreferencesOnExit();
           GT_ReplyIMsg(imsg);
           running = FALSE;
           break;

@@ -14,6 +14,8 @@
 #define ENV_LIMIT "apilimit"
 #define MAX_HOST_LEN 256
 #define MAX_PORT_LEN 6
+#define ENV_COUNTRY "country"
+#define ENV_CODEC "codec"
 
 struct APISettings {
     char host[MAX_HOST_LEN];
@@ -24,5 +26,7 @@ struct APISettings {
 BOOL LoadSettings(struct APISettings *settings);
 BOOL SaveSettings(const struct APISettings *settings);
 BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent);
+BOOL LoadCyclePreferences(LONG *countryCode, LONG *codec);
+BOOL SaveCyclePreferences(LONG countryCode, LONG codec);
 
 #endif /* SETTINGS_H */

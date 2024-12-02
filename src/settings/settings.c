@@ -419,3 +419,85 @@ cleanup:
     
     return success;
 }
+BOOL SaveCyclePreferences(LONG countryCode, LONG codec) {
+  char filepath[256];
+  char countryStr[8];
+  char codecStr[8];
+  BPTR file;
+  BOOL success = FALSE;
+
+  if (!EnsureSettingsPath()) {
+    return FALSE;
+  }
+
+  // Save country
+  sprintf(filepath, TUNEFINDER_DIR ENV_COUNTRY);
+  file = Open(filepath, MODE_NEWFILE);
+  if (!file) {
+    return FALSE;
+  }
+
+  sprintf(countryStr, "%ld", countryCode);
+  LONG len = strlen(countryStr);
+  if (Write(file, countryStr, len) != len) {
+    Close(file);
+    return FALSE;
+  }
+  Close(file);
+
+  // Save codec
+  sprintf(filepath, TUNEFINDER_DIR ENV_CODEC);
+  file = Open(filepath, MODE_NEWFILE);
+  if (!file) {
+    return FALSE;
+  }
+
+  sprintf(codecStr, "%ld", codec);
+  len = strlen(codecStr);
+  if (Write(file, codecStr, len) != len) {
+    Close(file);
+    return FALSE;
+  }
+  Close(file);
+
+  return TRUE;
+}
+
+BOOL LoadCyclePreferences(LONG *countryCode, LONG *codec) {
+  char filepath[256];
+  char buffer[8];
+  BPTR file;
+  BOOL success = FALSE;
+
+  // Set defaults
+  *countryCode = 0;
+  *codec = 0;
+
+  // Load country
+  sprintf(filepath, TUNEFINDER_DIR ENV_COUNTRY);
+  file = Open(filepath, MODE_OLDFILE);
+  if (file) {
+    LONG len = Read(file, buffer, sizeof(buffer) - 1);
+    if (len > 0) {
+      buffer[len] = '\0';
+      *countryCode = atoi(buffer);
+      success = TRUE;
+    }
+    Close(file);
+  }
+
+  // Load codec
+  sprintf(filepath, TUNEFINDER_DIR ENV_CODEC);
+  file = Open(filepath, MODE_OLDFILE);
+  if (file) {
+    LONG len = Read(file, buffer, sizeof(buffer) - 1);
+    if (len > 0) {
+      buffer[len] = '\0';
+      *codec = atoi(buffer);
+      success = TRUE;
+    }
+    Close(file);
+  }
+
+  return success;
+}

@@ -587,6 +587,18 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
       break;
   }
 }
+void SavePreferencesOnExit(void) {
+    LONG country = 0, codec = 0;
+    // Get current selections
+    GT_GetGadgetAttrs(countryCodeCycle, window, NULL,
+                     GTCY_Active, &country,
+                     TAG_DONE);
+    GT_GetGadgetAttrs(codecCycle, window, NULL,
+                     GTCY_Active, &codec,
+                     TAG_DONE);
+    SaveCyclePreferences(country, codec);
+}
+
 void HandleMenuPick(UWORD menuNumber) {
   struct MenuItem *item;
   UWORD menuNum, itemNum;
@@ -626,6 +638,7 @@ void HandleMenuPick(UWORD menuNumber) {
 
       case ITEM_QUIT:
         DEBUG("Quit selected");
+        SavePreferencesOnExit(); 
         // Signal the main loop to quit
         if (window) {
           // Post a CLOSEWINDOW message to the window
@@ -901,7 +914,21 @@ BOOL OpenGUI(void) {
   codecCycle = CreateGadget(CYCLE_KIND, countryCodeCycle, &ng, GTCY_Labels,
                             (STRPTR *)codecChoices, GTCY_Active, 0, TAG_DONE);
   if (!codecCycle) DEBUG("Failed to create codec gadget");
-
+    LONG savedCountry = 0, savedCodec = 0;
+    if (LoadCyclePreferences(&savedCountry, &savedCodec)) {
+        // Set saved country if valid
+        if (savedCountry >= 0 && savedCountry < countryConfig.count) {
+            GT_SetGadgetAttrs(countryCodeCycle, window, NULL,
+                            GTCY_Active, savedCountry,
+                            TAG_DONE);
+        }
+        // Set saved codec if valid
+        if (savedCodec >= 0 && savedCodec < 6) {  // 6 is the number of codec choices
+            GT_SetGadgetAttrs(codecCycle, window, NULL,
+                            GTCY_Active, savedCodec,
+                            TAG_DONE);
+        }
+    }
   // Checkboxes row
   ng.ng_TopEdge += font_height + 12;
   ng.ng_LeftEdge = font_width * 2;  // Move left for checkbox
