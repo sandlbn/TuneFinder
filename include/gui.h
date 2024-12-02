@@ -34,5 +34,5 @@ void HandleListSelect(struct IntuiMessage *imsg);
 void HandleSearch(void);
 void HandleSave(void);
 void SaveSingleStation(struct ExtNode *station);
-
+void SavePreferencesOnExit(void);
 #endif /* GUI_H */
