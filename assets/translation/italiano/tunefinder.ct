@@ -1,4 +1,4 @@
-## version $VER: tunefinder.catalog 1.0 (20.11.2024)
+## version $VER: tunefinder.catalog 1.3 (2.12.2024)
 ## codeset 0
 ## language italiano
 ## chunk AUTH Translated by Samir Hawamdeh (http://www.betatesting.it/backforthefuture)
@@ -50,8 +50,8 @@ Cerca
 ; Search
 ;
 MSG_SAVE
-Salva
-; Save
+Salva Tutto
+; Save All
 ;
 MSG_CANCEL
 Annulla
@@ -67,11 +67,19 @@ Esci
 ;
 MSG_SAVE_SINGLE
 Salva Singola
-; Save Single
+; Save One
 ;
 MSG_STOP
 Stop
 ; Stop
+;
+MSG_FAVORITE
+Pre+
+; Fav+
+;
+MSG_UNFAVORITE
+Pre-
+; Fav-
 ;
 ; GUI States
 ;
@@ -81,7 +89,7 @@ Pronto
 ;
 MSG_SETTINGS
 Impostazioni...
-; Settings
+; Settings...
 ;
 MSG_API_SETTINGS
 Impostazioni API
@@ -97,7 +105,7 @@ Progetto
 ;
 MSG_ABOUT
 Informazioni...
-; About
+; About...
 ;
 MSG_SEARCHING
 Ricerca
@@ -148,12 +156,20 @@ File salvato: %s
 ; File saved: %s
 ;
 MSG_SET_SAVED
-Impostazioni salvate: %s:%u Limite: %u
-; Settings saved: %s:%u Limit: %u
+Impostazioni salvate: %s:%u 
+; Settings saved: %s:%u 
 ;
-MSG_NO_STATIONS
+MSG_NO_STATIONS_FOUND
 Nessuna stazione trovata
 ; No stations found
+;
+MSG_FAVORITE_ADDED
+Aggiungi stazione ai preferiti
+; Added to favorites
+;
+MSG_FAVORITE_REMOVED
+Stazione rimossa dai preferiti
+; Station removed from favorites
 ;
 ; Error Messages - Settings Related
 ;
@@ -169,13 +185,21 @@ MSG_FAILED_WRITE_HOST_SETTING
 Impossibile scrivere le impostazioni host
 ; Failed to write host setting
 ;
-MSG_INVALID_LOCALE
-Valore locale non valido, rimasto sul corrente: %ld
-; Invalid locale value, keeping current: %ld
+MSG_INVALID_LIMIT
+Valore limite non valido, rimasto sul corrente: %ld
+; Invalid limit value, keeping current: %ld
 ;
 MSG_FAILED_WRITE_LIMIT_SET
 Impossibile scrivere le impostazioni limite
 ; Failed to write limit setting
+;
+MSG_FAILED_ADD_FAVORITE
+Impossibile aggiungere ai preferiti
+; Failed to add to favorites
+;
+MSG_FAILED_REMOVE_FAVORITE
+Impossibile rimuovere dai preferiti
+; Failed to remove from favorites
 ;
 ; Error Messages - File Operations
 ;

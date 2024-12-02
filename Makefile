@@ -107,10 +107,10 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 
 catalogs:
 	$(info Generating translation catalogs...)
-	$(FLEXCAT) $(CD_FILE) assets/translation/polski/tunefinder.ct CATALOG assets/translation/polski/tunefinder.catalog
+	$(FLEXCAT) $(CD_FILE) assets/translation/polski/tunefinder.ct CATALOG assets/translation/polski/tunefinder.catalog || true
 	$(FLEXCAT) $(CD_FILE) assets/translation/deutsch/tunefinder.ct CATALOG assets/translation/deutsch/tunefinder.catalog || true
-	$(FLEXCAT) $(CD_FILE) assets/translation/italiano/tunefinder.ct CATALOG assets/translation/italiano/tunefinder.catalog
-
+	$(FLEXCAT) $(CD_FILE) assets/translation/italiano/tunefinder.ct CATALOG assets/translation/italiano/tunefinder.catalog || true
+ 
 aminet-clean:
 	$(info Cleaning Aminet release files...)
 	$(RM) -rf $(RELEASE_DIR)
