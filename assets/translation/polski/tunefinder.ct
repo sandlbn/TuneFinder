@@ -73,7 +73,7 @@ O programie...
 MSG_SEARCHING
 Szukanie
 ;
-MSG_FAVORITES
+MSG_FAVORITE
 Ulubione
 ;
 MSG_HOST
@@ -109,7 +109,7 @@ Plik zapisany: %s
 MSG_SET_SAVED
 Ustawienia zapisane: %s:%u
 ;
-MSG_NO_STATION_FOUND
+MSG_NO_STATIONS_FOUND
 Nie znaleziono stacji
 ;
 MSG_FAVORITE_ADDED
