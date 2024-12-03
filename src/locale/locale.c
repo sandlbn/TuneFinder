@@ -32,11 +32,11 @@ static const char *built_in_strings[] = {
     // Padding to align with IDs 28-29
     NULL, NULL,
 
-    // Options and Settings (30-33)
-    "API Host", "API Port", "HTTPS Only", "Hide Broken",
+    // Options and Settings (30-35)
+    "API Host", "API Port", "HTTPS Only", "Hide Broken", "Autostart Program", "Browse",
 
-    // Padding to align with IDs 34-39
-    NULL, NULL, NULL, NULL, NULL, NULL,
+    // Padding to align with IDs 36-39
+    NULL, NULL, NULL, NULL,
 
     // Status Messages with Parameters (40-46)
     "Found %d stations", "Playing: %s", "Settings loaded.", "Settings saved.",
@@ -59,8 +59,10 @@ static const char *built_in_strings[] = {
     "Failed to create port settings file: %s",
     "Failed to create host settings file: %s",
     "Failed to create limit settings file: %s",
-    // Padding to align with IDs 65-69
-    NULL, NULL, NULL, NULL, NULL,
+    "Failed to create autostart settings file: %s",
+    "Failed to write autostart setting",
+    // Padding to align with IDs 67-69
+    NULL, NULL, NULL,
 
     // Error Messages - Directory Operations (70-71)
     "Created settings directory: %s", "Failed to create directory: %s",

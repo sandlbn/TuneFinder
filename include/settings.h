@@ -16,11 +16,14 @@
 #define MAX_PORT_LEN 6
 #define ENV_COUNTRY "country"
 #define ENV_CODEC "codec"
+#define ENV_AUTOSTART "autostart"
+#define MAX_PATH_LEN 256
 
 struct APISettings {
     char host[MAX_HOST_LEN];
     int port;
     int limit;
+    char autostart[MAX_PATH_LEN];
 };
 
 BOOL LoadSettings(struct APISettings *settings);
