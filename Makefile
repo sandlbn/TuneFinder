@@ -97,9 +97,9 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano
-	cp assets/translation/polski/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski/ 
-	cp assets/translation/deutsch/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch/ 
-	cp assets/translation/italiano/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano/ 
+	cp assets/translation/polski/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski/ | true
+	cp assets/translation/deutsch/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch/ | true 
+	cp assets/translation/italiano/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano/ | true 
 
 	# Create archive
 	cd $(RELEASE_DIR) && lha -ag0o5 ../$(AMINET_NAME).lha .

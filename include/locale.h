@@ -39,6 +39,8 @@
 #define MSG_PORT              31
 #define MSG_HTTPS_ONLY        32
 #define MSG_HIDE_BROKEN       33
+#define MSG_AUTOSTART         34  // "Autostart Program"
+#define MSG_BROWSE            35  // "Browse"
 
 // Status Messages with Parameters
 #define MSG_FOUND_STATIONS     40  // "Found %d stations"
@@ -65,6 +67,9 @@
 #define MSG_FAILED_CREAT_PORT_FILE 62  // "Failed to create port settings file: %s"
 #define MSG_FAILED_CREAT_HOST_SET_FILE 63  // "Failed to create host settings file: %s"
 #define MSG_FAILED_CREAT_LIMIT_FILE  64  // "Failed to create limit settings file: %s"
+#define MSG_FAILED_CREAT_AUTO_FILE 65  // "Failed to create autostart settings file: %s"
+#define MSG_FAILED_WRITE_AUTO_SET  66  // "Failed to write autostart setting"
+
 // Error Messages - Directory Operations
 #define MSG_CREATED_SET_DIR        70  // "Created settings directory: %s"
 #define MSG_FAIL_CREATE_SET_DIR    71  // "Failed to create directory: %s"
