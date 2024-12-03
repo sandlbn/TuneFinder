@@ -361,7 +361,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
 
   // Create window
   window =
-      OpenWindowTags(NULL, WA_Title, GetTFString(MSG_API_SETTINGS), WA_Left,
+      OpenWindowTags(NULL, WA_Title, GetTFString(MSG_SETTINGS), WA_Left,
                      windowLeft, WA_Top, windowTop, WA_Width, windowWidth,
                      WA_Height, windowHeight, WA_IDCMP,
                      IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_REFRESHWINDOW |
