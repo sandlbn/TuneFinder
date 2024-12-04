@@ -3,12 +3,15 @@
 #include <clib/gadtools_protos.h>
 #include <clib/graphics_protos.h>
 #include <clib/intuition_protos.h>
+#include <clib/icon_protos.h>
+#include <clib/dos_protos.h>
 #include <dos/dosextens.h>
 #include <exec/memory.h>
 #include <graphics/gfx.h>
 #include <graphics/gfxbase.h>
 #include <graphics/gfxmacros.h>
 #include <intuition/gadgetclass.h>
+#include <intuition/intuitionbase.h>
 #include <intuition/screens.h>
 #include <libraries/asl.h>
 #include <libraries/gadtools.h>
@@ -18,12 +21,14 @@
 #include <proto/exec.h>
 #include <proto/gadtools.h>
 #include <proto/graphics.h>
+#include <proto/wb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <utility/hooks.h>
-
+#include <workbench/workbench.h>
 #include "../../include/amigaamp.h"
+#include "../../include/gui.h"
 #include "../../include/config.h"
 #include "../../include/country_config.h"
 #include "../../include/data.h"
@@ -41,14 +46,16 @@ extern void geta4(void);
 #define ITEM_SETTINGS 0  // for Settings
 #define ITEM_FAVORITES 1 // For Favortes
 #define ITEM_ABOUT 2     // for About
-#define ITEM_QUIT 4      // for Quit (after separator)
+#define ITEM_ICONIFY 4      // for iconify  (after separator)
+#define ITEM_QUIT 5      // for Quit  
 
 // Library Handles
-struct Library *IntuitionBase = NULL;
+//struct Library *IntuitionBase = NULL;
 struct Library *GadToolsBase = NULL;
 struct Library *SocketBase = NULL;
 struct GfxBase *GfxBase = NULL;
 struct Library *AslBase = NULL;
+struct Library *WorkbenchBase = NULL;
 
 // Core GUI Structures
 struct Window *window = NULL;
@@ -57,6 +64,10 @@ void *visualInfo = NULL;
 struct CountryConfig countryConfig;
 struct RastPort *RastPort;
 struct MsgPort *WindowPort;
+struct AppIcon *appIcon = NULL;
+struct MsgPort *appPort = NULL;
+WORD savedLeftEdge = 0;
+WORD savedTopEdge = 0;
 
 // Data Structures
 struct List *browserList = NULL;
@@ -98,6 +109,7 @@ static struct Menu *CreateAppMenus(void) {
       {NM_ITEM, GetTFString(MSG_FAVORITES), "F", 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_ABOUT), "?", 0, 0L, NULL},
       {NM_ITEM, NM_BARLABEL, NULL, 0, 0L, NULL},
+      {NM_ITEM, GetTFString(MSG_ICONIFY), "I", 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_QUIT), "Q", 0, 0L, NULL},
       {NM_END, NULL, NULL, 0, 0L, NULL}};
 
@@ -163,7 +175,16 @@ BOOL InitLibraries(void) {
     CloseLibrary(DOSBase);
     return FALSE;
   }
-
+    WorkbenchBase = OpenLibrary("workbench.library", 37);
+    if (!WorkbenchBase) {
+        DEBUG("Failed to open workbench.library");
+    CloseLibrary(AslBase);
+    CloseLibrary(GadToolsBase);
+    CloseLibrary(IntuitionBase);
+    CloseLibrary((struct Library *)GfxBase);
+    CloseLibrary(DOSBase);
+            return FALSE;
+    }
   return TRUE;
 }
 
@@ -174,6 +195,7 @@ void CleanupLibraries(void) {
   if (IntuitionBase) CloseLibrary(IntuitionBase);
   if (SocketBase) CloseLibrary(SocketBase);
   if (GfxBase) CloseLibrary((struct Library *)GfxBase);
+  if (WorkbenchBase) CloseLibrary(WorkbenchBase);
 }
 
 void CleanupGUI(void) {
@@ -194,7 +216,14 @@ void CleanupGUI(void) {
       FreeGadgets(glist);
     }
   }
-
+    if (appIcon) {
+        RemoveAppIcon(appIcon);
+        appIcon = NULL;
+    }
+    if (appPort) {
+        DeleteMsgPort(appPort);
+        appPort = NULL;
+    }
   if (browserList) {
     free_labels(browserList);
     browserList = NULL;
@@ -635,7 +664,9 @@ void HandleMenuPick(UWORD menuNumber) {
           EasyRequest(window, &es, NULL, NULL);
         }
         break;
-
+      case ITEM_ICONIFY: // Iconify menu item
+        IconifyWindow();
+        break;
       case ITEM_QUIT:
         DEBUG("Quit selected");
         SavePreferencesOnExit(); 
@@ -1079,7 +1110,6 @@ BOOL OpenGUI(void) {
                                   GTST_MaxChars, 100, TAG_DONE);
   if (!stationDetailGad) DEBUG("Failed to create station detail gadget");
 
-  // Calculate window size based on gadget positions - add extra space for
   // labels
   ULONG window_width = font_width * 64;  // Increased to accommodate labels
   ULONG window_height = ng.ng_TopEdge + font_height + 15;
@@ -1090,13 +1120,15 @@ BOOL OpenGUI(void) {
 
   window = OpenWindowTags(
       NULL, WA_Left, window_pos_x, WA_Top, window_pos_y, WA_Width, window_width,
-      WA_Height, window_height, WA_Title, "TuneFinder", WA_Flags,
+      WA_Height, window_height, WA_Title, "TuneFinder", 
+      WA_MinWidth, font_width * 40, WA_MinHeight, font_height * 20, 
+      WA_MaxWidth, ~0, WA_MaxHeight, ~0, WA_Flags,
       WFLG_DRAGBAR | WFLG_DEPTHGADGET | WFLG_CLOSEGADGET | WFLG_ACTIVATE |
           WFLG_MENUSTATE | WFLG_NOCAREREFRESH | WFLG_NEWLOOKMENUS |
           WFLG_SMART_REFRESH,
       WA_IDCMP,
       BUTTONIDCMP | IDCMP_CLOSEWINDOW | LISTVIEWIDCMP | IDCMP_REFRESHWINDOW |
-          IDCMP_GADGETUP | IDCMP_MENUPICK | CYCLEIDCMP,
+          IDCMP_GADGETUP | IDCMP_VANILLAKEY | IDCMP_MENUPICK | CYCLEIDCMP,
       WA_Gadgets, glist, WA_PubScreen, s, TAG_DONE);
   if (!window) {
     DEBUG("Failed to create window");
@@ -1139,4 +1171,70 @@ cleanup:
   if (vi) FreeVisualInfo(vi);
   if (s) UnlockPubScreen(NULL, s);
   return FALSE;
+}
+BOOL IconifyWindow(void) {
+  if (!window) return FALSE;
+
+  // Create message port for AppIcon if not already created
+  if (!appPort) {
+    appPort = CreateMsgPort();
+    if (!appPort) return FALSE;
+  }
+
+  // Save window position for when we un-iconify
+  savedLeftEdge = window->LeftEdge;
+  savedTopEdge = window->TopEdge;
+
+  // Try to load the icon
+  struct DiskObject *icon = GetDefDiskObject(WBPROJECT);
+  if (!icon) {
+    DEBUG("Could not get default icon");
+    return FALSE;
+  }
+
+  // Close window BEFORE creating AppIcon
+  if (window) {
+    struct Gadget *glist = (struct Gadget *)window->UserData;
+    CloseWindow(window);
+    window = NULL;
+  }
+
+  // Create AppIcon
+  appIcon = AddAppIcon(0,                      // ID number
+                       (ULONG)0,               // User data
+                       (UBYTE *)"TuneFinder",  // Icon text
+                       appPort,                // Message port
+                       0,                      // Lock
+                       icon,                   // Icon
+                       TAG_DONE);
+
+  if (!appIcon) {
+    FreeDiskObject(icon);
+    DEBUG("Could not create AppIcon");
+    return FALSE;
+  }
+
+  // Free the icon - AddAppIcon makes its own copy
+  FreeDiskObject(icon);
+
+  DEBUG("Window iconified successfully");
+  return TRUE;
+}
+
+BOOL UnIconifyWindow(void) {
+  if (window) return FALSE;
+
+  if (appIcon) {
+    RemoveAppIcon(appIcon);
+    appIcon = NULL;
+  }
+
+  // Try to reopen the window
+  if (!OpenGUI()) {
+    DEBUG("Failed to reopen window");
+    return FALSE;
+  }
+
+  DEBUG("Window restored successfully");
+  return TRUE;
 }

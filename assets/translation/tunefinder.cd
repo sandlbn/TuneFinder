@@ -76,6 +76,12 @@ About...
 MSG_SEARCHING (26//)
 Searching
 ;
+MSG_FAVORITES (27//)
+Favorites
+;
+MSG_ICONIFY (28//)
+Iconify
+;
 ; Options and Settings
 MSG_HOST (30//)
 API Host

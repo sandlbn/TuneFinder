@@ -34,6 +34,8 @@
 #define MSG_ABOUT             25
 #define MSG_SEARCHING         26
 #define MSG_FAVORITES         27
+#define MSG_ICONIFY           28
+
 // Options and Settings
 #define MSG_HOST              30
 #define MSG_PORT              31

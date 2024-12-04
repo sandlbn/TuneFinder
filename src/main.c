@@ -12,9 +12,11 @@
 #include <proto/gadtools.h>
 #include <proto/intuition.h>
 #include <proto/dos.h>
+#include <proto/wb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <workbench/workbench.h>
 
 #include "../include/config.h"
 #include "../include/data.h"
@@ -26,84 +28,150 @@
 
 int main(void) {
   struct IntuiMessage *imsg;
+  ULONG signals;
 
   if (!InitLibraries()) {
     DEBUG("Failed to open libraries");
     return 20;
   }
+
   if (!InitLocaleSystem()) {
     DEBUG("Warning: Could not initialize locale system");
     return 20;
   }
+
   if (!OpenGUI()) {
     DEBUG("Failed to open GUI");
     CleanupLibraries();
     return 20;
   }
 
-  running = TRUE;  // Initialize running flag
-  if (currentSettings.autostart[0] != '\0') {
-        DEBUG("Launching autostart program: %s", currentSettings.autostart);
-        SystemTags(currentSettings.autostart,
-                  SYS_Input, NULL,
-                  SYS_Output, NULL,
-                  SYS_Asynch, TRUE,
-                  TAG_DONE);
-  }
-  while (running) {
-    WaitPort(window->UserPort);
+  running = TRUE;
 
-    while ((imsg = GT_GetIMsg(window->UserPort))) {
-      switch (imsg->Class) {
-        case IDCMP_CLOSEWINDOW:
-          SavePreferencesOnExit();
-          if (currentSettings.autostart[0] != '\0') {
-            if (IsAmigaAMPRunning()) {
-              if (!QuitAmigaAMP()) {
-                DEBUG("Can't stop AmigaAmp");
+  if (currentSettings.autostart[0] != '\0') {
+    DEBUG("Launching autostart program: %s", currentSettings.autostart);
+    SystemTags(currentSettings.autostart, SYS_Input, NULL, SYS_Output, NULL,
+               SYS_Asynch, TRUE, TAG_DONE);
+  }
+
+  // Create message port for AppIcon
+  appPort = CreateMsgPort();
+  if (!appPort) {
+    DEBUG("Failed to create AppIcon port");
+    CleanupGUI();
+    CleanupLibraries();
+    return 20;
+  }
+
+  while (running) {
+    ULONG waitSignals = 0;
+    struct MsgPort *windowPort = window ? window->UserPort : NULL;
+
+    // Set up wait signals
+    if (windowPort) {
+      waitSignals |= 1L << windowPort->mp_SigBit;
+    }
+    if (appPort) {
+      waitSignals |= 1L << appPort->mp_SigBit;
+    }
+
+    // Wait for any signal
+    signals = Wait(waitSignals);
+
+    // Process window messages first if window exists
+    if (windowPort && (signals & (1L << windowPort->mp_SigBit))) {
+      while ((imsg = (struct IntuiMessage *)GT_GetIMsg(windowPort))) {
+        ULONG class = imsg->Class;
+        UWORD code = imsg->Code;
+
+        // Cache any important data before replying
+        struct Gadget *gad = (struct Gadget *)imsg->IAddress;
+
+        // Reply to message immediately
+        GT_ReplyIMsg(imsg);
+
+        // Handle message after reply
+        switch (class) {
+          case IDCMP_CLOSEWINDOW:
+            SavePreferencesOnExit();
+            if (currentSettings.autostart[0] != '\0') {
+              if (IsAmigaAMPRunning()) {
+                QuitAmigaAMP();
               }
             }
-          } else {
-            DEBUG("No autostart settings");
-          }
-          GT_ReplyIMsg(imsg);
-          running = FALSE;
-          break;
+            running = FALSE;
+            break;
 
-        case IDCMP_REFRESHWINDOW:
-          GT_BeginRefresh(window);
-          GT_EndRefresh(window, TRUE);
-          GT_ReplyIMsg(imsg);
-          break;
+          case IDCMP_REFRESHWINDOW:
+            GT_BeginRefresh(window);
+            GT_EndRefresh(window, TRUE);
+            break;
 
-        case IDCMP_MENUPICK: {
-          UWORD menuNumber = imsg->Code;
-          while (menuNumber != MENUNULL) {
-            HandleMenuPick(menuNumber);
-            menuNumber = ItemAddress(menuStrip, menuNumber)->NextSelect;
+          case IDCMP_VANILLAKEY:
+            if (code == 'i' || code == 'I') {
+              IconifyWindow();
+            }
+            break;
+
+          case IDCMP_MENUPICK: {
+            UWORD menuNumber = code;
+            while (menuNumber != MENUNULL) {
+              HandleMenuPick(menuNumber);
+              menuNumber = ItemAddress(menuStrip, menuNumber)->NextSelect;
+            }
+            break;
           }
-          GT_ReplyIMsg(imsg);
-          break;
+
+          case IDCMP_GADGETUP:
+            if (gad) {
+              HandleGadgetUp((struct IntuiMessage *)imsg);
+            }
+            break;
         }
+      }
+    }
 
-        case IDCMP_GADGETUP:
-          HandleGadgetUp(imsg);
-          GT_ReplyIMsg(imsg);
-          break;
+    // Process AppIcon messages
+    if (appPort && (signals & (1L << appPort->mp_SigBit))) {
+      struct AppMessage *appMsg;
 
-        default:
-          GT_ReplyIMsg(imsg);
-          break;
+      while ((appMsg = (struct AppMessage *)GetMsg(appPort))) {
+        BOOL shouldUnIconify = (appMsg->am_NumArgs == 0);
+        ReplyMsg((struct Message *)appMsg);
+
+        if (shouldUnIconify) {
+          UnIconifyWindow();
+        }
       }
     }
   }
 
-  // Cleanup
+  // Cleanup sequence
   if (window) {
     struct Gadget *glist = (struct Gadget *)window->UserData;
+    if (glist) {
+      RemoveGList(window, glist, -1);
+      FreeGadgets(glist);
+    }
     CloseWindow(window);
-    if (glist) FreeGadgets(glist);
+    window = NULL;
   }
+
+  if (appIcon) {
+    RemoveAppIcon(appIcon);
+    appIcon = NULL;
+  }
+
+  if (appPort) {
+    // Flush any remaining messages
+    struct Message *msg;
+    while ((msg = GetMsg(appPort))) {
+      ReplyMsg(msg);
+    }
+    DeleteMsgPort(appPort);
+    appPort = NULL;
+  }
+
   if (browserList) free_labels(browserList);
   if (visualInfo) FreeVisualInfo(visualInfo);
 

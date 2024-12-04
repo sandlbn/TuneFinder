@@ -20,9 +20,18 @@ extern struct CountryConfig countryConfig;
 extern BOOL running;  // Add this line
 extern void *visualInfo;
 
+extern struct AppIcon *appIcon;
+extern struct MsgPort *appPort;
+extern WORD savedLeftEdge;
+extern WORD savedTopEdge;
+extern struct Image IconImage;
+extern struct DiskObject TuneFinderIcon;
+
 BOOL InitLibraries(void);
 void CleanupLibraries(void);
 BOOL OpenGUI(void);
+BOOL IconifyWindow(void);
+BOOL UnIconifyWindow(void);
 void CleanupGUI(void);
 struct List* CreateInitialList(void);
 static struct Menu *CreateAppMenus(void);
