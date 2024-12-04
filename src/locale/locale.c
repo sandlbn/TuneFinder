@@ -17,7 +17,7 @@ static struct Catalog *Catalog = NULL;
 // locale.c
 static const char *built_in_strings[] = {
     // GUI Labels (1-6)
-    "Name", "Country", "Codec", "Tags", "Bitrate", "Unknown", "Limit", "URL",
+    "Name", "Country", "Codec", "Tags", "Bitrate", "Unknown", "Limit", "URL", 
     // Padding to align with IDs 9
     NULL,
 
@@ -28,9 +28,9 @@ static const char *built_in_strings[] = {
 
     // GUI States (20-25)
     "Ready", "Settings...", "API Settings", "Station Details", "Project",
-    "About...", "Searching", "Favorites",
-    // Padding to align with IDs 28-29
-    NULL, NULL,
+    "About...", "Searching", "Favorites", "Iconify",
+    // Padding to align with IDs 29
+    NULL,
 
     // Options and Settings (30-35)
     "API Host", "API Port", "HTTPS Only", "Hide Broken", "Autostart Program", "Browse",
