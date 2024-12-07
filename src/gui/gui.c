@@ -619,6 +619,12 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
   }
 }
 void SavePreferencesOnExit(void) {
+    if (window) {
+      DEBUG("Saving window position: %ld, %ld", window->LeftEdge, window->TopEdge);
+      currentSettings.windowLeft = window->LeftEdge;
+      currentSettings.windowTop = window->TopEdge;
+    }
+    SaveSettings(&currentSettings);
     LONG country = 0, codec = 0;
     // Get current selections
     GT_GetGadgetAttrs(countryCodeCycle, window, NULL,
@@ -837,6 +843,9 @@ BOOL OpenGUI(void) {
   ULONG font_width, font_height, border_height;
 
   DEBUG("Starting GUI initialization...");
+
+  // Load settings
+  LoadSettings(&currentSettings);
 
   s = LockPubScreen(NULL);
   if (!s) {
@@ -1113,15 +1122,35 @@ BOOL OpenGUI(void) {
   if (!stationDetailGad) DEBUG("Failed to create station detail gadget");
 
   // labels
-  ULONG window_width = font_width * 64;  // Increased to accommodate labels
+  ULONG window_width = font_width * 64; 
   ULONG window_height = ng.ng_TopEdge + font_height + 15;
 
   // Center window on screen
   ULONG window_pos_x = (s->Width - window_width) / 2;
   ULONG window_pos_y = (s->Height - window_height) / 2;
 
+  LONG finalLeft, finalTop;
+    
+  if (currentSettings.windowLeft == 0xFFFFFFFF) {
+    finalLeft = window_pos_x;
+    DEBUG("Using centered X position");
+  } else {
+    finalLeft = currentSettings.windowLeft;
+    DEBUG("Using saved X position %ld", currentSettings.windowLeft);
+  }
+    
+  if (currentSettings.windowTop == 0xFFFFFFFF) {
+    finalTop = window_pos_y;
+    DEBUG("Using centered Y position");
+  } else {
+    finalTop = currentSettings.windowTop;
+    DEBUG("Using saved Y position %ld", currentSettings.windowTop);
+  }
+
+  DEBUG("Final window position: %ld,%ld", finalLeft, finalTop);
+
   window = OpenWindowTags(
-      NULL, WA_Left, window_pos_x, WA_Top, window_pos_y, WA_Width, window_width,
+      NULL, WA_Left, finalLeft, WA_Top, finalTop, WA_Width, window_width,
       WA_Height, window_height, WA_Title, "TuneFinder", 
       WA_MinWidth, font_width * 40, WA_MinHeight, font_height * 20, 
       WA_MaxWidth, ~0, WA_MaxHeight, ~0, WA_Flags,
@@ -1155,9 +1184,6 @@ BOOL OpenGUI(void) {
   browserList = site_labels;
   window->UserData = (void *)glist;
   visualInfo = vi;
-
-  // Load settings
-  LoadSettings(&currentSettings);
 
   // Refresh window
   RefreshGList(glist, window, NULL, -1);

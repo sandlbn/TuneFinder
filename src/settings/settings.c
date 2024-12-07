@@ -80,7 +80,6 @@ BOOL SaveSettings(const struct APISettings *settings) {
         return FALSE;
     }
     Close(file);
-
     // Save autostart program
     sprintf(filepath, TUNEFINDER_DIR ENV_AUTOSTART);
     file = Open(filepath, MODE_NEWFILE);
@@ -93,6 +92,22 @@ BOOL SaveSettings(const struct APISettings *settings) {
     len = strlen(settings->autostart);
     if (Write(file, settings->autostart, len) != len) {
         UpdateStatusMessage(GetTFString(MSG_FAILED_WRITE_AUTO_SET));
+        Close(file);
+        return FALSE;
+    }
+    Close(file);
+    // Save window position
+    sprintf(filepath, TUNEFINDER_DIR "window_pos");
+    file = Open(filepath, MODE_NEWFILE);
+    if (!file) {
+        DEBUG("Failed to create window position file");
+        return FALSE;
+    }
+    
+    char posStr[32];
+    sprintf(posStr, "%ld,%ld", (LONG)settings->windowLeft, (LONG)settings->windowTop);
+    LONG autolen = strlen(posStr);
+    if (Write(file, posStr, autolen) != autolen) {
         Close(file);
         return FALSE;
     }
@@ -184,7 +199,36 @@ BOOL LoadSettings(struct APISettings *settings) {
     } else {
         settings->autostart[0] = '\0';
     }
-    
+    //Load win position
+    sprintf(filepath, TUNEFINDER_DIR "window_pos");
+    file = Open(filepath, MODE_OLDFILE);
+    if (file) {
+        char posStr[64];
+        LONG len = Read(file, posStr, sizeof(posStr) - 1);
+        if (len > 0) {
+            LONG left, top;
+            posStr[len] = '\0';
+            DEBUG("Read position string: %s", posStr);
+            if (sscanf(posStr, "%ld,%ld", &left, &top) == 2) {
+                settings->windowLeft = left;
+                settings->windowTop = top;
+                DEBUG("Parsed window position: %ld,%ld", left, top);
+            } else {
+                DEBUG("Failed to parse position values, setting to NO_POSITION");
+                settings->windowLeft = NO_POSITION;
+                settings->windowTop = NO_POSITION;
+            }
+        } else {
+            DEBUG("Empty position file, setting to NO_POSITION");
+            settings->windowLeft = NO_POSITION;
+            settings->windowTop = NO_POSITION;
+        }
+        Close(file);
+    } else {
+        DEBUG("No position file found, setting to NO_POSITION");
+        settings->windowLeft = NO_POSITION;
+        settings->windowTop = NO_POSITION;
+    }
     UpdateStatusMessage(GetTFString(MSG_SETTINGS_LOADED));
     
     return (hostLoaded || portLoaded || limitLoaded || defaultProgram);

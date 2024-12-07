@@ -24,6 +24,9 @@ struct APISettings {
     int port;
     int limit;
     char autostart[MAX_PATH_LEN];
+    ULONG windowLeft;
+    ULONG windowTop;
+
 };
 
 BOOL LoadSettings(struct APISettings *settings);
