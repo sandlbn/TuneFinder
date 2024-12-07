@@ -26,6 +26,21 @@ To use TuneFinder:
 3. Select a station from the list.
 4. Use Play/Stop buttons to control playback in AmigaAMP.
 
+@{fg shine}New in version 1.3:@{fg text}
+
+@{fg shine}Favorites Management@{fg text}
+- Click 'Fav+' to add the selected station to favorites
+- Click 'Fav-' to remove a station from favorites
+- Access your favorites list through Project -> Favorites menu
+- Favorites are stored permanently and available between sessions
+
+@{fg shine}Iconification@{fg text}
+TuneFinder can be minimized to a Workbench icon while keeping your radio stream playing:
+- Press 'I' key to iconify
+- Select Project -> Iconify from menu
+- Double-click the icon on Workbench to restore the window
+- Search results are preserved when iconified
+
 @{"Back to Main" link Main}
 @endnode
 
@@ -40,7 +55,7 @@ The main window provides several search fields:
 
 @{b}Country@{ub} - Select a country from the dropdown menu.
 
-@{b}Codec@{ub} - Choose a specific audio codec (MP3, AAC, AAC+, OGG, FLAC).
+@{b}Codec@{ub} - Choose a specific audio codec (MP3, AAC, AAC+, OGG).
 
 @{b}Additional Filters@{ub}:
 - HTTPS Only: Show only stations using secure connections.
@@ -58,6 +73,13 @@ API Settings window contains:
 - API Host: Radio Browser API server address.
 - API Port: Server port number (usually 80).
 - Limit: Maximum number of results to display (0 for unlimited, default 100).
+- Autostart Program: Path to AmigaAMP executable for streaming playback
+  Click the 'Browse' button to select AmigaAMP executable location.
+  Example: "SYS:Media/AmigaAMP/AmigaAMP"
+
+The autostart setting allows TuneFinder to launch AmigaAMP automatically when 
+needed for streaming. When set, AmigaAMP will be started if it's not already 
+running when you click the Play button.
 
 @{"Back to Main" link Main}
 @endnode
