@@ -17,15 +17,16 @@ extern struct Gadget *statusMsgGad;
 extern struct Menu *menuStrip;
 extern struct APISettings currentSettings;
 extern struct CountryConfig countryConfig;
-extern BOOL running;  // Add this line
+extern BOOL running;
 extern void *visualInfo;
 
 extern struct AppIcon *appIcon;
 extern struct MsgPort *appPort;
 extern WORD savedLeftEdge;
 extern WORD savedTopEdge;
-extern struct Image IconImage;
-extern struct DiskObject TuneFinderIcon;
+extern char *programName;
+extern BOOL isIconified;
+
 
 BOOL InitLibraries(void);
 void CleanupLibraries(void);
