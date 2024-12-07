@@ -123,8 +123,9 @@ TuneFinder 1.3 (30.11.2024)
 - Users can now select a program (AmigaAMP) to launch together with TuneFinder
 - Added favorites management system
 - Added Favorites menu item under Project menu
-- Add iconification support
-- Add list content preservation during iconification
+- Added iconification support
+- Added list content preservation during iconification
+- Added window position persistence
 - Added functionality to save country and codec on exit
 - Added Fav+ and Fav- buttons for adding/removing favorites
 - Stations can be saved to and loaded from favorites list

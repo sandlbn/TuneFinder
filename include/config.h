@@ -25,6 +25,7 @@
 #define PLS_LENGTH_ENTRY "Length%d=-1\n"
 #define DEFAULT_PLS_FILENAME "radio.pls"
 #define MAX_STATION_NAME 40
+#define NO_POSITION 0xFFFFFFFF
 
 #ifdef DEBUG_BUILD
     #define DEBUG(msg, ...) printf("DEBUG [%s:%d]: " msg "\n", __func__, __LINE__, ##__VA_ARGS__)
