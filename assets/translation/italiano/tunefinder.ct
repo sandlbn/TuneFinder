@@ -1,4 +1,4 @@
-## version $VER: tunefinder.catalog 1.3 (2.12.2024)
+## version $VER: tunefinder.catalog 1.3 (5.12.2024)
 ## codeset 0
 ## language italiano
 ## chunk AUTH Translated by Samir Hawamdeh (http://www.betatesting.it/backforthefuture)
@@ -8,6 +8,9 @@
 ; flexcat tunefinder.cd tunefinder_italian.ct catalog=tunefinder.catalog
 ;
 ; Italian translation of TuneFinder
+; Traduzione italiana di TuneFinder
+;
+; $VER: tunefinder.cd 1.0 (09.11.2024)
 ;
 ; GUI Labels
 ;
@@ -41,7 +44,7 @@ Limite
 ;
 MSG_URL
 URL
-; Url
+; URL
 ;
 ; GUI Actions
 ;
@@ -110,6 +113,14 @@ Informazioni...
 MSG_SEARCHING
 Ricerca
 ; Searching
+;
+MSG_FAVORITES
+Preferiti
+; Favorites
+;
+MSG_ICONIFY
+Iconifica
+; Iconify
 ;
 ; Options and Settings
 ;
