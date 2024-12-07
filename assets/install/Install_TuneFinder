@@ -88,15 +88,26 @@
     (prompt "Copying TuneFinder program icon")
 )
 
-; Copy documentation
+; Copy english documentation
 (copyfiles
-    (source "Docs/tunefinder.guide")
+    (source "Docs/tunefinder.english.guide")
     (dest (tackon prog-dest "Docs"))
     (prompt "Copying documentation")
 )
 
 (copyfiles
-    (source "Docs/tunefinder.guide.info")
+    (source "Docs/tunefinder.english.guide.info")
+    (dest (tackon prog-dest "Docs"))
+)
+; Copy deutsche documentation
+(copyfiles
+    (source "Docs/tunefinder.deutsche.guide")
+    (dest (tackon prog-dest "Docs"))
+    (prompt "Copying documentation")
+)
+
+(copyfiles
+    (source "Docs/tunefinder.deutsche.guide.info")
     (dest (tackon prog-dest "Docs"))
 )
 

@@ -1,0 +1,116 @@
+@database TuneFinder.guide
+@node Main "TuneFinder Benutzerhandbuch"
+@{fg shine}TuneFinder Benutzerhandbuch@{fg text}
+
+TuneFinder ist ein AmigaOS 3.x Programm 
+für das Suchen und Abspeichern von Internet-Radiosendern.
+
+@{b}Inhalt:@{ub}
+@{"Grundlegende Verwendung" link BASIC}
+@{"Suchoptionen" link SEARCH}
+@{"Einstellungen" link SETTINGS}
+@{"Speichern von Sendern" link SAVING}
+@{"Übersetzungen" link TRANS}
+@{"Länder" link COUNTRIES}
+
+@endnode
+
+@node BASIC "Basic Usage"
+@{fg shine}Grundlegende Verwendung@{fg text}
+
+TuneFinder ermöglicht die Suche und das Abspielen von Internet-Radiosendern.
+
+TuneFinder benutzen:
+1. Gebe Suchkriterien in den Feldern ein.
+2. Auf "Suchen" klicken, um Sender zu finden.
+3. Wähle einen Sender aus der Liste aus.
+4. Benutze Abspielen/Stopp, um das Abspielen über AmigaAMP zu benutzen.
+@{"Zurück" link Main}
+@endnode
+
+@node SEARCH "Search Options"
+@{fg shine}Suchoptionen@{fg text}
+
+Das Hauptfenster bietet mehrere Suchfelder:
+@{b}Name@{ub} - Gebe den Sendernamen oder einen Teil davon ein, um nach bestimmten Sendern zu suchen.
+@{b}Tags@{ub} - Tags durch Kommas getrennt eingeben (z.b., "Rock,Metal,Alternativ").
+
+@{b}Country@{ub} - Wähle ein Land aus dem Dropdown-Menü.
+
+@{b}Codec@{ub} - Wähle einen bestimmten Audio-Codec (MP3, AAC, AAC+, OGG, FLAC).
+
+@{b}Additional Filters@{ub}:
+- Nur HTTPS: Nur Sender mit sicheren Verbindungen anzeigen.
+- Verstecke unvollständige: Verstecke Sender mit unvollständigen Links.
+@{"Zurück" link Main}
+@endnode
+
+@node SETTINGS "Settings"
+@{fg shine}Einstellungen@{fg text}
+
+Zugriff auf die Projekteinstellungen -> Einstellungsmenü.
+
+API Einstellungsfenster enthält:
+- API Host: Radio-Browser API Serveradresse.
+- API Port: Server-Port-Nummer (Normalerweise 80).
+- Limit: Maximale Anzahl der anzuzeigenden Ergebnisse (0 für Unbegrenzt, Standard 100).
+
+@{"Zurück" link Main}
+@endnode
+
+@node SAVING "Saving Stations"
+@{fg shine}Sender speichern@{fg text}
+
+TuneFinder bietet zwei Wege Sender abzuspeichern:
+
+@{b}Einzeln Abspeichern@{ub} - Wähle einen Sender, drücke "Einzeln Abspeichern," wähle Speicherort und Dateiname, um eine PLS Senderliste mit ausgewählten Sender zu erstellen.
+@{fg shine}Alle Abspeichern@{fg text} - Wähle mehrere Sender, drücke "Alle Abspeichern," wähle Speicherort und Dateiname, um eine PLS Senderliste mit allen ausgewählten Sendern zu erstellen.
+
+@{"Zurück" link Main}
+@endnode
+
+@node TRANS "Translation"
+@{fg shine}Unterstützung von Übersetzungen@{fg text}
+
+TuneFinder unterstützt mehrer Sprachen über das Amiga Catalog-System.
+
+Eine Übersetzung erstellen:
+1. Erstelle eine  .ct Datei basierend auf der Übersetzungsvorlage(.cd Datei).
+2. Den englischen Text durch die Übersetzung ersetzen.
+3. Beachte MSG_ Kennungen und Semikolons.
+4. Sprachcode in der Kopfzeile einfügen.
+5. Benutze`flexcat` um einen Catalog zu erstellen:
+
+`flexcat tunefinder.cd deine Landessprache.ct CATALOG LOCALE:Catalogs/deine Landessprache/tunefinder.catalog`
+
+Source code: [https://github.com/sandlbn/TuneFinder](https://github.com/sandlbn/TuneFinder)
+
+@{"Zurück" link Main}
+@endnode
+
+@node COUNTRIES "Countries"
+@{fg shine}Länder@{fg text}
+
+Neue Länder in Tunefinder hinzufügen:
+
+1. Navigiere zu "ENVARC:TuneFinder/countries.cfg"
+2. Bearbeite die Datei mit einem Texteditor
+3. Füge jedes Land in einer neuen Zeile mit dem Format ein:  CODE:Name
+   Zum Beispiel:
+   PL:Polen
+   US:USA
+   GB:Großbritannien
+   SE:Schweden
+   NO:Norwegen
+   DK:Dänemark
+
+Der Code muss ein 2-Buchstaben Ländercode gemäß 
+ISO 3166-1 alpha-2 Standard sein.
+Änderungen werden nach dem TuneFinder Neustart wirksam.
+
+Standardeinträge werden automatisch erstellt, wenn die Datei nicht vorhanden ist.
+
+Die vollständige Liste der Länder mit ISO-Codes befindet sich im Beispielordner.
+
+@{"Zurück" link Main}
+@endnode

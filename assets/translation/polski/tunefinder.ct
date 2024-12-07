@@ -76,6 +76,9 @@ Szukanie
 MSG_FAVORITES
 Ulubione
 ;
+MSG_ICONIFY
+Do ikonki
+;
 MSG_HOST
 Host API
 ;

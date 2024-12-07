@@ -1,0 +1,184 @@
+; This Catalog Translation file (".ct")
+; has been written using TransCat v1.20
+; By zIgUS (E-Mail : rcilm021@dial.oleane.com)
+; Last version on http://worldserver.oleane.com/gotzig/Amiga
+;
+## version $VER: tunefinder.catalog 1.2 (29-11-2024)
+## language français
+## author Eric LUCZYSZYN
+## codeset 0
+;
+MSG_NAME
+Nom
+;
+MSG_COUNTRY
+Pays
+;
+MSG_CODEC
+Codec
+;
+MSG_TAGS
+Labels
+;
+MSG_BITRATE
+Débit
+;
+MSG_UNKNOWN
+Inconnu
+;
+MSG_LIMIT 
+Limite
+;
+MSG_URL 
+Url
+;
+MSG_SEARCH
+Chercher
+;
+MSG_SAVE
+Sauver
+;
+MSG_CANCEL
+Annuler
+;
+MSG_PLAY
+Jouer
+;
+MSG_QUIT
+Quitter
+;
+MSG_SAVE_SINGLE
+Sauver radio
+;
+MSG_STOP
+Stopper
+;
+MSG_READY
+Prêt
+;
+MSG_SETTINGS
+Préférences
+;
+MSG_API_SETTINGS
+Préférences API
+;
+MSG_STATION_DETAILS
+Détails de la station
+;
+MSG_PROJECT
+Projet
+;
+MSG_ABOUT
+A Propos
+;
+MSG_SEARCHING
+Recherche
+;
+MSG_HOST
+Hôte API
+;
+MSG_PORT
+Port API
+;
+MSG_HTTPS_ONLY
+HTTPS seuls
+;
+MSG_HIDE_BROKEN
+Cacher lien cassé
+;
+MSG_FOUND_STATIONS
+%d stations trouvées
+;
+MSG_PLAYING_STATION
+Lecture: %s
+;
+MSG_SETTINGS_LOADED
+Préférences chargées
+;
+MSG_SETTINGS_SAVED
+Préférences sauvegardées
+;
+MSG_SEARCH_COMPLETED
+Recherche achevée. %d stations trouvées.
+;
+MSG_FILE_SAVED
+Fichier sauvegardé: %s
+;
+MSG_SET_SAVED
+Préférences sauvegardées: %s:%u Limite: %u
+;
+MSG_NO_STATIONS
+Aucune station trouvée
+;
+MSG_INVALID_PORT
+Numéro de port invalide, valeur courante conservée: %ld
+;
+MSG_FAILED_WRITE_PORT_SET
+A échoué à écrire les préférences du port
+;
+MSG_FAILED_WRITE_HOST_SETTING
+A échoué à écrire les préférences de l'hôte
+;
+MSG_INVALID_LOCALE
+Valeur locale invalide, valeur courante conservée: %ld
+;
+MSG_FAILED_WRITE_LIMIT_SET
+A échoué à écrire les préférences de limite
+;
+MSG_FAILED_FILE_SAVE
+Echec de la sauvegarde du fichier
+;
+MSG_FAILED_ACCESS
+A échoué à accéder à %s
+;
+MSG_FAILED_CREAT_PORT_FILE
+A échoué à créer le fichier de préférences du port: %s
+;
+MSG_FAILED_CREAT_HOST_SET_FILE
+A échoué à créer le fichier de préférences de l'hôte: %s
+;
+MSG_FAILED_CREAT_LIMIT_FILE
+A échoué à créer le fichier de préférences de limite: %s
+;
+MSG_CREATED_SET_DIR
+Répertoire de préférences créé: %s
+;
+MSG_FAIL_CREATE_SET_DIR
+Echec de création du répertoire: %s
+;
+MSG_HTTP_REQ_FAILED
+Echec de la requête HTTP
+;
+MSG_FAILED_RESOLV_HOST
+A échoué à résoudre l'hôte
+;
+MSG_FAILED_CONN_SERV
+A échoué à se connecter au serveur
+;
+MSG_FAILED_SEND_REQ
+A échoué à envoyer la requête
+;
+MSG_TIMEOUT
+Dépassement d'attente des données
+;
+MSG_FAILED_CR_SOC
+Echec de création du point de terminaison
+;
+MSG_FAILED_ALL_BUFF
+A échoué à allouer les tampons
+;
+MSG_INVALID_HOST
+Hôte invalide
+;
+MSG_FAILED_START_PLAYBACK
+A échoué pour démarrer la restitution
+;
+MSG_AMIGAAMP_NOT_RUNNING
+AmigaAMP n'est pas en fonctionnement
+;
+MSG_STOPPING_PLAYBACK
+Restitution stoppée
+;
+(92//)
+
+;

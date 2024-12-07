@@ -82,8 +82,10 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 
 	# Create and copy guide
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Docs
-	cp assets/amigaguide/tunefinder.guide $(RELEASE_DIR)/$(AMINET_NAME)/Docs/
-	cp assets/amigaguide/tunefinder.guide.info $(RELEASE_DIR)/$(AMINET_NAME)/Docs/ || true
+	cp assets/amigaguide/tunefinder.english.guide $(RELEASE_DIR)/$(AMINET_NAME)/Docs/
+	cp assets/amigaguide/tunefinder.english.guide.info $(RELEASE_DIR)/$(AMINET_NAME)/Docs/
+	cp assets/amigaguide/tunefinder.deutsche.guide $(RELEASE_DIR)/$(AMINET_NAME)/Docs/
+	cp assets/amigaguide/tunefinder.deutsche.guide.info $(RELEASE_DIR)/$(AMINET_NAME)/Docs/
 
 	# Copy examples 
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Example
@@ -97,9 +99,12 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano
+	#mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/francais
+
 	cp assets/translation/polski/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski/ | true
 	cp assets/translation/deutsch/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch/ | true 
 	cp assets/translation/italiano/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano/ | true 
+	#cp assets/translation/francais/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/francais/ | true 
 
 	# Create archive
 	cd $(RELEASE_DIR) && lha -ag0o5 ../$(AMINET_NAME).lha .
@@ -110,7 +115,8 @@ catalogs:
 	$(FLEXCAT) $(CD_FILE) assets/translation/polski/tunefinder.ct CATALOG assets/translation/polski/tunefinder.catalog || true
 	$(FLEXCAT) $(CD_FILE) assets/translation/deutsch/tunefinder.ct CATALOG assets/translation/deutsch/tunefinder.catalog || true
 	$(FLEXCAT) $(CD_FILE) assets/translation/italiano/tunefinder.ct CATALOG assets/translation/italiano/tunefinder.catalog || true
- 
+	$(FLEXCAT) $(CD_FILE) assets/translation/francais/tunefinder.ct CATALOG assets/translation/francais/tunefinder.catalog || true
+
 aminet-clean:
 	$(info Cleaning Aminet release files...)
 	$(RM) -rf $(RELEASE_DIR)
