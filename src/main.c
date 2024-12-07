@@ -26,10 +26,19 @@
 #include "../include/utils.h"
 #include "../include/amigaamp.h"
 
-int main(void) {
+int main(int argc, char *argv[]) {
+  struct WBStartup *WBenchMsg = NULL;
   struct IntuiMessage *imsg;
   ULONG signals;
-
+  if (argc == 0) {
+    WBenchMsg = (struct WBStartup *)argv;
+    programName = WBenchMsg->sm_ArgList[0].wa_Name;
+    DEBUG("Started from Workbench, program name: %s", programName);
+  } else {
+    programName = argv[0];
+    DEBUG("Started from CLI, program name: %s", programName);
+  }
+  
   if (!InitLibraries()) {
     DEBUG("Failed to open libraries");
     return 20;

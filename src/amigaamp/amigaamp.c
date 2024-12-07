@@ -231,17 +231,14 @@ static BOOL CreateTemporaryPLS(const char *streamURL, const char *stationName) {
 
 BOOL OpenStreamInAmigaAMP(const char *streamURL) {
     char command[MAX_COMMAND_LENGTH];
-    BOOL result;
+    BOOL result = FALSE;
     
-    if (!streamURL) {
-        DEBUG("Invalid stream URL (NULL)");
-        return FALSE;
+    if (!streamURL || !IsAmigaAMPRunning()) {
+      return FALSE;
     }
-    
-    if (!IsAmigaAMPRunning()) {
-        DEBUG("AmigaAMP is not running");
-        return FALSE;
-    }
+
+    StopAmigaAMP();
+    Delay(25);
     
     // Create temporary PLS file
     if (!CreateTemporaryPLS(streamURL, NULL)) {
@@ -249,9 +246,7 @@ BOOL OpenStreamInAmigaAMP(const char *streamURL) {
     }
     
     // Build command to open the PLS file
-    strcpy(command, "OPEN ");
-    strcat(command, TEMP_PLS_PATH);
-    DEBUG("Command %s ", command);
+    snprintf(command, sizeof(command), "OPEN %s", TEMP_PLS_PATH);
     
     result = SendCommandToAmigaAMP(command);
     

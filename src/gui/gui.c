@@ -66,6 +66,7 @@ struct RastPort *RastPort;
 struct MsgPort *WindowPort;
 struct AppIcon *appIcon = NULL;
 struct MsgPort *appPort = NULL;
+char *programName = NULL;
 WORD savedLeftEdge = 0;
 WORD savedTopEdge = 0;
 
@@ -73,10 +74,11 @@ WORD savedTopEdge = 0;
 struct List *browserList = NULL;
 struct ExtNode *currentStation;  // Track currently selected station
 struct APISettings currentSettings;
+struct List *savedBrowserList = NULL; 
 
 // State Variables
 BOOL running = FALSE;
-
+BOOL isIconified = FALSE;  // Initialize state
 // Gadget Elements
 struct Gadget *nameStrGad;
 struct Gadget *countryCodeCycle;
@@ -1185,17 +1187,34 @@ BOOL IconifyWindow(void) {
   savedLeftEdge = window->LeftEdge;
   savedTopEdge = window->TopEdge;
 
-  // Try to load the icon
-  struct DiskObject *icon = GetDefDiskObject(WBPROJECT);
+  if (browserList) {
+    savedBrowserList = browserList;
+    browserList = NULL;
+  }
+
+  // Try to load the original icon
+  struct DiskObject *icon = NULL;
+  if (programName) {
+    DEBUG("Trying to load icon for: %s", programName);
+    icon = GetDiskObject(programName);
+  }
+    
   if (!icon) {
-    DEBUG("Could not get default icon");
-    return FALSE;
+    DEBUG("Could not get program icon, using default tool icon");
+    icon = GetDefDiskObject(WBTOOL);
+    if (!icon) {
+      DEBUG("Could not get any icon");
+      return FALSE;
+    }
+  } else {
+    DEBUG("Successfully loaded program icon");
   }
 
   // Close window BEFORE creating AppIcon
   if (window) {
     struct Gadget *glist = (struct Gadget *)window->UserData;
     CloseWindow(window);
+    if (glist) FreeGadgets(glist);
     window = NULL;
   }
 
@@ -1216,7 +1235,7 @@ BOOL IconifyWindow(void) {
 
   // Free the icon - AddAppIcon makes its own copy
   FreeDiskObject(icon);
-
+  isIconified = TRUE;
   DEBUG("Window iconified successfully");
   return TRUE;
 }
@@ -1234,6 +1253,16 @@ BOOL UnIconifyWindow(void) {
     DEBUG("Failed to reopen window");
     return FALSE;
   }
+  if (savedBrowserList) {
+    browserList = savedBrowserList;
+    savedBrowserList = NULL;
+    if (window && listView) {
+      GT_SetGadgetAttrs(listView, window, NULL,
+      GTLV_Labels, browserList,
+      TAG_DONE);
+    }
+  }
+  isIconified = FALSE;
 
   DEBUG("Window restored successfully");
   return TRUE;
