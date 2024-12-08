@@ -43,6 +43,7 @@
 #define MSG_HIDE_BROKEN       33
 #define MSG_AUTOSTART         34  // "Autostart Program"
 #define MSG_BROWSE            35  // "Browse"
+#define MSG_SELECT_PROGRAM    36  // "Select program"
 
 // Status Messages with Parameters
 #define MSG_FOUND_STATIONS     40  // "Found %d stations"

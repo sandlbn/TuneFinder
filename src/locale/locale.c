@@ -34,9 +34,9 @@ static const char *built_in_strings[] = {
 
     // Options and Settings (30-35)
     "API Host", "API Port", "HTTPS Only", "Hide Broken", "Autostart Program", "Browse",
-
-    // Padding to align with IDs 36-39
-    NULL, NULL, NULL, NULL,
+    "Select Program",
+    // Padding to align with IDs 39
+    NULL, NULL, NULL, 
 
     // Status Messages with Parameters (40-46)
     "Found %d stations", "Playing: %s", "Settings loaded.", "Settings saved.",

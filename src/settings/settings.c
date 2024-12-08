@@ -271,9 +271,9 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
   WORD topMargin = border_height + font_height;  // Top margin
   WORD rowHeight = font_height + 6;              // Height of each row
   WORD rowSpacing = font_height / 2;             // Space between rows
-  WORD labelWidth = font_width * 10;             // Width for labels
-  WORD controlWidth = font_width * 25;           // Width for input fields
-  WORD buttonWidth = font_width * 10;            // Width for buttons
+  WORD labelWidth = font_width * 20;             // Width for labels
+  WORD controlWidth = font_width * 30;           // Width for input fields
+  WORD buttonWidth = font_width * 12;            // Width for buttons
   WORD windowWidth = leftMargin * 3 + controlWidth + labelWidth;
 
   // Create gadget context
@@ -402,10 +402,15 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
   // Center window relative to parent
   WORD windowLeft = parent->LeftEdge + (parent->Width - windowWidth) / 2;
   WORD windowTop = parent->TopEdge + (parent->Height - windowHeight) / 2;
-
+  
+  char settingsText[32];  
+  const char *fullText = GetTFString(MSG_SETTINGS);
+  strncpy(settingsText, fullText, strlen(fullText) - 3);
+  settingsText[strlen(fullText) - 3] = '\0';  
+  
   // Create window
   window =
-      OpenWindowTags(NULL, WA_Title, GetTFString(MSG_SETTINGS), WA_Left,
+      OpenWindowTags(NULL, WA_Title, settingsText, WA_Left,
                      windowLeft, WA_Top, windowTop, WA_Width, windowWidth,
                      WA_Height, windowHeight, WA_IDCMP,
                      IDCMP_CLOSEWINDOW | IDCMP_GADGETUP | IDCMP_REFRESHWINDOW |
@@ -511,7 +516,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
               if (fileReq) {
                 if (AslRequestTags(
                         fileReq, ASLFR_Window, window, ASLFR_TitleText,
-                        "Select Program", ASLFR_InitialDrawer,
+                        GetTFString(MSG_SELECT_PROGRAM), ASLFR_InitialDrawer,
                         "SYS:", ASLFR_DrawersOnly, FALSE, ASLFR_DoPatterns,
                         TRUE, ASLFR_InitialPattern, "#?", TAG_DONE)) {
                   char filepath[256];
