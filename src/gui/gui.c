@@ -668,7 +668,7 @@ void HandleMenuPick(UWORD menuNumber) {
               "\n"
               "An Internet radio browser for Amiga 68k\n\n"
               "Translations:\n" TRANSLATION,
-              "OK"};
+              "_OK"};
           EasyRequest(window, &es, NULL, NULL);
         }
         break;
