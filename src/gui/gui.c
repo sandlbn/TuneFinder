@@ -666,7 +666,7 @@ void HandleMenuPick(UWORD menuNumber) {
               "\n\n"
               "Created by " AUTHOR
               "\n"
-              "An Internet radio browser for AmigaOS 3.x\n\n"
+              "An Internet radio browser for Amiga 68k\n\n"
               "Translations:\n" TRANSLATION,
               "OK"};
           EasyRequest(window, &es, NULL, NULL);

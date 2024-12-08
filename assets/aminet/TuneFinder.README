@@ -126,7 +126,7 @@ TuneFinder 1.3 (30.11.2024)
 - Added iconification support
 - Added list content preservation during iconification
 - Added window position persistence
-- Added functionality to save country and codec on exit
+- Added functionality to save last used country and codec on exit
 - Added Fav+ and Fav- buttons for adding/removing favorites
 - Stations can be saved to and loaded from favorites list
 - Renamed Save buttons to 'All' and 'One' for better fit
