@@ -22,9 +22,9 @@ static const char *built_in_strings[] = {
     NULL,
 
     // GUI Actions (10-14)
-    "Search", "Save All", "Cancel", "Play", "Quit", "Save One", "Stop",
+    "Search", "Save All", "Cancel", "Play", "Quit", "Save One", "Stop", "Fav+", "Fav-",
     // Padding to align with IDs 17-19
-    NULL, NULL, NULL,
+    NULL,
 
     // GUI States (20-25)
     "Ready", "Settings...", "API Settings", "Station Details", "Project",
@@ -34,9 +34,9 @@ static const char *built_in_strings[] = {
 
     // Options and Settings (30-35)
     "API Host", "API Port", "HTTPS Only", "Hide Broken", "Autostart Program", "Browse",
-
-    // Padding to align with IDs 36-39
-    NULL, NULL, NULL, NULL,
+    "Select Program",
+    // Padding to align with IDs 39
+    NULL, NULL, NULL, 
 
     // Status Messages with Parameters (40-46)
     "Found %d stations", "Playing: %s", "Settings loaded.", "Settings saved.",

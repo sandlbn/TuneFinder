@@ -44,10 +44,10 @@ extern void geta4(void);
 // Menu Constants
 #define MENU_PROJECT 0   // Menu number for Project menu
 #define ITEM_SETTINGS 0  // for Settings
-#define ITEM_FAVORITES 1 // For Favortes
-#define ITEM_ABOUT 2     // for About
-#define ITEM_ICONIFY 4      // for iconify  (after separator)
-#define ITEM_QUIT 5      // for Quit  
+#define ITEM_FAVORITES 1 // For Favorites
+#define ITEM_ICONIFY 3   // for Iconify
+#define ITEM_ABOUT 4     // for About
+#define ITEM_QUIT 5      // for Quit (after separator)
 
 // Library Handles
 //struct Library *IntuitionBase = NULL;
@@ -109,9 +109,9 @@ static struct Menu *CreateAppMenus(void) {
       {NM_TITLE, GetTFString(MSG_PROJECT), NULL, 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_SETTINGS), "S", 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_FAVORITES), "F", 0, 0L, NULL},
-      {NM_ITEM, GetTFString(MSG_ABOUT), "?", 0, 0L, NULL},
       {NM_ITEM, NM_BARLABEL, NULL, 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_ICONIFY), "I", 0, 0L, NULL},
+      {NM_ITEM, GetTFString(MSG_ABOUT), "?", 0, 0L, NULL},
       {NM_ITEM, GetTFString(MSG_QUIT), "Q", 0, 0L, NULL},
       {NM_END, NULL, NULL, 0, 0L, NULL}};
 
@@ -666,7 +666,7 @@ void HandleMenuPick(UWORD menuNumber) {
               "\n\n"
               "Created by " AUTHOR
               "\n"
-              "An Internet radio browser for AmigaOS 3.x\n\n"
+              "An Internet radio browser for Amiga 68k\n\n"
               "Translations:\n" TRANSLATION,
               "OK"};
           EasyRequest(window, &es, NULL, NULL);
@@ -1068,7 +1068,7 @@ BOOL OpenGUI(void) {
 
   ng.ng_LeftEdge += ng.ng_Width + font_width * 2;
   ng.ng_Width = smallWidth;
-  ng.ng_GadgetText = "Fav+";
+  ng.ng_GadgetText = GetTFString(MSG_FAVORITE);
   ng.ng_GadgetID = 17;
   favoriteButton =
       CreateGadget(BUTTON_KIND, saveSingleButton, &ng,GT_Underscore, '_', TAG_DONE);
@@ -1076,7 +1076,7 @@ BOOL OpenGUI(void) {
   // Unfavorite button
 
   ng.ng_LeftEdge += ng.ng_Width + font_width *2;
-  ng.ng_GadgetText = "Fav-";
+  ng.ng_GadgetText = GetTFString(MSG_UNFAVORITE);
   ng.ng_GadgetID = 18;
   unfavoriteButton =
       CreateGadget(BUTTON_KIND, favoriteButton, &ng, GT_Underscore, '_', GA_Disabled, TRUE, TAG_DONE);
@@ -1202,6 +1202,16 @@ cleanup:
 }
 BOOL IconifyWindow(void) {
   if (!window) return FALSE;
+    LONG country = 0, codec = 0;
+    GT_GetGadgetAttrs(countryCodeCycle, window, NULL,
+                      GTCY_Active, &country,
+                      TAG_DONE);
+    GT_GetGadgetAttrs(codecCycle, window, NULL,
+                      GTCY_Active, &codec,
+                      TAG_DONE);
+                      
+    SaveCyclePreferences(country, codec);
+    DEBUG("Saved cycle states - Country: %ld, Codec: %ld", country, codec);
 
   // Create message port for AppIcon if not already created
   if (!appPort) {

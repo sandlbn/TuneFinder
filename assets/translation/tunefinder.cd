@@ -95,6 +95,15 @@ HTTPS Only
 MSG_HIDE_BROKEN (33//)
 Hide Broken
 ;
+MSG_AUTOSTART (34//)
+Autostart Program
+;
+MSG_BROWSE (35//)
+Browse
+;
+MSG_SELECT_PROGRAM (36//)
+Select program
+;
 ; Status Messages with Parameters
 MSG_FOUND_STATIONS (40//)
 Found %d stations
@@ -163,6 +172,12 @@ Failed to create host settings file: %s
 ;
 MSG_FAILED_CREAT_LIMIT_FILE (64//)
 Failed to create limit settings file: %s
+;
+MSG_FAILED_CREAT_AUTO_FILE (65//)
+Failed to create autostart settings file: %s
+;
+MSG_FAILED_WRITE_AUTO_SET (66//)
+Failed to write autostart setting
 ;
 ; Error Messages - Directory Operations
 MSG_CREATED_SET_DIR (70//)
