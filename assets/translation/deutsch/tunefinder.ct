@@ -1,6 +1,6 @@
 ; tunefinder_german.ct
 ; Catalog description for TuneFinder
-; $VER: tunefinder.cd 1.0 (14.11.2024)
+; $VER: tunefinder.cd 1.0 (07.12.2024)
 ## version $VER: Tunefinder.catalog 1.0
 ## Codeset 0
 ## language deutsch
@@ -51,12 +51,18 @@ Einzeln Sichern
 MSG_STOP
 Gestoppt
 ;
+MSG_FAVORITE
+Fav+
+;
+MSG_UNFAVORITE
+Fav-
+;
 ; GUI States
 MSG_READY
 Bereit
 ;
 MSG_SETTINGS
-Einstellungen
+Einstellungen...
 ;
 MSG_API_SETTINGS
 API Einstellungen
@@ -68,10 +74,16 @@ MSG_PROJECT
 Projekt
 ;
 MSG_ABOUT
-Über
+Über...
 ;
 MSG_SEARCHING
-Suche
+Suchen
+;
+MSG_FAVORITES
+Favoriten
+;
+MSG_ICONIFY
+Ikonifizieren
 ;
 ; Options and Settings
 MSG_HOST
@@ -84,7 +96,7 @@ MSG_HTTPS_ONLY
 Nur HTTPS
 ;
 MSG_HIDE_BROKEN
-Verberge unvollständige Sender
+Verberge unvollständige
 ;
 ; Status Messages with Parameters
 MSG_FOUND_STATIONS
@@ -106,10 +118,16 @@ MSG_FILE_SAVED
 Datei gespeichert: %s
 ;
 MSG_SET_SAVED
-Einstellungen gespeichert: %s:%u Limit:%u
+Einstellungen gespeichert: %s:%u 
 ;
-MSG_NO_STATIONS
+MSG_NO_STATIONS_FOUND
 Keine Stationen gefunden
+;
+MSG_FAVORITE_ADDED
+Favoriten hinzufügen
+;
+MSG_FAVORITE_REMOVED
+Sender von Favoriten entfernt
 ;
 ; Error Messages - Settings Related
 MSG_INVALID_PORT
@@ -121,11 +139,17 @@ Schreiben der Porteinstellung fehlgeschlagen
 MSG_FAILED_WRITE_HOST_SETTING
 Schreiben der Hosteinstellumgen fehlgeschlagen
 ;
-MSG_INVALID_LOCALE
-Ungültiger lokaler Wert, behalte Aktuellen: %ld
+MSG_INVALID_LIMIT
+Ungültiger Grenzwert, behalte Aktuellen: %ld
 ;
 MSG_FAILED_WRITE_LIMIT_SET
 Schreiben der eingeschränkten Einstellungen fehlgeschlagen
+;
+MSG_FAILED_ADD_FAVORITE
+Favoriten hinzufügen fehlgeschlagen
+;
+MSG_FAILED_REMOVE_FAVORITE
+Favoriten entfernen fehlgeschlagen
 ;
 ; Error Messages - File Operations
 MSG_FAILED_FILE_SAVE
