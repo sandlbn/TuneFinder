@@ -119,7 +119,7 @@ TuneFinder 1.2 (23.11.2024)
 - Fix Countries List - not displaying names with spaces properly
 - Fix API settings limit defaults to 100
 
-TuneFinder 1.3 (30.11.2024)
+TuneFinder 1.3 (08.12.2024)
 - Users can now select a program (AmigaAMP) to launch together with TuneFinder
 - Added favorites management system
 - Added Favorites menu item under Project menu
