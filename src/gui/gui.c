@@ -43,8 +43,8 @@ extern void geta4(void);
 #endif
 // Menu Constants
 #define MENU_PROJECT 0   // Menu number for Project menu
-#define ITEM_SETTINGS 1  // for Settings
-#define ITEM_FAVORITES 2 // For Favorites
+#define ITEM_SETTINGS 0  // for Settings
+#define ITEM_FAVORITES 1 // For Favorites
 #define ITEM_ICONIFY 3   // for Iconify
 #define ITEM_ABOUT 4     // for About
 #define ITEM_QUIT 5      // for Quit (after separator)
