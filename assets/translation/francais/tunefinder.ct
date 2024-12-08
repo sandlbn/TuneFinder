@@ -1,184 +1,276 @@
-; This Catalog Translation file (".ct")
-; has been written using TransCat v1.20
-; By zIgUS (E-Mail : rcilm021@dial.oleane.com)
-; Last version on http://worldserver.oleane.com/gotzig/Amiga
-;
-## version $VER: tunefinder.catalog 1.2 (29-11-2024)
-## language français
-## author Eric LUCZYSZYN
+## version $VER: tunefinder.catalog 1.2 (08.12.2024)
 ## codeset 0
-;
+## language français
+; tunefinder.cd
+; Catalog description for TuneFinder
+; $VER: tunefinder.cd 1.0 (09.11.2024)
+; GUI Labels
 MSG_NAME
 Nom
+; Name
 ;
 MSG_COUNTRY
 Pays
+; Country
 ;
 MSG_CODEC
 Codec
+; Codec
 ;
 MSG_TAGS
 Labels
+; Tags
 ;
 MSG_BITRATE
 Débit
+; Bitrate
 ;
 MSG_UNKNOWN
 Inconnu
+; Unknown
 ;
-MSG_LIMIT 
+MSG_LIMIT
 Limite
+; Limit
 ;
-MSG_URL 
+MSG_URL
 Url
+; URL
 ;
+; GUI Actions
 MSG_SEARCH
 Chercher
+; Search
 ;
 MSG_SAVE
 Sauver
+; Save All
 ;
 MSG_CANCEL
 Annuler
+; Cancel
 ;
 MSG_PLAY
 Jouer
+; Play
 ;
 MSG_QUIT
 Quitter
+; Quit
 ;
 MSG_SAVE_SINGLE
 Sauver radio
+; Save One
 ;
 MSG_STOP
 Stopper
+; Stop
 ;
+MSG_FAVORITE
+Fav+
+; Fav+
+;
+MSG_UNFAVORITE
+Fav-
+; Fav-
+;
+; GUI States
 MSG_READY
 Prêt
+; Ready
 ;
 MSG_SETTINGS
 Préférences
+; Settings...
 ;
 MSG_API_SETTINGS
 Préférences API
+; API Settings
 ;
 MSG_STATION_DETAILS
 Détails de la station
+; Station Details
 ;
 MSG_PROJECT
 Projet
+; Project
 ;
 MSG_ABOUT
 A Propos
+; About...
 ;
 MSG_SEARCHING
 Recherche
+; Searching
 ;
+MSG_FAVORITES
+Favoris
+; Favorites
+;
+MSG_ICONIFY
+Iconifier
+; Iconify
+;
+; Options and Settings
 MSG_HOST
 Hôte API
+; API Host
 ;
 MSG_PORT
 Port API
+; API Port
 ;
 MSG_HTTPS_ONLY
 HTTPS seuls
+; HTTPS Only
 ;
 MSG_HIDE_BROKEN
 Cacher lien cassé
+; Hide Broken
 ;
+; Status Messages with Parameters
 MSG_FOUND_STATIONS
 %d stations trouvées
+; Found %d stations
 ;
 MSG_PLAYING_STATION
 Lecture: %s
+; Playing: %s
 ;
 MSG_SETTINGS_LOADED
 Préférences chargées
+; Settings loaded.
 ;
 MSG_SETTINGS_SAVED
 Préférences sauvegardées
+; Settings saved.
 ;
 MSG_SEARCH_COMPLETED
 Recherche achevée. %d stations trouvées.
+; Search completed. Found %d stations.
 ;
 MSG_FILE_SAVED
 Fichier sauvegardé: %s
+; File saved: %s
 ;
 MSG_SET_SAVED
 Préférences sauvegardées: %s:%u Limite: %u
+; Settings saved: %s:%u 
 ;
-MSG_NO_STATIONS
-Aucune station trouvée
+MSG_NO_STATIONS_FOUND
+Aucune radio trouvée
+; No stations found
 ;
+MSG_FAVORITE_ADDED
+Ajouté aux favoris
+; Added to favorites
+;
+MSG_FAVORITE_REMOVED
+Station ôtée des favoris
+; Station removed from favorites
+;
+; Error Messages - Settings Related
 MSG_INVALID_PORT
 Numéro de port invalide, valeur courante conservée: %ld
+; Invalid port number, keeping current: %ld
 ;
 MSG_FAILED_WRITE_PORT_SET
 A échoué à écrire les préférences du port
+; Failed to write port setting
 ;
 MSG_FAILED_WRITE_HOST_SETTING
 A échoué à écrire les préférences de l'hôte
+; Failed to write host setting
 ;
-MSG_INVALID_LOCALE
-Valeur locale invalide, valeur courante conservée: %ld
+MSG_INVALID_LIMIT
+Valeur de limite invalide, valeur courante conservée: %ld
+; Invalid limit value, keeping current: %ld
 ;
 MSG_FAILED_WRITE_LIMIT_SET
 A échoué à écrire les préférences de limite
+; Failed to write limit setting
 ;
+MSG_FAILED_ADD_FAVORITE
+Echec de l'ajout aux favoris
+; Failed to add to favorites
+;
+MSG_FAILED_REMOVE_FAVORITE
+Echec de la suppression des favoris
+; Failed to remove from favorites
+;
+; Error Messages - File Operations
 MSG_FAILED_FILE_SAVE
 Echec de la sauvegarde du fichier
+; Failed to save file
 ;
 MSG_FAILED_ACCESS
 A échoué à accéder à %s
+; Failed to access %s
 ;
 MSG_FAILED_CREAT_PORT_FILE
 A échoué à créer le fichier de préférences du port: %s
+; Failed to create port settings file: %s
 ;
 MSG_FAILED_CREAT_HOST_SET_FILE
 A échoué à créer le fichier de préférences de l'hôte: %s
+; Failed to create host settings file: %s
 ;
 MSG_FAILED_CREAT_LIMIT_FILE
 A échoué à créer le fichier de préférences de limite: %s
+; Failed to create limit settings file: %s
 ;
+; Error Messages - Directory Operations
 MSG_CREATED_SET_DIR
 Répertoire de préférences créé: %s
+; Created settings directory: %s
 ;
 MSG_FAIL_CREATE_SET_DIR
 Echec de création du répertoire: %s
+; Failed to create directory: %s
 ;
+; Error Messages - Network Related
 MSG_HTTP_REQ_FAILED
 Echec de la requête HTTP
+; HTTP request failed
 ;
 MSG_FAILED_RESOLV_HOST
 A échoué à résoudre l'hôte
+; Failed to resolve host
 ;
 MSG_FAILED_CONN_SERV
 A échoué à se connecter au serveur
+; Failed to connect to server
 ;
 MSG_FAILED_SEND_REQ
 A échoué à envoyer la requête
+; Failed to send request
 ;
 MSG_TIMEOUT
 Dépassement d'attente des données
+; Timeout waiting for data
 ;
 MSG_FAILED_CR_SOC
 Echec de création du point de terminaison
+; Failed to create socket
 ;
 MSG_FAILED_ALL_BUFF
 A échoué à allouer les tampons
-;
+; Failed to allocate buffers
+;  
 MSG_INVALID_HOST
 Hôte invalide
-;
+; Invalid host
+; 
+; Error Messages - External Programs
 MSG_FAILED_START_PLAYBACK
 A échoué pour démarrer la restitution
+; Failed to start playback
 ;
 MSG_AMIGAAMP_NOT_RUNNING
 AmigaAMP n'est pas en fonctionnement
+; AmigaAMP is not running
 ;
 MSG_STOPPING_PLAYBACK
 Restitution stoppée
-;
-(92//)
-
+; Playback stopped
 ;

@@ -74,6 +74,13 @@
         (default 1)
     )
 )
+(set install-french
+    (askbool
+        (prompt "Do you want to install French (Francais) language catalog by Eric Tarinz LUCZYSZYN?")
+        (help "Select Yes to install French language support")
+        (default 1)
+    )
+)
 
 ; Copy main program files
 (copyfiles
@@ -148,6 +155,16 @@
             (source "Catalogs/polski/tunefinder.catalog")
             (dest (tackon prog-dest "Catalogs/polski"))
             (prompt "Copying Polish catalog")
+        )
+    )
+)
+(if install-french
+    (
+        (makedir (tackon prog-dest "Catalogs/francais"))
+        (copyfiles
+            (source "Catalogs/francais/tunefinder.catalog")
+            (dest (tackon prog-dest "Catalogs/francais"))
+            (prompt "Copying French catalog")
         )
     )
 )
