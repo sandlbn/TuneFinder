@@ -107,7 +107,7 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	cp assets/translation/francais/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/francais/ | true 
 
 	# Create archive
-	cd $(RELEASE_DIR) && lha -ag0o5 ../$(AMINET_NAME).lha .
+	cd $(RELEASE_DIR) && lha -ao5 ../$(AMINET_NAME).lha .
 	$(info Aminet release created: $(AMINET_NAME).lha)
 
 catalogs:
