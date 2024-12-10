@@ -184,9 +184,10 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
 
   // Calculate maximum safe buffer size ensuring MIN_FREE_MEMORY stays free
   ULONG max_safe_size = available - MIN_FREE_MEMORY;
-  if (max_safe_size > MAX_BUFFER_SIZE) {
-    max_safe_size = MAX_BUFFER_SIZE;
-    DEBUG("Limiting buffer to MAX_BUFFER_SIZE: %lu bytes", max_safe_size);
+  if (max_safe_size < INITIAL_BUFFER_SIZE) {
+    UpdateStatusMessage(GetTFString(MSG_FAILED_ALL_BUFF));
+    DEBUG("Cannot allocate minimum buffer size while keeping required free memory");
+    return NULL;
   }
 
   if (max_safe_size < INITIAL_BUFFER_SIZE) {
