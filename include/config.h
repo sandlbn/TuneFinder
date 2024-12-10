@@ -14,7 +14,6 @@
 #define HTTPS_TRUE 1
 #define HTTPS_FALSE 0
 #define INITIAL_BUFFER_SIZE (32 * 1024)      // Start with 32KB
-#define MAX_BUFFER_SIZE (2 * 1024 * 1024)    // Maximum 2MB now
 #define PREFERRED_BUFFER_SIZE (128 * 1024)   // Prefer 128KB
 #define MIN_FREE_MEMORY (2 * 1024 * 1024)    // Require at least 2MB free
 #define READ_CHUNK_SIZE (4 * 1024)           // 4KB chunks
