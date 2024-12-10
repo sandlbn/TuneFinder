@@ -101,7 +101,9 @@ Browse
 MSG_SELECT_PROGRAM
 Select program
 ;
-
+MSG_ICONIFY_AMIGAAMP
+Iconify AmigaAMP
+;
 MSG_FOUND_STATIONS
 Found %d stations
 ;

@@ -76,6 +76,7 @@ API Settings window contains:
 - Autostart Program: Path to AmigaAMP executable for streaming playback
   Click the 'Browse' button to select AmigaAMP executable location.
   Example: "SYS:Media/AmigaAMP/AmigaAMP"
+- Enable "Iconify AmigaAMP" to automatically minimize AmigaAMP
 
 The autostart setting allows TuneFinder to launch AmigaAMP automatically when 
 needed for streaming. When set, AmigaAMP will be started if it's not already 

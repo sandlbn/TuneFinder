@@ -4,7 +4,7 @@
 
 (welcome 
     "Welcome to the TuneFinder installation program.\n\n"
-    "This will install TuneFinder version 1.3 beta on your system."
+    "This will install TuneFinder version 1.3a on your system."
 )
 
 (set default-dest
