@@ -59,7 +59,7 @@ Quitter
 ; Quit
 ;
 MSG_SAVE_SINGLE
-Sauver radio
+Sauver R
 ; Save One
 ;
 MSG_STOP
@@ -121,12 +121,24 @@ Port API
 ; API Port
 ;
 MSG_HTTPS_ONLY
-HTTPS seuls
-; HTTPS Only
+HTTPS
+; HTTPS only
 ;
 MSG_HIDE_BROKEN
 Cacher lien cassé
 ; Hide Broken
+;
+MSG_AUTOSTART
+Démarrage
+; Autostart Program
+;
+MSG_BROWSE
+Choisir
+; Browse
+;
+MSG_SELECT_PROGRAM
+Choisissez un programme
+; Select program
 ;
 ; Status Messages with Parameters
 MSG_FOUND_STATIONS
@@ -218,6 +230,14 @@ A échoué à créer le fichier de préférences de l'hôte: %s
 MSG_FAILED_CREAT_LIMIT_FILE
 A échoué à créer le fichier de préférences de limite: %s
 ; Failed to create limit settings file: %s
+;
+MSG_FAILED_CREAT_AUTO_FILE
+Echec de création d'un fichier de démarrage auto: %s
+; Failed to create autostart settings file: %s
+;
+MSG_FAILED_WRITE_AUTO_SET
+Echec de l'écriture du fichier de démarrage auto.
+; Failed to write autostart setting
 ;
 ; Error Messages - Directory Operations
 MSG_CREATED_SET_DIR
