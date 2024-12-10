@@ -167,6 +167,12 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
   int chunk_count = 0;
   ULONG available, largest;
 
+  // Validate input parameters
+  if (!settings || !path) {
+    DEBUG("Invalid input parameters");
+    return NULL;
+  }
+
   // Check available memory
   available = AvailMem(MEMF_ANY);
   largest = AvailMem(MEMF_ANY | MEMF_LARGEST);
@@ -175,8 +181,7 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
         largest);
 
   // Make sure we'll have MIN_FREE_MEMORY left after allocation
-  if (available <
-      (MIN_FREE_MEMORY * 2)) {  // Double MIN_FREE_MEMORY as safety margin
+  if (available < (MIN_FREE_MEMORY * 2)) {
     DEBUG("Not enough free memory: %lu bytes available", available);
     UpdateStatusMessage(GetTFString(MSG_FAILED_ALL_BUFF));
     return NULL;
@@ -184,11 +189,6 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
 
   // Calculate maximum safe buffer size ensuring MIN_FREE_MEMORY stays free
   ULONG max_safe_size = available - MIN_FREE_MEMORY;
-  if (max_safe_size < INITIAL_BUFFER_SIZE) {
-    UpdateStatusMessage(GetTFString(MSG_FAILED_ALL_BUFF));
-    DEBUG("Cannot allocate minimum buffer size while keeping required free memory");
-    return NULL;
-  }
 
   if (max_safe_size < INITIAL_BUFFER_SIZE) {
     UpdateStatusMessage(GetTFString(MSG_FAILED_ALL_BUFF));
@@ -208,21 +208,24 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
     return NULL;
   }
 
-  // Allocate minimum size buffers first
+  // Allocate initial buffers
   chunk_buffer = AllocMem(READ_CHUNK_SIZE, MEMF_ANY | MEMF_CLEAR);
-  response_buffer = AllocMem(buffer_size, MEMF_ANY | MEMF_CLEAR);
+  if (!chunk_buffer) {
+    DEBUG("Failed to allocate chunk buffer");
+    CloseSocket(sockfd);
+    return NULL;
+  }
 
-  if (!chunk_buffer || !response_buffer) {
-    DEBUG("Failed to allocate initial buffers");
-    UpdateStatusMessage(GetTFString(MSG_FAILED_ALL_BUFF));
-    if (chunk_buffer) FreeMem(chunk_buffer, READ_CHUNK_SIZE);
-    if (response_buffer) FreeMem(response_buffer, buffer_size);
+  response_buffer = AllocMem(buffer_size, MEMF_ANY | MEMF_CLEAR);
+  if (!response_buffer) {
+    DEBUG("Failed to allocate response buffer");
+    FreeMem(chunk_buffer, READ_CHUNK_SIZE);
     CloseSocket(sockfd);
     return NULL;
   }
 
   snprintf(msg, MAX_STATUS_MSG_LEN, "Resolving host: %s", settings->host);
-  DEBUG("Resolving host: %s", settings->host);
+  DEBUG("%s", msg);
 
   server = gethostbyname(settings->host);
   if (!server) {
@@ -232,7 +235,7 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
 
   memset(&server_addr, 0, sizeof(server_addr));
   server_addr.sin_family = AF_INET;
-  memcpy(&server_addr.sin_addr.s_addr, server->h_addr, server->h_length);
+  CopyMem(server->h_addr, &server_addr.sin_addr.s_addr, server->h_length);
   server_addr.sin_port = htons(settings->port);
 
   struct timeval timeout;
@@ -303,24 +306,27 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
 
       DEBUG("Received %d bytes", bytes_received);
 
+      // Check if we need to grow the buffer
       if (total_size + bytes_received + 1 > buffer_size) {
         size_t new_size = buffer_size * 2;
 
-        // Check if we can safely grow
         if (new_size > max_safe_size) {
           DEBUG("Cannot safely grow buffer beyond %lu bytes", max_safe_size);
           goto cleanup;
         }
 
-        // Try to allocate new buffer
         new_buffer = AllocMem(new_size, MEMF_ANY | MEMF_CLEAR);
         if (!new_buffer) {
           DEBUG("Failed to grow buffer to %lu bytes", new_size);
           goto cleanup;
         }
 
-        // Copy existing data and free old buffer
-        CopyMem(response_buffer, new_buffer, total_size);
+        // Copy existing data
+        if (total_size > 0) {
+          CopyMem(response_buffer, new_buffer, total_size);
+        }
+
+        // Free old buffer before losing track of its size
         FreeMem(response_buffer, buffer_size);
         response_buffer = new_buffer;
         buffer_size = new_size;
@@ -328,9 +334,12 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
         DEBUG("Grew buffer to %lu bytes", new_size);
       }
 
-      CopyMem(chunk_buffer, response_buffer + total_size, bytes_received);
-      total_size += bytes_received;
-      response_buffer[total_size] = '\0';
+      // Copy new data
+      if (chunk_buffer && response_buffer) {
+        CopyMem(chunk_buffer, response_buffer + total_size, bytes_received);
+        total_size += bytes_received;
+        response_buffer[total_size] = '\0';
+      }
     }
   }
 
@@ -347,27 +356,43 @@ cleanup:
     CloseSocket(sockfd);
   }
 
-  if (response_buffer) {
+  // Process and create final response
+  if (response_buffer && total_size > 0) {
     json_start = strstr(response_buffer, "\r\n\r\n");
     if (json_start) {
       json_start += 4;
       DEBUG("Found JSON content");
-      response = AllocMem(strlen(json_start) + 1, MEMF_ANY | MEMF_CLEAR);
+      size_t json_length = strlen(json_start);
+
+      response = AllocMem(json_length + 1, MEMF_ANY | MEMF_CLEAR);
       if (response) {
-        CopyMem(json_start, response, strlen(json_start) + 1);
+        CopyMem(json_start, response, json_length + 1);
+        DEBUG("JSON response copied, length: %lu", json_length);
+      } else {
+        DEBUG("Failed to allocate memory for JSON response");
       }
     } else {
-      DEBUG("Could not find JSON content, using entire response");
-      response = AllocMem(strlen(response_buffer) + 1, MEMF_ANY | MEMF_CLEAR);
+      DEBUG("No JSON content found, using entire response");
+      response = AllocMem(total_size + 1, MEMF_ANY | MEMF_CLEAR);
       if (response) {
-        CopyMem(response_buffer, response, strlen(response_buffer) + 1);
+        CopyMem(response_buffer, response, total_size);
+        response[total_size] = '\0';
+        DEBUG("Full response copied, length: %lu", total_size);
+      } else {
+        DEBUG("Failed to allocate memory for full response");
       }
     }
+  }
+
+  // Clean up buffers
+  if (response_buffer) {
     FreeMem(response_buffer, buffer_size);
+    response_buffer = NULL;
   }
 
   if (chunk_buffer) {
     FreeMem(chunk_buffer, READ_CHUNK_SIZE);
+    chunk_buffer = NULL;
   }
 
   return response;
