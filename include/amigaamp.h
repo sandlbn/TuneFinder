@@ -18,5 +18,6 @@ BOOL NextTrackAmigaAMP(void);
 BOOL PreviousTrackAmigaAMP(void);
 BOOL SetVolumeAmigaAMP(LONG volume);
 BOOL QuitAmigaAMP(void);
+BOOL WaitAndIconifyAmigaAMP(void);
 
 #endif /* AMIGAAMP_H */

@@ -112,7 +112,14 @@ BOOL SaveSettings(const struct APISettings *settings) {
         return FALSE;
     }
     Close(file);
-
+    // Save iconify setting
+    sprintf(filepath, TUNEFINDER_DIR ENV_ICONIFY_AMIGAAMP);
+    file = Open(filepath, MODE_NEWFILE);
+    if (file) {
+        char value = settings->iconifyAmigaAMP ? '1' : '0';
+        Write(file, &value, 1);
+        Close(file);
+    }
     GetTFFormattedString(msg, sizeof(msg), MSG_SET_SAVED,  settings->host, settings->port, settings->limit);
     UpdateStatusMessage(msg);
     return TRUE;
@@ -229,6 +236,19 @@ BOOL LoadSettings(struct APISettings *settings) {
         settings->windowLeft = NO_POSITION;
         settings->windowTop = NO_POSITION;
     }
+
+    sprintf(filepath, TUNEFINDER_DIR ENV_ICONIFY_AMIGAAMP);
+    file = Open(filepath, MODE_OLDFILE);
+    if (file) {
+        char value;
+        if (Read(file, &value, 1) == 1) {
+            settings->iconifyAmigaAMP = (value == '1');
+        }
+        Close(file);
+    } else {
+        settings->iconifyAmigaAMP = FALSE;  // Default to not iconifying
+    }
+
     UpdateStatusMessage(GetTFString(MSG_SETTINGS_LOADED));
     
     return (hostLoaded || portLoaded || limitLoaded || defaultProgram);
@@ -242,6 +262,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
   struct Gadget *limitGad = NULL;
   struct Gadget *autostartGad = NULL;
   struct Gadget *browseGad = NULL;
+  struct Gadget *iconifyCheckBox = NULL;
 
   struct NewGadget ng;
   void *vi;
@@ -368,6 +389,22 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
   // Move to next row
   currentTop += rowHeight + rowSpacing;
 
+  // checkbox after autostart gadget
+  ng.ng_TopEdge += rowHeight + rowSpacing;
+  ng.ng_LeftEdge = leftMargin + labelWidth;
+  ng.ng_Width = controlWidth;
+  ng.ng_GadgetText = GetTFString(MSG_ICONIFY_AMIGAAMP);
+  ng.ng_Flags = PLACETEXT_LEFT;
+  ng.ng_GadgetID = 22;
+  
+  iconifyCheckBox = CreateGadget(
+    CHECKBOX_KIND, autostartGad, &ng,
+    GTCB_Checked, settings->iconifyAmigaAMP,
+    TAG_DONE
+    );
+  // Move to next row
+  currentTop += rowHeight + rowSpacing;
+
   // Move to button row
   currentTop += rowHeight + rowSpacing * 2;  // Extra spacing before buttons
 
@@ -379,7 +416,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
   ng.ng_GadgetID = 4;
   ng.ng_Flags = PLACETEXT_IN;
 
-  gad = CreateGadget(BUTTON_KIND, browseGad, &ng, TAG_DONE);
+  gad = CreateGadget(BUTTON_KIND, iconifyCheckBox, &ng, TAG_DONE);
   if (!gad) {
     DEBUG("Failed to create save button");
     goto cleanup;
@@ -452,17 +489,18 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
               STRPTR hostStr, portStr, limitStr, autoStartStr;
               BOOL inputValid = TRUE;
               char msg[MAX_STATUS_MSG_LEN];
+              LONG iconifyState = 0; 
 
               GT_GetGadgetAttrs(hostGad, window, NULL, GTST_String, &hostStr,
                                 TAG_DONE);
-
               GT_GetGadgetAttrs(portGad, window, NULL, GTST_String, &portStr,
                                 TAG_DONE);
-
               GT_GetGadgetAttrs(limitGad, window, NULL, GTST_String, &limitStr,
                                 TAG_DONE);
               GT_GetGadgetAttrs(autostartGad, window, NULL, GTST_String,
                                 &autoStartStr, TAG_DONE);
+              GT_GetGadgetAttrs(iconifyCheckBox, window, NULL, GTCB_Checked,
+                                &iconifyState, TAG_DONE);
 
               if (autoStartStr) {
                 strncpy(settings->autostart, autoStartStr, MAX_PATH_LEN - 1);
@@ -498,6 +536,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
                 settings->host[MAX_HOST_LEN - 1] = '\0';
                 settings->port = (UWORD)tempPort;
                 settings->limit = tempLimit;
+                settings->iconifyAmigaAMP = iconifyState ? TRUE : FALSE;
 
                 if (SaveSettings(settings)) {
                   success = TRUE;

@@ -104,6 +104,9 @@ Browse
 MSG_SELECT_PROGRAM (36//)
 Select program
 ;
+MSG_ICONIFY_AMIGAAMP (37//)
+Iconify AmigaAMP
+;
 ; Status Messages with Parameters
 MSG_FOUND_STATIONS (40//)
 Found %d stations

@@ -44,7 +44,7 @@
 #define MSG_AUTOSTART         34  // "Autostart Program"
 #define MSG_BROWSE            35  // "Browse"
 #define MSG_SELECT_PROGRAM    36  // "Select program"
-
+#define MSG_ICONIFY_AMIGAAMP  37  // Iconify amigaamp 
 // Status Messages with Parameters
 #define MSG_FOUND_STATIONS     40  // "Found %d stations"
 #define MSG_PLAYING_STATION    41  // "Playing: %s"

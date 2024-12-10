@@ -319,3 +319,21 @@ BOOL SetVolumeAmigaAMP(LONG volume) {
 BOOL QuitAmigaAMP(void) {
     return SendCommandToAmigaAMP("QUIT");
 }
+
+BOOL WaitAndIconifyAmigaAMP(void) {
+    BOOL success = FALSE;
+    int retries = 20;  // Wait up to 2 seconds (20 * 100ms)
+    
+    // Wait for AmigaAMP to start and open its ARexx port
+    while (retries > 0) {
+        if (IsAmigaAMPRunning()) {
+            // Try to iconify
+            success = SendCommandToAmigaAMP("ICONIFY");
+            break;
+        }
+        Delay(5);  // Wait 100ms
+        retries--;
+    }
+    
+    return success;
+}

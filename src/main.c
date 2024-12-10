@@ -61,6 +61,9 @@ int main(int argc, char *argv[]) {
     DEBUG("Launching autostart program: %s", currentSettings.autostart);
     SystemTags(currentSettings.autostart, SYS_Input, NULL, SYS_Output, NULL,
                SYS_Asynch, TRUE, TAG_DONE);
+  if (currentSettings.iconifyAmigaAMP) {
+    WaitAndIconifyAmigaAMP();
+  }
   }
 
   // Create message port for AppIcon

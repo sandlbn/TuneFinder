@@ -17,6 +17,7 @@
 #define ENV_COUNTRY "country"
 #define ENV_CODEC "codec"
 #define ENV_AUTOSTART "autostart"
+#define ENV_ICONIFY_AMIGAAMP "iconify_amigaamp"
 #define MAX_PATH_LEN 256
 
 struct APISettings {
@@ -26,7 +27,7 @@ struct APISettings {
     char autostart[MAX_PATH_LEN];
     ULONG windowLeft;
     ULONG windowTop;
-
+    BOOL iconifyAmigaAMP;
 };
 
 BOOL LoadSettings(struct APISettings *settings);
