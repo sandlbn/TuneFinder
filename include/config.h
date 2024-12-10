@@ -13,10 +13,10 @@
 #define HTTPS_ALL -1
 #define HTTPS_TRUE 1
 #define HTTPS_FALSE 0
-#define INITIAL_BUFFER_SIZE (64 * 1024)  // 64 kb :) 
-#define MAX_BUFFER_SIZE (64 * 1024 * 1024) // 4MB maximum
-#define PREFERRED_BUFFER_SIZE (2 * 1024 * 1024) // 2MB preferred
-#define READ_CHUNK_SIZE (8 * 1024)         // Read 8KB at a time
+#define INITIAL_BUFFER_SIZE (32 * 1024)      // Start with 32KB
+#define PREFERRED_BUFFER_SIZE (128 * 1024)   // Prefer 128KB
+#define MIN_FREE_MEMORY (2 * 1024 * 1024)    // Require at least 2MB free
+#define READ_CHUNK_SIZE (4 * 1024)           // 4KB chunks
 #define MAX_STATUS_MSG_LEN 256 
 #define PLS_HEADER "[playlist]\n"
 #define PLS_NUMBER_OF_ENTRIES "NumberOfEntries=%d\n"
