@@ -787,7 +787,7 @@ static ULONG RenderFunc(struct Hook *hook, struct Node *node,
     cleanNonAscii(nameBuffer, ext->name, MAX_STATION_NAME + 1);
     ULONG nameLen = strlen(nameBuffer);
     if (nameLen > 0) {
-      //DEBUG("Drawing name: %s (len: %ld)", nameBuffer, nameLen);
+      DEBUG("Drawing name: %s (len: %ld)", nameBuffer, nameLen);
       Move(rp, msg->lvdm_Bounds.MinX + 4, y);
       Text(rp, nameBuffer, nameLen);
     } else {
