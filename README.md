@@ -2,6 +2,10 @@
 
 TuneFinder is an AmigaOS 3.x application that allows you to browse, save playlist and play Internet radio stations. It uses the Radio Browser API to search for stations worldwide.
 
+# TuneFinder MUI
+
+If you enjoy using TuneFinder, you might also want to check out [**TuneFinderMUI**](https://github.com/sandlbn/TuneFinderMUI)! It offers similar features with a modern and user-friendly MUI interface for AmigaOS 3.x. 
+
 ## Features
 - Search radio stations by name, country, codec, or tags
 - Filter stations by HTTPS and broken links
