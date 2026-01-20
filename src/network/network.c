@@ -65,8 +65,7 @@ char *build_search_url(const struct APISettings *settings,
   }
 
   if (params->is_https != HTTPS_ALL && space_left > 0) {
-    pos += snprintf(url + pos, space_left, "is_https=%s&",
-                    params->is_https == HTTPS_TRUE ? "true" : "false");
+    pos += snprintf(url + pos, space_left, "hidebroken=%s&", params->hidebroken ? "true" : "false");
     space_left = MAX_URL_LENGTH - pos;
   }
 
@@ -214,7 +213,7 @@ char *make_http_request(const struct APISettings *settings, const char *path) {
   }
 
   snprintf(request, sizeof(request),
-           "GET %s HTTP/1.1\r\n"
+           "GET %s HTTP/1.0\r\n"
            "Host: %s\r\n"
            "User-Agent: AmigaRadioBrowser/1.0\r\n"
            "Accept: application/json\r\n"
@@ -345,6 +344,13 @@ struct RadioStation *parse_stations_json(const char *json_str, int *count) {
     return NULL;
   }
 
+  // Check if root is actually an array before calling array functions
+  if (!json_object_is_type(root, json_type_array)) {
+    DEBUG("JSON response is not an array");
+    json_object_put(root);
+    return NULL;
+  }
+
   DEBUG("Getting array length");
   array_len = json_object_array_length(root);
   if (array_len <= 0) {
@@ -382,11 +388,11 @@ struct RadioStation *parse_stations_json(const char *json_str, int *count) {
       country = json_object_get_string(country_obj);
       bitrate = json_object_get_int(bitrate_obj);
 
-      stations[i].name = strdup(name);
-      stations[i].url = strdup(url);
-      stations[i].codec = strdup(codec);
-      stations[i].country = strdup(country);
-      stations[i].bitrate = bitrate;
+      stations[*count].name = strdup(name);
+      stations[*count].url = strdup(url);
+      stations[*count].codec = strdup(codec);
+      stations[*count].country = strdup(country);
+      stations[*count].bitrate = bitrate;
 
       (*count)++;
     }
