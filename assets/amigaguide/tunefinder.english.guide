@@ -1,4 +1,5 @@
 @database TuneFinder.guide
+@$VER: TuneFinder.guide 1.5 (30.10.2026)
 @node Main "TuneFinder User Guide"
 @{fg shine}TuneFinder User Guide@{fg text}
 
@@ -6,12 +7,14 @@ TuneFinder is an AmigaOS 3.x application
 for browsing and saving Internet radio stations.
 
 @{b}Contents:@{ub}
+@{"Requirements" link REQUIREMENTS}
 @{"Basic Usage" link BASIC}
 @{"Search Options" link SEARCH}
 @{"Settings" link SETTINGS}
 @{"Saving Stations" link SAVING}
 @{"Translation" link TRANS}
 @{"Countries" link COUNTRIES}
+@{"ARexx" link AREXX}
 
 @endnode
 
@@ -25,6 +28,14 @@ To use TuneFinder:
 2. Click "Search" to find stations.
 3. Select a station from the list.
 4. Use Play/Stop buttons to control playback in AmigaAMP.
+
+Playback starts in the background: the status line shows
+"Connecting" until AmigaAMP has opened the stream, then "Playing".
+While playing, the line under the station shows the current track.
+
+Stations drawn in @{i}italics@{ui} failed their last check by
+Radio Browser and may not work. Stations with codec "HLS" use a
+streaming format AmigaAMP cannot play.
 
 @{fg shine}New in version 1.3:@{fg text}
 
@@ -57,9 +68,16 @@ The main window provides several search fields:
 
 @{b}Codec@{ub} - Choose a specific audio codec (MP3, AAC, AAC+, OGG).
 
-@{b}Additional Filters@{ub}:
-- HTTPS Only: Show only stations using secure connections.
-- Hide Broken: Hide stations with broken links.
+@{b}HTTPS@{ub} - Which stations to list: All, HTTPS only, or No HTTPS.
+Choose No HTTPS if AmigaAMP has no AmiSSL: it cannot play HTTPS streams.
+
+@{b}Sort@{ub} - Order of the results: by name, by votes, by popularity
+(most played), by bitrate or random.
+
+@{b}Hide Broken@{ub} - Hide stations with broken links.
+
+The number of results per search is the "Limit" in the settings. If more
+stations match, "More" below the list loads the next page.
 
 @{"Back to Main" link Main}
 @endnode
@@ -139,6 +157,54 @@ Changes will take effect after restarting TuneFinder.
 Default entries will be created automatically if the file doesn't exist.
 
 The full list of countries with ISO codes is located in the Example folder.
+
+@{"Back to Main" link Main}
+@endnode
+
+@node REQUIREMENTS "Requirements"
+@{fg shine}Requirements@{fg text}
+
+- AmigaOS 3.0 or newer, any 68000 or better
+  (68040/68060 recommended for MP3 playback)
+- A TCP/IP stack with bsdsocket.library
+  (Roadshow, AmiTCP, Miami, ...)
+- AmigaAMP for playback, with mpega.library in LIBS:
+  (Aminet: util/libs/mpega_library.lha)
+- AmiSSL in AmigaAMP for HTTPS streams (optional)
+
+@{"Back to Main" link Main}
+@endnode
+
+@node AREXX "ARexx"
+@{fg shine}ARexx@{fg text}
+
+TuneFinder has the ARexx port "TUNEFINDER".
+
+@{b}SEARCH [NAME]@{ub}      Search; other filters as set in the window
+@{b}MORE@{ub}               Load the next page of results
+@{b}SORT MODE@{ub}          NAME, VOTES, POPULAR, BITRATE or RANDOM
+@{b}COUNT@{ub}              Number of stations in the list
+@{b}SELECT INDEX@{ub}       Make a station active (0 is the first)
+@{b}ACTIVE@{ub}             name|url|codec|country|bitrate of the
+                    active station
+@{b}PLAY@{ub}, @{b}STOP@{ub}         Control playback in AmigaAMP
+@{b}ADDFAV@{ub}, @{b}REMOVEFAV@{ub}  Add or remove the active station
+@{b}FAVORITES@{ub}          Show the favorites list
+@{b}STATUS@{ub}             Status line
+@{b}TRACK@{ub}              Current track
+@{b}QUIT@{ub}               Quit TuneFinder
+
+Commands that use the window fail with RC 10 while
+TuneFinder is iconified.
+
+Example:
+
+  /* Play the first jazz station */
+  ADDRESS TUNEFINDER
+  OPTIONS RESULTS
+  SEARCH jazz
+  SELECT 0
+  PLAY
 
 @{"Back to Main" link Main}
 @endnode

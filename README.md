@@ -8,9 +8,13 @@ If you enjoy using TuneFinder, you might also want to check out [**TuneFinderMUI
 
 ## Features
 - Search radio stations by name, country, codec, or tags
-- Filter stations by HTTPS and broken links
+- Filter stations by HTTPS (all / HTTPS only / no HTTPS) and broken links
+- Sort by name, votes, popularity, bitrate or random; "More" loads the next page
 - Save stations as PLS playlists
-- Play stations in AmigaAmp
+- Play stations in AmigaAmp; the status line shows Connecting and then Playing, and the current track is shown while playing
+- HLS streams (not playable by AmigaAMP) and stations that failed their last check are marked
+- Favorites
+- ARexx port for scripting
 - Configurable API settings
 - Compatible with AmigaOS 3.x (68020+ CPU recommended)
 - Support for Amiga translation library
@@ -20,7 +24,9 @@ If you enjoy using TuneFinder, you might also want to check out [**TuneFinderMUI
 - 68000 CPU or better
 - At least 4MB RAM
 - Internet connection
-- Working TCP/IP stack
+- Working TCP/IP stack with bsdsocket.library (Roadshow, AmiTCP, Miami, ...)
+- AmigaAMP with [mpega.library](https://aminet.net/package/util/libs/mpega_library) for playback
+- AmiSSL in AmigaAMP for HTTPS streams (optional)
 
 
 ## Building
@@ -50,7 +56,17 @@ or
 docker run --rm  -v ${PWD}:/work -it sacredbanana/amiga-compiler:m68k-amigaos make debug
 ```
 
-3. Clean build files:
+3. Toolchain outside `/opt/amiga`:
+```bash
+make AMIGA_PREFIX=/path/to/amiga-gcc
+```
+
+4. Host unit tests for the platform independent code (URL building, JSON parsing, favorites format; needs a native compiler and json-c):
+```bash
+make test
+```
+
+5. Clean build files:
 ```bash
 make clean
 ```
@@ -89,6 +105,35 @@ to generate the catalog file, then place the generated catalog in your LOCALE:Ca
 3. Click "Search" to find stations
 4. Select a station to view details
 5. Use "Save" to create a PLS playlist file or "Play" to play selected station in the AmigaAmp
+
+## ARexx
+
+The ARexx port is `TUNEFINDER`:
+
+| Command | Description |
+|---|---|
+| `SEARCH [NAME]` | Search; the other filters are taken from the window. RESULT is the status line |
+| `MORE` | Load the next page of results |
+| `SORT NAME\|VOTES\|POPULAR\|BITRATE\|RANDOM` | Set the sort order |
+| `COUNT` | Number of stations in the list |
+| `SELECT INDEX` | Make a station active (0 is the first) |
+| `ACTIVE` | `name\|url\|codec\|country\|bitrate` of the active station |
+| `PLAY`, `STOP` | Control playback in AmigaAMP |
+| `ADDFAV`, `REMOVEFAV` | Add or remove the active station |
+| `FAVORITES` | Show the favorites list |
+| `STATUS`, `TRACK` | Status line, current track |
+| `QUIT` | Quit TuneFinder |
+
+Commands that use the window fail with RC 10 while TuneFinder is iconified.
+
+```rexx
+/* Play the first jazz station */
+ADDRESS TUNEFINDER
+OPTIONS RESULTS
+SEARCH jazz
+SELECT 0
+PLAY
+```
 
 ## Screenshot
 

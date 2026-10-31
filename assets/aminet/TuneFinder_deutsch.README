@@ -2,7 +2,7 @@ Kurz:          Online-Radiosender suchen und anzeigen
 Verfasser:     marcin@spoczynski.com (Marcin Spoczynski)
 Uploader:      marcin@spoczynski.com (Marcin Spoczynski)
 Typ:           comm/misc
-Version:       1.00
+Version:       1.5
 Zielplattform: m68k-amigaos >= 3.1
 Distribution:  Aminet
 Ersetzt:       comm/misc/TuneFinder.lha 
@@ -116,6 +116,40 @@ TuneFinder 1.2 (23.11.2024)
 - Beispiele für Länderkonfigurationen hinzugefügt (Alexander Gent)
 - Länderliste behoben - Namen mit Leerzeichen wurden nicht korrekt angezeigt
 - API-Standard Einstellungsbegrenzung auf 100 angehoben
+
+
+TuneFinder 1.5 (30.10.2026)
+
+- Filter "Defekte ausblenden" und "Nur HTTPS" repariert (waren wirkungslos)
+- Abstürze behoben: Abspielen nach einer neuen Suche, Beenden über das
+  Menü, lange Stream-URLs, sowie mehrere Speicherlecks (Ikonifizieren,
+  Favoriten)
+- Suchen mit kurzen Namen oder Tags (1-2 Buchstaben) und mit Umlauten
+  funktionieren jetzt
+- Ein leeres Suchergebnis wird nicht mehr als Fehler gemeldet
+- Es wird die direkte Stream-Adresse statt einer Playlist-URL
+  abgespielt, dadurch starten mehr Sender in AmigaAMP
+- Die Wiedergabe startet im Hintergrund, die Statuszeile zeigt
+  "Verbinde" und dann "Spielt"
+- HLS-Streams werden markiert und nicht an AmigaAMP geschickt; Sender,
+  die die letzte Prüfung nicht bestanden haben, erscheinen kursiv
+- Favoriten mit '|' im Namen oder ohne Codec werden korrekt gespeichert
+- Zeitlimits für Verbindungen und AmigaAMP, kein Einfrieren des Systems
+- Abgespielte Sender werden an Radio Browser gemeldet, wie vom Dienst
+  gewünscht
+- Sortierung (Name, Stimmen, Beliebtheit, Bitrate, Zufall) und Knopf
+  "Mehr" für weitere Ergebnisse
+- HTTPS-Filter: Alle / Nur HTTPS / Kein HTTPS
+- Der aktuelle Titel wird während der Wiedergabe angezeigt
+- Kompakteres Fenster, passt auf eine 640x256-Workbench
+- ARexx-Port "TUNEFINDER" (Befehle siehe englisches README und Anleitung)
+- Größerer Stack; Ctrl-C beendet das Programm
+
+Voraussetzungen:
+- AmigaOS 3.0+, 68000 oder besser (68040/68060 für MP3 empfohlen)
+- TCP/IP-Stack mit bsdsocket.library (Roadshow, AmiTCP, Miami, ...)
+- AmigaAMP und mpega.library (Aminet: util/libs/mpega_library.lha)
+- AmiSSL für HTTPS-Streams (optional, in AmigaAMP)
 
 
 Besonderen Dank an Flype, TommySammy, Ponki1986, Samir, Alexander, Paluch und viele andere für ihre Hilfe beim Testen von TuneFinder!

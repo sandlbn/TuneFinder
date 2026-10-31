@@ -4,7 +4,7 @@
 
 (welcome 
     "Welcome to the TuneFinder installation program.\n\n"
-    "This will install TuneFinder version 1.3a on your system."
+    "This will install TuneFinder version 1.5 on your system."
 )
 
 (set default-dest
@@ -76,7 +76,7 @@
 )
 (set install-french
     (askbool
-        (prompt "Do you want to install French (Francais) language catalog by Eric Tarinz LUCZYSZYN?")
+        (prompt "Do you want to install French (Français) language catalog by Eric Tarinz LUCZYSZYN?")
         (help "Select Yes to install French language support")
         (default 1)
     )
@@ -160,10 +160,10 @@
 )
 (if install-french
     (
-        (makedir (tackon prog-dest "Catalogs/francais"))
+        (makedir (tackon prog-dest "Catalogs/français"))
         (copyfiles
-            (source "Catalogs/francais/tunefinder.catalog")
-            (dest (tackon prog-dest "Catalogs/francais"))
+            (source "Catalogs/français/tunefinder.catalog")
+            (dest (tackon prog-dest "Catalogs/français"))
             (prompt "Copying French catalog")
         )
     )

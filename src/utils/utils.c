@@ -81,9 +81,20 @@ void SanitizeAmigaFilename(const char *input, char *output, size_t maxLen) {
   }
 }
 
+// TEXT_KIND gadgets keep the pointer they are given, so the status text
+// needs storage that outlives the caller's buffer.
+static char statusText[MAX_STATUS_MSG_LEN];
+
+const char *GetStatusMessage(void) {
+  return statusText;
+}
+
 void UpdateStatusMessage(const char *message) {
+  strncpy(statusText, message ? message : "", sizeof(statusText) - 1);
+  statusText[sizeof(statusText) - 1] = '\0';
+
   if (window && statusMsgGad) {
-    GT_SetGadgetAttrs(statusMsgGad, window, NULL, GTTX_Text, (STRPTR)message,
+    GT_SetGadgetAttrs(statusMsgGad, window, NULL, GTTX_Text, statusText,
                       TAG_DONE);
   }
 
@@ -93,16 +104,42 @@ void UpdateStatusMessage(const char *message) {
 }
 void free_labels(struct List *l) {
   struct Node *n;
+  if (!l) return;
   while ((n = RemHead(l))) {
-    struct ExtNode *ext = (struct ExtNode *)n;
-    if (ext->name) free(ext->name);
-    if (ext->url) free(ext->url);
-    if (ext->codec) free(ext->codec);
-    if (ext->country) free(ext->country);
-    deallocate(n->ln_Name, V_cstr);
-    deallocate(n, V_Node);
+    FreeStationNode((struct ExtNode *)n);
   }
   deallocate(l, V_List);
+}
+
+static void WriteNumberedKey(BPTR file, const char *key, LONG index) {
+  char num[16];
+  snprintf(num, sizeof(num), "%ld", (long)index);
+  FPuts(file, key);
+  FPuts(file, num);
+  FPuts(file, "=");
+}
+
+void WritePLSHeader(BPTR file, LONG count) {
+  char num[16];
+  snprintf(num, sizeof(num), "%ld", (long)count);
+  FPuts(file, "[playlist]\nNumberOfEntries=");
+  FPuts(file, num);
+  FPuts(file, "\n");
+}
+
+void WritePLSEntry(BPTR file, LONG index, const char *url, const char *title) {
+  WriteNumberedKey(file, "File", index);
+  FPuts(file, url ? url : "");
+  FPuts(file, "\n");
+
+  if (title && *title) {
+    WriteNumberedKey(file, "Title", index);
+    FPuts(file, title);
+    FPuts(file, "\n");
+  }
+
+  WriteNumberedKey(file, "Length", index);
+  FPuts(file, "-1\n");
 }
 
 BOOL SaveToPLS(const char *filename) {
@@ -133,7 +170,7 @@ BOOL SaveToPLS(const char *filename) {
   for (node = browserList->lh_Head; node->ln_Succ; node = node->ln_Succ) {
     struct ExtNode *ext = (struct ExtNode *)node;
     fprintf(fp, PLS_FILE_ENTRY, count, ext->url);
-    fprintf(fp, PLS_TITLE_ENTRY, count, ext->displayText);
+    fprintf(fp, PLS_TITLE_ENTRY, count, ext->name);
     fprintf(fp, PLS_LENGTH_ENTRY, count);
     count++;
   }

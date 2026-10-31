@@ -209,3 +209,36 @@ AmigaAMP ist nicht geöffnet
 MSG_STOPPING_PLAYBACK
 Wiedergabe gestoppt
 ;
+MSG_CONNECTING
+Verbinde: %s
+;
+MSG_HLS_STATION
+HLS-Stream, AmigaAMP kann ihn nicht abspielen
+;
+MSG_HTTPS
+HTTPS
+;
+MSG_HTTPS_MODE_ALL
+Alle
+;
+MSG_HTTPS_MODE_ONLY
+Nur HTTPS
+;
+MSG_HTTPS_MODE_NONE
+Kein HTTPS
+;
+MSG_SORT
+Sortierung
+;
+MSG_SORT_VOTES
+Stimmen
+;
+MSG_SORT_POPULAR
+Beliebt
+;
+MSG_SORT_RANDOM
+Zufall
+;
+MSG_MORE
+Mehr
+;

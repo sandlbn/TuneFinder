@@ -2,11 +2,12 @@
 OS := $(shell uname)
 #CPU_FLAGS = -m68000 -mnobitfield -fno-peephole2
 CPU_FLAGS = 
-# Directories
-LIBDIR = /opt/amiga/m68k-amigaos/lib
-SDKDIR = /opt/amiga/m68k-amigaos/sys-include
-NDKDIR = /opt/amiga/m68k-amigaos/ndk-include
-INCDIR = /opt/amiga/m68k-amigaos/include
+# Directories (override AMIGA_PREFIX if the toolchain is not in /opt/amiga)
+AMIGA_PREFIX ?= /opt/amiga
+LIBDIR = $(AMIGA_PREFIX)/m68k-amigaos/lib
+SDKDIR = $(AMIGA_PREFIX)/m68k-amigaos/sys-include
+NDKDIR = $(AMIGA_PREFIX)/m68k-amigaos/ndk-include
+INCDIR = $(AMIGA_PREFIX)/m68k-amigaos/include
 SRCDIR = src
 BUILDDIR = build/os3/obj
 OUTDIR = out
@@ -19,7 +20,7 @@ FLEXCAT = flexcat
 CD_FILE = assets/translation/tunefinder.cd
 
 # Program settings
-CC = m68k-amigaos-gcc
+CC = $(if $(wildcard $(AMIGA_PREFIX)/bin/m68k-amigaos-gcc),$(AMIGA_PREFIX)/bin/m68k-amigaos-gcc,m68k-amigaos-gcc)
 PROGRAM_NAME = TuneFinder
 
 # Source files
@@ -30,6 +31,8 @@ SOURCES = $(SRCDIR)/settings/settings.c \
           $(SRCDIR)/locale/locale.c \
           $(SRCDIR)/favorites/favorites.c \
           $(SRCDIR)/network/network.c \
+          $(SRCDIR)/network/api.c \
+          $(SRCDIR)/arexx/arexx.c \
 		  $(SRCDIR)/utils/utils.c \
           $(SRCDIR)/gui/gui.c \
           $(SRCDIR)/main.c
@@ -43,13 +46,16 @@ OBJECTS = \
     $(BUILDDIR)/locale/locale.o \
     $(BUILDDIR)/favorites/favorites.o \
     $(BUILDDIR)/network/network.o \
+    $(BUILDDIR)/network/api.o \
+    $(BUILDDIR)/arexx/arexx.o \
     $(BUILDDIR)/utils/utils.o \
     $(BUILDDIR)/gui/gui.o \
     $(BUILDDIR)/main.o
 
 # Compiler flags
-BASE_CCFLAGS = -MP -MMD -Wextra -Wno-unused-function \
- -Wno-discarded-qualifiers -Wno-int-conversion \
+BASE_CCFLAGS = -MP -MMD -Wall -Wextra -Wno-unused-function \
+ -Wno-unused-parameter -Wno-discarded-qualifiers -Wno-int-conversion \
+ -Wno-pointer-sign \
  -Wno-volatile-register-var -fno-lto -noixemul \
  -fbaserel -lamiga -lm -D__AMIGAOS3__ $(CPU_FLAGS) \
  -I$(INCDIR) -I$(SDKDIR) -I$(NDKDIR) -Iinclude
@@ -62,10 +68,11 @@ CCFLAGS = $(BASE_CCFLAGS) -O2 -fomit-frame-pointer
 BUILD_TYPE = release
 endif
 
-LDFLAGS = -Wl,-Map=$(OUTDIR)/$(PROGRAM_NAME).map,-L$(LIBDIR),-ljson-c,-lamiga,-lm
+# -u pulls in libnix swapstack.o so __stack (see main.c) takes effect
+LDFLAGS = -Wl,-Map=$(OUTDIR)/$(PROGRAM_NAME).map,-L$(LIBDIR),-u,___stkinit,-ljson-c,-lamiga,-lm
 
 # Targets
-.PHONY: all clean debug release dirs aminet-release aminet-clean
+.PHONY: all clean debug release dirs aminet-release aminet-clean test
 
 all: release
 aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
@@ -99,23 +106,37 @@ aminet-release: $(OUTDIR)/$(PROGRAM_NAME)
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch
 	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano
-	mkdir -p $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/francais
+	mkdir -p "$(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/$(FRENCH_DIR)"
 
 	cp assets/translation/polski/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/polski/ | true
 	cp assets/translation/deutsch/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/deutsch/ | true 
 	cp assets/translation/italiano/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/italiano/ | true 
-	cp assets/translation/francais/tunefinder.catalog $(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/francais/ | true 
+	cp assets/translation/francais/tunefinder.catalog "$(RELEASE_DIR)/$(AMINET_NAME)/Catalogs/$(FRENCH_DIR)/" | true
 
 	# Create archive
 	cd $(RELEASE_DIR) && lha -ao5 ../$(AMINET_NAME).lha .
 	$(info Aminet release created: $(AMINET_NAME).lha)
 
+# AmigaOS names the language "fran\347ais" (ISO-8859-1); locale.library
+# only loads a catalog whose language matches its Catalogs/ directory.
+FRENCH_DIR := $(shell printf 'fran\347ais')
+
+# Uses FlexCat when installed, otherwise tools/mkcatalog.py (same output)
+CATALOG_LANGS = polski deutsch italiano francais
+FLEXCAT_FOUND := $(shell command -v $(FLEXCAT) 2>/dev/null)
+
 catalogs:
 	$(info Generating translation catalogs...)
-	$(FLEXCAT) $(CD_FILE) assets/translation/polski/tunefinder.ct CATALOG assets/translation/polski/tunefinder.catalog || true
-	$(FLEXCAT) $(CD_FILE) assets/translation/deutsch/tunefinder.ct CATALOG assets/translation/deutsch/tunefinder.catalog || true
-	$(FLEXCAT) $(CD_FILE) assets/translation/italiano/tunefinder.ct CATALOG assets/translation/italiano/tunefinder.catalog || true
-	$(FLEXCAT) $(CD_FILE) assets/translation/francais/tunefinder.ct CATALOG assets/translation/francais/tunefinder.catalog || true
+	@for lang in $(CATALOG_LANGS); do \
+	  ct=assets/translation/$$lang/tunefinder.ct; \
+	  cat=assets/translation/$$lang/tunefinder.catalog; \
+	  if [ -n "$(FLEXCAT_FOUND)" ]; then \
+	    $(FLEXCAT) $(CD_FILE) $$ct CATALOG $$cat; \
+	    test -s $$cat || exit 1; \
+	  else \
+	    python3 tools/mkcatalog.py $(CD_FILE) $$ct $$cat || exit 1; \
+	  fi; \
+	done
 
 aminet-clean:
 	$(info Cleaning Aminet release files...)
@@ -138,6 +159,7 @@ dirs:
 	@mkdir -p $(BUILDDIR)/locale
 	@mkdir -p $(BUILDDIR)/favorite
 	@mkdir -p $(BUILDDIR)/network
+	@mkdir -p $(BUILDDIR)/arexx
 	@mkdir -p $(BUILDDIR)/data
 	@mkdir -p $(BUILDDIR)/utils
 	@mkdir -p $(BUILDDIR)/settings
@@ -157,9 +179,11 @@ clean:
 	@$(RM) -rf $(BUILDDIR)
 	@$(RM) -f $(OUTDIR)/$(PROGRAM_NAME)
 	@$(RM) -f $(OUTDIR)/$(PROGRAM_NAME).map
+	@$(RM) -rf build/host
 	@$(RM) assets/translation/polski/tunefinder.catalog
 	@$(RM) assets/translation/deutsch/tunefinder.catalog
 	@$(RM) assets/translation/italiano/tunefinder.catalog
+	@$(RM) assets/translation/francais/tunefinder.catalog
 
 debug-print:
 	@echo "Source Directory: $(SRCDIR)"
@@ -169,3 +193,18 @@ debug-print:
 	@echo "LDFLAGS: $(LDFLAGS)"
 
 -include $(OBJECTS:.o=.d)
+
+# Host-side unit tests for the platform independent code (needs host gcc
+# and json-c). Exec calls are mapped onto libc by test/stubs.
+HOST_CC ?= cc
+TEST_SOURCES = test/test_main.c $(SRCDIR)/data/data.c $(SRCDIR)/network/api.c
+TEST_BIN = build/host/run_tests
+
+test: $(TEST_BIN)
+	./$(TEST_BIN)
+
+$(TEST_BIN): $(TEST_SOURCES) include/data.h include/api.h include/config.h
+	@mkdir -p $(dir $@)
+	$(HOST_CC) -std=gnu99 -Wall -Wextra -Wno-unused-parameter -g \
+	    -fsanitize=address,undefined -fno-omit-frame-pointer \
+	    -Itest/stubs -Iinclude -o $@ $(TEST_SOURCES) -ljson-c

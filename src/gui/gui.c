@@ -85,7 +85,10 @@ struct Gadget *countryCodeCycle;
 struct Gadget *codecCycle;
 struct Gadget *tagsStrGad;
 struct Gadget *hideBrokenCheckBox;
-struct Gadget *httpsCheckBox;
+struct Gadget *httpsCycle;
+struct Gadget *sortCycle;
+struct Gadget *moreButton;
+struct Gadget *trackGad;
 struct Gadget *searchButton;
 struct Gadget *saveButton;
 struct Gadget *listView;
@@ -93,16 +96,36 @@ struct Gadget *statusMsgGad;
 struct Gadget *playButton;
 struct Gadget *stopButton;
 struct Gadget *saveSingleButton;
-struct Gadget *stationDetailGad;
 struct Gadget *stationNameGad;
 struct Gadget *favoriteButton;
 struct Gadget *unfavoriteButton;
 
 // Data Arrays and Choices
 const char *codecChoices[] = {"", "MP3", "AAC", "AAC+", "OGG", "FLAC", NULL};
+#define CODEC_COUNT 6
 
-// Hooks and Menu Structures
-static struct Hook renderHook;
+// Filled from the catalog when the window opens
+static const char *httpsChoices[HTTPS_MODE_COUNT + 1];
+static const char *sortChoices[SORT_COUNT + 1];
+
+// Full country name from the country list, else the code itself
+static const char *CountryName(const char *code) {
+  int i;
+  if (!code || !*code) return "?";
+  for (i = 1; i < countryConfig.count; i++) {
+    if (strcasecmp(countryConfig.entries[i].code, code) == 0) {
+      return countryConfig.entries[i].name;
+    }
+  }
+  return code;
+}
+
+static LONG ClampIndex(LONG index, LONG count) {
+  return (index >= 0 && index < count) ? index : 0;
+}
+
+static BOOL countryChoicesFitted = FALSE;
+
 
 static struct Menu *CreateAppMenus(void) {
   struct NewMenu newMenu[] = {
@@ -231,14 +254,18 @@ void CleanupGUI(void) {
     browserList = NULL;
     currentStation = NULL;
   }
+  if (savedBrowserList) {  // iconified
+    free_labels(savedBrowserList);
+    savedBrowserList = NULL;
+  }
 
   if (visualInfo) {
     FreeVisualInfo(visualInfo);
     visualInfo = NULL;
   }
-  if (&countryConfig) {
-    FreeCountryConfig(&countryConfig);
-  }
+  FreeCountryConfig(&countryConfig);
+  countryConfig.entries = NULL;
+  countryConfig.choices = NULL;
   DEBUG("GUI cleanup completed");
 }
 
@@ -253,7 +280,7 @@ void SaveSingleStation(struct ExtNode *station) {
   char filepath[256];
   char sanitized_name[20];  // Max 20 chars for AmigaOS
   // Sanitize the station name for use as filename
-  SanitizeAmigaFilename(station->displayText, sanitized_name,
+  SanitizeAmigaFilename(station->name, sanitized_name,
                         15);  // 15 chars + ".pls"
   strcat(sanitized_name, ".pls");
 
@@ -263,10 +290,11 @@ void SaveSingleStation(struct ExtNode *station) {
   if (AslRequestTags(fileReq, ASLFR_DrawersOnly, FALSE, ASLFR_InitialFile,
                      sanitized_name, ASLFR_DoPatterns, TRUE,
                      ASLFR_InitialPattern, "#?.pls", TAG_DONE)) {
-    strcpy(filepath, fileReq->rf_Dir);
+    strncpy(filepath, fileReq->rf_Dir, sizeof(filepath) - 1);
+    filepath[sizeof(filepath) - 1] = '\0';
     AddPart(filepath, fileReq->rf_File, sizeof(filepath));
 
-    if (!strstr(filepath, ".pls")) {
+    if (!strstr(filepath, ".pls") && strlen(filepath) + 5 <= sizeof(filepath)) {
       strcat(filepath, ".pls");
     }
 
@@ -275,7 +303,7 @@ void SaveSingleStation(struct ExtNode *station) {
       fprintf(fp, "[playlist]\n");
       fprintf(fp, "NumberOfEntries=1\n");
       fprintf(fp, "File1=%s\n", station->url);
-      fprintf(fp, "Title1=%s\n", station->displayText);
+      fprintf(fp, "Title1=%s\n", station->name);
       fprintf(fp, "Length1=-1\n");
       fclose(fp);
       DisplayBeep(NULL);
@@ -292,7 +320,6 @@ void RefreshFavoritesList(void) {
 
   // Clear station details first
   GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, "", TAG_DONE);
-  GT_SetGadgetAttrs(stationDetailGad, window, NULL, GTTX_Text, "", TAG_DONE);
 
   // Disable all relevant buttons
   GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
@@ -300,6 +327,7 @@ void RefreshFavoritesList(void) {
   GT_SetGadgetAttrs(favoriteButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
   GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, TRUE,
                     TAG_DONE);
+  GT_SetGadgetAttrs(moreButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
 
   // Load new favorites list
   favorites = LoadFavorites();
@@ -341,10 +369,11 @@ void HandleSave(void) {
   if (AslRequestTags(fileReq, ASLFR_DrawersOnly, FALSE, ASLFR_InitialFile,
                      DEFAULT_PLS_FILENAME, ASLFR_DoPatterns, TRUE,
                      ASLFR_InitialPattern, "#?.pls", TAG_DONE)) {
-    strcpy(filepath, fileReq->rf_Dir);
+    strncpy(filepath, fileReq->rf_Dir, sizeof(filepath) - 1);
+    filepath[sizeof(filepath) - 1] = '\0';
     AddPart(filepath, fileReq->rf_File, sizeof(filepath));
 
-    if (!strstr(filepath, ".pls")) {
+    if (!strstr(filepath, ".pls") && strlen(filepath) + 5 <= sizeof(filepath)) {
       strcat(filepath, ".pls");
     }
 
@@ -360,10 +389,14 @@ void HandleSave(void) {
   FreeAslRequest(fileReq);
 }
 
-void HandleListSelect(struct IntuiMessage *imsg) {
-    char nameText[62];
-    UWORD selection = imsg->Code;
-    struct Node *node = browserList->lh_Head;
+void HandleListSelect(UWORD selection) {
+    // TEXT_KIND gadgets keep this pointer, so it must stay valid
+    static char nameText[100];
+    char detailText[64];
+    struct Node *node;
+
+    if (!browserList) return;
+    node = browserList->lh_Head;
     while (selection-- && node->ln_Succ) {
         node = node->ln_Succ;
     }
@@ -384,158 +417,277 @@ void HandleListSelect(struct IntuiMessage *imsg) {
                          GA_Disabled, !inFavorites,
                          TAG_DONE);
         
-        // Update station info display
-        snprintf(nameText, 62, "%.61s", ext->name);
+        // One line: name, then codec, bitrate and country (the list
+        // columns only show the country code)
+        {
+          char cleanName[44];
+          cleanNonAscii(cleanName, ext->name, sizeof(cleanName));
+          snprintf(detailText, sizeof(detailText), "%s, %ld kbit/s, %s",
+                   ext->hls ? "HLS" : (*ext->codec ? ext->codec : "?"),
+                   (long)ext->bitrate, CountryName(ext->country));
+          snprintf(nameText, sizeof(nameText), "%s - %s", cleanName, detailText);
+        }
         GT_SetGadgetAttrs(stationNameGad, window, NULL,
                          GTTX_Text, nameText,
                          TAG_DONE);
-        
-        char detailText[100];
-        snprintf(detailText, sizeof(detailText), "%s: %s %s: %ld %s: %s",
-                GetTFString(MSG_CODEC), ext->codec,
-                GetTFString(MSG_BITRATE), ext->bitrate,
-                GetTFString(MSG_COUNTRY), ext->country);
-        
-        GT_SetGadgetAttrs(stationDetailGad, window, NULL,
-                         GTTX_Text, detailText,
-                         TAG_DONE);
-        
-        RefreshGList(stationNameGad, window, NULL, 2);  // Refresh both gadgets
     }
 }
-void HandleSearch(void) {
-  STRPTR nameValue = NULL;
-  STRPTR stateValue = NULL;
-  STRPTR tagsValue = NULL;
-  LONG codec = 0;
-  LONG country = 0;
-  LONG is_http = 0;
-  LONG broken = 0;
+// Removes all stations from the list view's list. The list must not be
+// attached to the list view while it changes, and the selection points
+// into it, so both are reset.
+static void ClearStationList(void) {
+  struct Node *node;
+
+  currentStation = NULL;
+  if (!browserList) return;
+
+  if (window && listView) {
+    GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, ~0, TAG_DONE);
+  }
+  while ((node = RemHead(browserList))) {
+    FreeStationNode((struct ExtNode *)node);
+  }
+
+  if (window) {
+    GT_SetGadgetAttrs(stationNameGad, window, NULL, GTTX_Text, "", TAG_DONE);
+      GT_SetGadgetAttrs(playButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+    GT_SetGadgetAttrs(stopButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+    GT_SetGadgetAttrs(favoriteButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+    GT_SetGadgetAttrs(unfavoriteButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+  }
+}
+
+// Filters of the last search, reused by "More" so that further pages
+// match the first one even if the gadgets were changed in between
+static struct {
+  char name[64];
+  char tags[128];
+  LONG codec, country, httpsMode, hideBroken, sortMode;
+} lastSearch;
+
+static LONG CountListedStations(void) {
+  struct Node *node;
+  LONG count = 0;
+
+  if (!browserList) return 0;
+  for (node = browserList->lh_Head; node->ln_Succ; node = node->ln_Succ) {
+    count++;
+  }
+  return count;
+}
+
+static BOOL RunSearch(BOOL append) {
+  static const int httpsModes[HTTPS_MODE_COUNT] = {HTTPS_ALL, HTTPS_TRUE, HTTPS_FALSE};
   char msg[MAX_STATUS_MSG_LEN];
-  struct SearchParams params = {0};
+  struct SearchParams params;
   char *response = NULL;
-  struct RadioStation *stations = NULL;
-  int station_count = 0;
+  struct ExtNode **stations = NULL;
+  LONG station_count = 0;
+  LONG listed = append ? CountListedStations() : 0;
   char *urlPath = NULL;
+  LONG i;
 
-  DEBUG("Starting search...");
+  DEBUG("Starting search (append: %d)", append);
+  memset(&params, 0, sizeof(params));
 
-  GT_GetGadgetAttrs(nameStrGad, window, NULL, GTST_String, &nameValue,
-                    TAG_DONE);
-  if (nameValue && *nameValue) {
-    params.name = nameValue;
+  params.name = lastSearch.name;
+  params.tag_list = lastSearch.tags;
+  // The first country entry is the empty "any country" choice
+  if (lastSearch.country > 0 && lastSearch.country < countryConfig.count) {
+    params.country_code = countryConfig.entries[lastSearch.country].code;
   }
-
-  GT_GetGadgetAttrs(countryCodeCycle, window, NULL, GTCY_Active, &country,
-                    TAG_DONE);
-  if (country > 0 && country < countryConfig.count) {
-    params.country_code = countryConfig.entries[country].code;
-  }
-
-  GT_GetGadgetAttrs(codecCycle, window, NULL, GTCY_Active, &codec, TAG_DONE);
-  if (codec >= 0 && codecChoices[codec]) {
-    params.codec = codecChoices[codec];
-  }
-
-  GT_GetGadgetAttrs(tagsStrGad, window, NULL, GTST_String, &tagsValue,
-                    TAG_DONE);
-  if (tagsValue && *tagsValue) {
-    params.tag_list = tagsValue;
-  }
-
-  GT_GetGadgetAttrs(httpsCheckBox, window, NULL, GTCB_Checked, &is_http,
-                    TAG_DONE);
-  params.is_https = is_http ? 1 : 0;
-
-  GT_GetGadgetAttrs(hideBrokenCheckBox, window, NULL, GTCB_Checked, &broken,
-                    TAG_DONE);
-  params.hidebroken = broken ? 1 : 0;
-
+  params.codec = codecChoices[ClampIndex(lastSearch.codec, CODEC_COUNT)];
+  params.is_https = httpsModes[ClampIndex(lastSearch.httpsMode, HTTPS_MODE_COUNT)];
+  params.hidebroken = lastSearch.hideBroken ? 1 : 0;
+  SetSearchSort(&params, lastSearch.sortMode);
   params.limit = currentSettings.limit;
+  params.offset = listed;
 
-  urlPath = build_search_url(&currentSettings, &params);
+  GT_SetGadgetAttrs(moreButton, window, NULL, GA_Disabled, TRUE, TAG_DONE);
+
+  urlPath = build_search_url(&params);
   if (!urlPath) {
     DEBUG("%s", "Failed to build URL");
-    return;
+    return FALSE;
   }
 
   response = make_http_request(&currentSettings, urlPath);
-  free(urlPath);
+  FreeVec(urlPath);
 
   if (!response) {
     UpdateStatusMessage(GetTFString(MSG_HTTP_REQ_FAILED));
-    return;
+    return FALSE;
   }
 
-  stations = parse_stations_json(response, &station_count);
+  if (!parse_stations_json(response, &stations, &station_count)) {
+    free(response);
+    UpdateStatusMessage(GetTFString(MSG_HTTP_REQ_FAILED));
+    return FALSE;
+  }
   free(response);
 
-  if (!stations || station_count == 0) {
-    UpdateStatusMessage(GetTFString(MSG_NO_STATION_FOUND));
-    return;
+  // Leaving the favorites view
+  {
+    struct MenuItem *item = ItemAddress(
+        menuStrip, FULLMENUNUM(MENU_PROJECT, ITEM_FAVORITES, NOSUB));
+    if (item) item->Flags &= ~CHECKED;
   }
 
-  if (browserList) {
-    struct Node *node;
-    while ((node = RemHead(browserList))) {
-      struct ExtNode *ext = (struct ExtNode *)node;
-
-      // Free all allocated strings
-      if (ext->name) free(ext->name);
-      if (ext->url) free(ext->url);
-      if (ext->codec) free(ext->codec);
-      if (ext->country) free(ext->country);
-
-      // Free the displayText/ln_Name
-      deallocate(node->ln_Name, V_cstr);
-
-      // Free the node itself
-      deallocate(node, V_Node);
-    }
+  if (append) {
+    // The list must not be attached while it changes
+    GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, ~0, TAG_DONE);
+  } else {
+    ClearStationList();
   }
-  for (int i = 0; i < station_count; i++) {
-    struct ExtNode *ext;
-
-    char *displayText =
-        FormatStationEntry(stations[i].name, stations[i].url, stations[i].codec,
-                           stations[i].country, stations[i].bitrate);
-    if (!displayText) continue;
-
-    ext = AllocVec(sizeof(struct ExtNode), MEMF_CLEAR);
-    if (!ext) {
-      FreeVec(displayText);
-      continue;
-    }
-
-    ext->displayText = displayText;
-    ext->name = strdup(stations[i].name ? stations[i].name : "");
-    ext->url = strdup(stations[i].url ? stations[i].url : "");
-    ext->codec = strdup(stations[i].codec ? stations[i].codec
-                                          : GetTFString(MSG_UNKNOWN));
-    ext->country = strdup(stations[i].country ? stations[i].country : "??");
-    ext->bitrate = stations[i].bitrate;
-    ext->node.ln_Name = ext->displayText;
-    ext->node.ln_Type = 0;
-    ext->node.ln_Pri = 0;
-
-    AddTail(browserList, (struct Node *)ext);
+  for (i = 0; i < station_count; i++) {
+    AddTail(browserList, (struct Node *)stations[i]);
   }
-
-  free_stations(stations, station_count);
+  // The list owns the stations now
+  if (stations) FreeVec(stations);
 
   if (window && listView) {
-    GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, browserList,
-                      TAG_DONE);
+    GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, browserList, TAG_DONE);
+    if (append && station_count > 0) {
+      // Show the first new station
+      GT_SetGadgetAttrs(listView, window, NULL, GTLV_Top, listed, TAG_DONE);
+    } else if (!append) {
+      GT_SetGadgetAttrs(listView, window, NULL, GTLV_Selected, ~0, TAG_DONE);
+    }
+  }
 
-    char msg[MAX_STATUS_MSG_LEN];
-    GetTFFormattedString(msg, sizeof(msg), MSG_FOUND_STATIONS, station_count);
-    // snprintf(msg, MAX_STATUS_MSG_LEN, "Search completed. Found %d stations.",
-    // station_count);
+  // A full page means there may be more
+  GT_SetGadgetAttrs(moreButton, window, NULL, GA_Disabled,
+                    station_count < params.limit, TAG_DONE);
+
+  listed += station_count;
+  if (listed == 0) {
+    UpdateStatusMessage(GetTFString(MSG_NO_STATION_FOUND));
+  } else {
+    GetTFFormattedString(msg, sizeof(msg), MSG_FOUND_STATIONS, listed);
     UpdateStatusMessage(msg);
   }
+  return TRUE;
 }
-void HandleGadgetUp(struct IntuiMessage *imsg) {
-  UWORD gadgetID = ((struct Gadget *)imsg->IAddress)->GadgetID;
+
+BOOL HandleSearch(void) {
+  STRPTR nameValue = NULL;
+  STRPTR tagsValue = NULL;
+
+  GT_GetGadgetAttrs(nameStrGad, window, NULL, GTST_String, &nameValue, TAG_DONE);
+  GT_GetGadgetAttrs(tagsStrGad, window, NULL, GTST_String, &tagsValue, TAG_DONE);
+  strncpy(lastSearch.name, nameValue ? (char *)nameValue : "", sizeof(lastSearch.name) - 1);
+  strncpy(lastSearch.tags, tagsValue ? (char *)tagsValue : "", sizeof(lastSearch.tags) - 1);
+  GT_GetGadgetAttrs(countryCodeCycle, window, NULL, GTCY_Active, &lastSearch.country, TAG_DONE);
+  GT_GetGadgetAttrs(codecCycle, window, NULL, GTCY_Active, &lastSearch.codec, TAG_DONE);
+  GT_GetGadgetAttrs(httpsCycle, window, NULL, GTCY_Active, &lastSearch.httpsMode, TAG_DONE);
+  GT_GetGadgetAttrs(hideBrokenCheckBox, window, NULL, GTCB_Checked, &lastSearch.hideBroken, TAG_DONE);
+  GT_GetGadgetAttrs(sortCycle, window, NULL, GTCY_Active, &lastSearch.sortMode, TAG_DONE);
+
+  return RunSearch(FALSE);
+}
+
+BOOL HandleSearchMore(void) {
+  return RunSearch(TRUE);
+}
+
+static BOOL isPlaying = FALSE;
+
+// TEXT_KIND gadgets keep the pointer, so the track text has its own storage
+static char trackText[256];
+
+const char *TrackText(void) {
+  return trackText;
+}
+
+static void SetTrackText(const char *text) {
+  strncpy(trackText, text ? text : "", sizeof(trackText) - 1);
+  trackText[sizeof(trackText) - 1] = '\0';
+  if (window && trackGad) {
+    GT_SetGadgetAttrs(trackGad, window, NULL, GTTX_Text, trackText, TAG_DONE);
+  }
+}
+
+BOOL IsStationPlaying(void) {
+  return isPlaying;
+}
+
+// Station whose OPEN is pending, for the status line when AmigaAMP replies
+static char connectingStation[MAX_STATION_NAME + 1];
+static char connectingUUID[STATION_UUID_LEN];
+
+BOOL PlayCurrentStation(void) {
+  char msg[MAX_STATUS_MSG_LEN];
+
+  if (!currentStation) return FALSE;
+
+  if (currentStation->hls) {
+    UpdateStatusMessage(GetTFString(MSG_HLS_STATION));
+    return FALSE;
+  }
+
+  if (!IsAmigaAMPRunning()) {
+    UpdateStatusMessage(GetTFString(MSG_AMIGAAMP_NOT_RUNNING));
+    return FALSE;
+  }
+
+  // AmigaAMP replies to OPEN only once the stream is connected; the result
+  // arrives in HandleAmigaAMPReply() via the main loop.
+  if (!OpenStreamInAmigaAMPWithName(currentStation->url, currentStation->name)) {
+    UpdateStatusMessage(GetTFString(MSG_FAILED_START_PLAYBACK));
+    return FALSE;
+  }
+
+  cleanNonAscii(connectingStation, currentStation->name, sizeof(connectingStation));
+  strcpy(connectingUUID, currentStation->uuid);
+  isPlaying = FALSE;
+  SetTrackText("");
+  GetTFFormattedString(msg, sizeof(msg), MSG_CONNECTING, connectingStation);
+  UpdateStatusMessage(msg);
+  return TRUE;
+}
+
+void HandleAmigaAMPReply(void) {
+  char msg[MAX_STATUS_MSG_LEN];
+
+  switch (PollAmigaAMPOpen()) {
+    case AMIGAAMP_OPEN_OK:
+      isPlaying = TRUE;
+      if (connectingUUID[0]) {
+        ReportStationClick(&currentSettings, connectingUUID);
+      }
+      // After the click request, which shows its own progress
+      GetTFFormattedString(msg, sizeof(msg), MSG_PLAYING_STATION, connectingStation);
+      UpdateStatusMessage(msg);
+      RequestTrackInfo();
+      break;
+
+    case AMIGAAMP_OPEN_FAILED:
+      isPlaying = FALSE;
+      UpdateStatusMessage(GetTFString(MSG_FAILED_START_PLAYBACK));
+      break;
+  }
+
+  {
+    char track[256];
+    if (GetNewTrackInfo(track, sizeof(track))) {
+      char clean[256];
+      cleanNonAscii(clean, track, sizeof(clean));
+      SetTrackText(clean);
+    }
+  }
+}
+
+// Saves the preferences, quits AmigaAMP if we started it, and ends the
+// main loop
+void RequestQuit(void) {
+  SavePreferencesOnExit();
+  if (currentSettings.autostart[0] != '\0' && IsAmigaAMPRunning()) {
+    QuitAmigaAMP();
+  }
+  running = FALSE;
+}
+
+void HandleGadgetUp(UWORD gadgetID, UWORD code) {
   char msg[MAX_STATUS_MSG_LEN];
 
   switch (gadgetID) {
@@ -543,8 +695,12 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
       HandleSearch();
       break;
 
+    case 20:  // More button
+      HandleSearchMore();
+      break;
+
     case 9:  // ListView
-      HandleListSelect(imsg);
+      HandleListSelect(code);
       break;
 
     case 10:  // Save all button
@@ -558,6 +714,8 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
       break;
 
     case 12:  // Stop button
+      isPlaying = FALSE;
+      SetTrackText("");
       if (IsAmigaAMPRunning()) {
         if (StopAmigaAMP()) {
           GetTFFormattedString(msg, sizeof(msg), MSG_STOPPING_PLAYBACK);
@@ -570,24 +728,7 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
       break;
 
     case 13:  // Play button
-      if (currentStation) {
-        if (IsAmigaAMPRunning()) {
-          if (!OpenStreamInAmigaAMP(currentStation->url)) {
-            GetTFFormattedString(msg, sizeof(msg), MSG_FAILED_START_PLAYBACK);
-            UpdateStatusMessage(msg);
-          } else {
-            char nameBuffer[MAX_STATION_NAME + 1];
-            cleanNonAscii(nameBuffer, currentStation->name,
-                          MAX_STATION_NAME + 1);
-            GetTFFormattedString(msg, sizeof(msg), MSG_PLAYING_STATION,
-                                 nameBuffer);
-            UpdateStatusMessage(msg);
-          }
-        } else {
-          GetTFFormattedString(msg, sizeof(msg), MSG_AMIGAAMP_NOT_RUNNING);
-          UpdateStatusMessage(msg);
-        }
-      }
+      PlayCurrentStation();
       break;
 
     case 17:  // Favorite button
@@ -618,6 +759,19 @@ void HandleGadgetUp(struct IntuiMessage *imsg) {
       break;
   }
 }
+// Saves the positions of the cycle gadgets
+static void SaveCurrentCyclePreferences(void) {
+  struct CyclePreferences prefs;
+
+  if (!window) return;
+  memset(&prefs, 0, sizeof(prefs));
+  GT_GetGadgetAttrs(countryCodeCycle, window, NULL, GTCY_Active, &prefs.country, TAG_DONE);
+  GT_GetGadgetAttrs(codecCycle, window, NULL, GTCY_Active, &prefs.codec, TAG_DONE);
+  GT_GetGadgetAttrs(httpsCycle, window, NULL, GTCY_Active, &prefs.httpsMode, TAG_DONE);
+  GT_GetGadgetAttrs(sortCycle, window, NULL, GTCY_Active, &prefs.sortMode, TAG_DONE);
+  SaveCyclePreferences(&prefs);
+}
+
 void SavePreferencesOnExit(void) {
     if (window) {
       DEBUG("Saving window position: %ld, %ld", window->LeftEdge, window->TopEdge);
@@ -625,15 +779,7 @@ void SavePreferencesOnExit(void) {
       currentSettings.windowTop = window->TopEdge;
     }
     SaveSettings(&currentSettings);
-    LONG country = 0, codec = 0;
-    // Get current selections
-    GT_GetGadgetAttrs(countryCodeCycle, window, NULL,
-                     GTCY_Active, &country,
-                     TAG_DONE);
-    GT_GetGadgetAttrs(codecCycle, window, NULL,
-                     GTCY_Active, &codec,
-                     TAG_DONE);
-    SaveCyclePreferences(country, codec);
+    SaveCurrentCyclePreferences();
 }
 
 void HandleMenuPick(UWORD menuNumber) {
@@ -677,21 +823,7 @@ void HandleMenuPick(UWORD menuNumber) {
         break;
       case ITEM_QUIT:
         DEBUG("Quit selected");
-        SavePreferencesOnExit(); 
-        // Signal the main loop to quit
-        if (window) {
-          // Post a CLOSEWINDOW message to the window
-          struct IntuiMessage *msg = (struct IntuiMessage *)AllocMem(
-              sizeof(struct IntuiMessage), MEMF_CLEAR);
-          if (msg) {
-            msg->Class = IDCMP_CLOSEWINDOW;
-            msg->IDCMPWindow = window;
-            PutMsg(window->UserPort, (struct Message *)msg);
-          } else {
-            // If we can't allocate memory, close window directly
-            CloseWindow(window);
-          }
-        }
+        RequestQuit();
         break;
         case ITEM_FAVORITES: {
           // Toggle checkmark for favorites menu item
@@ -782,6 +914,9 @@ static ULONG RenderFunc(struct Hook *hook, struct Node *node,
       ((msg->lvdm_Bounds.MaxY - msg->lvdm_Bounds.MinY - rp->TxHeight) / 2) +
       rp->TxBaseline;
 
+  // Stations that failed the last check are drawn in italics
+  SetSoftStyle(rp, ext->broken ? FSF_ITALIC : FS_NORMAL, FSF_ITALIC);
+
   // Draw name
   if (ext->name) {
     cleanNonAscii(nameBuffer, ext->name, MAX_STATION_NAME + 1);
@@ -795,16 +930,19 @@ static ULONG RenderFunc(struct Hook *hook, struct Node *node,
     }
   }
 
-  // Draw codec
-  if (ext->codec) {
-    ULONG textLength = strlen(ext->codec);
-    ULONG textWidth = TextLength(rp, ext->codec, textLength);
+  SetSoftStyle(rp, FS_NORMAL, FSF_ITALIC);
+
+  // Draw codec; HLS streams cannot be played by AmigaAMP
+  {
+    const char *codec = ext->hls ? "HLS" : ext->codec;
+    ULONG textLength = strlen(codec);
+    ULONG textWidth = TextLength(rp, (STRPTR)codec, textLength);
     Move(rp, msg->lvdm_Bounds.MinX + nameWidth + codecWidth - textWidth - 4, y);
-    Text(rp, ext->codec, textLength);
+    Text(rp, (STRPTR)codec, textLength);
   }
 
   // Draw bitrate
-  sprintf(buffer, "%ld", ext->bitrate);
+  snprintf(buffer, sizeof(buffer), "%ld", (long)ext->bitrate);
   ULONG textLength = strlen(buffer);
   ULONG textWidth = TextLength(rp, buffer, textLength);
   Move(rp,
@@ -859,12 +997,15 @@ BOOL OpenGUI(void) {
   // Get border height
   border_height = s->WBorTop + s->Font->ta_YSize + 1;
 
-  if (!LoadCountryConfig(FULL_COUNTRY_CONFIG_PATH, &countryConfig)) {
+  // Kept while iconified, so only loaded on the first open
+  if (!countryConfig.entries &&
+      !LoadCountryConfig(FULL_COUNTRY_CONFIG_PATH, &countryConfig)) {
     DEBUG("Failed to load country configuration");
     UnlockPubScreen(NULL, s);
     return FALSE;
   }
-  if (countryConfig.count > 0) {
+  if (countryConfig.count > 0 && !countryChoicesFitted) {
+    countryChoicesFitted = TRUE;
     WORD maxChars = 20;  // Base number for safety
     if (font_width > 0) {
       // Calculate max chars based on actual font width
@@ -880,6 +1021,7 @@ BOOL OpenGUI(void) {
           if (truncated) {
             strncpy(truncated, countryConfig.entries[i].name, maxChars);
             truncated[maxChars] = '\0';
+            if (countryConfig.choices[i]) FreeVec(countryConfig.choices[i]);
             countryConfig.choices[i] = truncated;
           }
         }
@@ -937,15 +1079,31 @@ BOOL OpenGUI(void) {
       CreateGadget(STRING_KIND, nameStrGad, &ng, GTST_MaxChars, 100, TAG_DONE);
   if (!tagsStrGad) DEBUG("Failed to create tags gadget");
 
+  // Saved positions of the cycle gadgets
+  struct CyclePreferences cyclePrefs;
+  LoadCyclePreferences(&cyclePrefs);
+
+  httpsChoices[HTTPS_MODE_ALL] = GetTFString(MSG_HTTPS_MODE_ALL);
+  httpsChoices[HTTPS_MODE_ONLY] = GetTFString(MSG_HTTPS_MODE_ONLY);
+  httpsChoices[HTTPS_MODE_NONE] = GetTFString(MSG_HTTPS_MODE_NONE);
+  httpsChoices[HTTPS_MODE_COUNT] = NULL;
+  sortChoices[SORT_NAME] = GetTFString(MSG_NAME);
+  sortChoices[SORT_VOTES] = GetTFString(MSG_SORT_VOTES);
+  sortChoices[SORT_CLICKS] = GetTFString(MSG_SORT_POPULAR);
+  sortChoices[SORT_BITRATE] = GetTFString(MSG_BITRATE);
+  sortChoices[SORT_RANDOM] = GetTFString(MSG_SORT_RANDOM);
+  sortChoices[SORT_COUNT] = NULL;
+
   // Country Cycle gadget
   ng.ng_LeftEdge = font_width * 10;  // Same as name gadget
-  ng.ng_TopEdge += font_height + 12;
+  ng.ng_TopEdge += font_height + 8;
   ng.ng_GadgetText = GetTFString(MSG_COUNTRY);
   ng.ng_GadgetID = 2;
 
   countryCodeCycle =
       CreateGadget(CYCLE_KIND, tagsStrGad, &ng, GTCY_Labels,
-                   countryConfig.choices, GTCY_Active, 0, TAG_DONE);
+                   countryConfig.choices, GTCY_Active,
+                   ClampIndex(cyclePrefs.country, countryConfig.count), TAG_DONE);
   if (!countryCodeCycle) DEBUG("Failed to create country gadget");
 
   // Codec Cycle gadget
@@ -954,41 +1112,40 @@ BOOL OpenGUI(void) {
   ng.ng_GadgetID = 4;
 
   codecCycle = CreateGadget(CYCLE_KIND, countryCodeCycle, &ng, GTCY_Labels,
-                            (STRPTR *)codecChoices, GTCY_Active, 0, TAG_DONE);
+                            (STRPTR *)codecChoices, GTCY_Active,
+                            ClampIndex(cyclePrefs.codec, CODEC_COUNT), TAG_DONE);
   if (!codecCycle) DEBUG("Failed to create codec gadget");
-    LONG savedCountry = 0, savedCodec = 0;
-    if (LoadCyclePreferences(&savedCountry, &savedCodec)) {
-        // Set saved country if valid
-        if (savedCountry >= 0 && savedCountry < countryConfig.count) {
-            GT_SetGadgetAttrs(countryCodeCycle, window, NULL,
-                            GTCY_Active, savedCountry,
-                            TAG_DONE);
-        }
-        // Set saved codec if valid
-        if (savedCodec >= 0 && savedCodec < 6) {  // 6 is the number of codec choices
-            GT_SetGadgetAttrs(codecCycle, window, NULL,
-                            GTCY_Active, savedCodec,
-                            TAG_DONE);
-        }
-    }
-  // Checkboxes row
-  ng.ng_TopEdge += font_height + 12;
+
+  // HTTPS and sort cycles, in the same columns
+  ng.ng_LeftEdge = font_width * 10;
+  ng.ng_TopEdge += font_height + 8;
+  ng.ng_GadgetText = GetTFString(MSG_HTTPS);
+  ng.ng_GadgetID = 6;
+
+  httpsCycle = CreateGadget(CYCLE_KIND, codecCycle, &ng, GTCY_Labels,
+                            (STRPTR *)httpsChoices, GTCY_Active,
+                            ClampIndex(cyclePrefs.httpsMode, HTTPS_MODE_COUNT), TAG_DONE);
+  if (!httpsCycle) DEBUG("Failed to create https gadget");
+
+  ng.ng_LeftEdge = font_width * 40;
+  ng.ng_GadgetText = GetTFString(MSG_SORT);
+  ng.ng_GadgetID = 19;
+
+  sortCycle = CreateGadget(CYCLE_KIND, httpsCycle, &ng, GTCY_Labels,
+                           (STRPTR *)sortChoices, GTCY_Active,
+                           ClampIndex(cyclePrefs.sortMode, SORT_COUNT), TAG_DONE);
+  if (!sortCycle) DEBUG("Failed to create sort gadget");
+
+  // Checkbox and search button row
+  ng.ng_TopEdge += font_height + 8;
   ng.ng_LeftEdge = font_width * 2;  // Move left for checkbox
   ng.ng_Width = font_width * 12;
   ng.ng_Height = font_height + 4;
-  ng.ng_GadgetText = GetTFString(MSG_HTTPS_ONLY);
-  ng.ng_GadgetID = 6;
-  ng.ng_Flags = PLACETEXT_RIGHT;  // Text to right of checkbox
-
-  httpsCheckBox = CreateGadget(CHECKBOX_KIND, codecCycle, &ng, GTCB_Checked,
-                               FALSE, TAG_DONE);
-  if (!httpsCheckBox) DEBUG("Failed to create https checkbox");
-
-  ng.ng_LeftEdge = font_width * 18;  // Position second checkbox
   ng.ng_GadgetText = GetTFString(MSG_HIDE_BROKEN);
   ng.ng_GadgetID = 7;
+  ng.ng_Flags = PLACETEXT_RIGHT;  // Text to right of checkbox
 
-  hideBrokenCheckBox = CreateGadget(CHECKBOX_KIND, httpsCheckBox, &ng,
+  hideBrokenCheckBox = CreateGadget(CHECKBOX_KIND, sortCycle, &ng,
                                     GTCB_Checked, TRUE, TAG_DONE);
   if (!hideBrokenCheckBox) DEBUG("Failed to create broken checkbox");
 
@@ -1007,7 +1164,7 @@ BOOL OpenGUI(void) {
   renderHook.h_SubEntry = (HOOKFUNC)RenderFunc;
 
   ng.ng_LeftEdge = font_width * 2;
-  ng.ng_TopEdge += font_height + 12;
+  ng.ng_TopEdge += font_height + 8;
   ng.ng_Width = font_width * 60;
   ng.ng_Height = (font_height + 4) * 8;
   ng.ng_GadgetText = NULL;
@@ -1023,7 +1180,7 @@ BOOL OpenGUI(void) {
 
   // Status text (right under ListView)
   ng.ng_TopEdge += ng.ng_Height + 4;
-  ng.ng_Width = font_width * 60;
+  ng.ng_Width = font_width * 49;  // "More" sits right of it
   ng.ng_Height = font_height + 4;
   ng.ng_GadgetText = NULL;
   ng.ng_Flags = 0;
@@ -1034,6 +1191,16 @@ BOOL OpenGUI(void) {
       CreateGadget(TEXT_KIND, listView, &ng, GTTX_Text, GetTFString(MSG_READY),
                    GTST_MaxChars, 51, TAG_DONE);
   if (!statusMsgGad) DEBUG("Failed to create status gadget");
+
+  // More: next page of the last search
+  ng.ng_LeftEdge = font_width * 52;
+  ng.ng_Width = font_width * 10;
+  ng.ng_GadgetText = GetTFString(MSG_MORE);
+  ng.ng_Flags = PLACETEXT_IN;
+  ng.ng_GadgetID = 20;
+  moreButton = CreateGadget(BUTTON_KIND, statusMsgGad, &ng, GA_Disabled, TRUE, TAG_DONE);
+  if (!moreButton) DEBUG("Failed to create more button");
+  ng.ng_LeftEdge = font_width * 2;
 
   // Size for buttons
 
@@ -1051,7 +1218,7 @@ BOOL OpenGUI(void) {
   ng.ng_GadgetText = GetTFString(MSG_SAVE);
   ng.ng_GadgetID = 10;
 
-  saveButton = CreateGadget(BUTTON_KIND, statusMsgGad, &ng, GT_Underscore, '_',
+  saveButton = CreateGadget(BUTTON_KIND, moreButton, &ng, GT_Underscore, '_',
                             TAG_DONE);
   if (!saveButton) DEBUG("Failed to create save button");
 
@@ -1113,13 +1280,13 @@ BOOL OpenGUI(void) {
                                 GTST_MaxChars, 100, TAG_DONE);
   if (!stationNameGad) DEBUG("Failed to create station name gadget");
 
-  // Station details text (second line)
+  // Current track, updated while playing
   ng.ng_TopEdge += font_height + 4;
-  ng.ng_GadgetID = 16;
+  ng.ng_GadgetID = 22;
 
-  stationDetailGad = CreateGadget(TEXT_KIND, stationNameGad, &ng, GTTX_Text, "",
-                                  GTST_MaxChars, 100, TAG_DONE);
-  if (!stationDetailGad) DEBUG("Failed to create station detail gadget");
+  trackGad = CreateGadget(TEXT_KIND, stationNameGad, &ng, GTTX_Text, TrackText(),
+                          TAG_DONE);
+  if (!trackGad) DEBUG("Failed to create track gadget");
 
   // labels
   ULONG window_width = font_width * 64; 
@@ -1203,16 +1370,7 @@ cleanup:
 }
 BOOL IconifyWindow(void) {
   if (!window) return FALSE;
-    LONG country = 0, codec = 0;
-    GT_GetGadgetAttrs(countryCodeCycle, window, NULL,
-                      GTCY_Active, &country,
-                      TAG_DONE);
-    GT_GetGadgetAttrs(codecCycle, window, NULL,
-                      GTCY_Active, &codec,
-                      TAG_DONE);
-                      
-    SaveCyclePreferences(country, codec);
-    DEBUG("Saved cycle states - Country: %ld, Codec: %ld", country, codec);
+    SaveCurrentCyclePreferences();
 
   // Create message port for AppIcon if not already created
   if (!appPort) {
@@ -1247,12 +1405,22 @@ BOOL IconifyWindow(void) {
     DEBUG("Successfully loaded program icon");
   }
 
-  // Close window BEFORE creating AppIcon
+  // Close window BEFORE creating AppIcon. OpenGUI() creates the menus,
+  // gadgets and visual info again when un-iconifying.
   if (window) {
     struct Gadget *glist = (struct Gadget *)window->UserData;
+    if (menuStrip) {
+      ClearMenuStrip(window);
+      FreeMenus(menuStrip);
+      menuStrip = NULL;
+    }
     CloseWindow(window);
     if (glist) FreeGadgets(glist);
     window = NULL;
+  }
+  if (visualInfo) {
+    FreeVisualInfo(visualInfo);
+    visualInfo = NULL;
   }
 
   // Create AppIcon
@@ -1291,6 +1459,10 @@ BOOL UnIconifyWindow(void) {
     return FALSE;
   }
   if (savedBrowserList) {
+    if (window && listView) {
+      GT_SetGadgetAttrs(listView, window, NULL, GTLV_Labels, ~0, TAG_DONE);
+    }
+    free_labels(browserList);  // the empty list OpenGUI() created
     browserList = savedBrowserList;
     savedBrowserList = NULL;
     if (window && listView) {

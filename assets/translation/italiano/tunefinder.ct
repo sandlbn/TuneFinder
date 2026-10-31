@@ -292,3 +292,36 @@ MSG_STOPPING_PLAYBACK
 Riproduzione interrotta
 ; Playback stopped
 ;
+MSG_CONNECTING
+Connessione: %s
+;
+MSG_HLS_STATION
+Flusso HLS, AmigaAMP non puo' riprodurlo
+;
+MSG_HTTPS
+HTTPS
+;
+MSG_HTTPS_MODE_ALL
+Tutte
+;
+MSG_HTTPS_MODE_ONLY
+Solo HTTPS
+;
+MSG_HTTPS_MODE_NONE
+No HTTPS
+;
+MSG_SORT
+Ordina
+;
+MSG_SORT_VOTES
+Voti
+;
+MSG_SORT_POPULAR
+Popolari
+;
+MSG_SORT_RANDOM
+Casuale
+;
+MSG_MORE
+Altri
+;

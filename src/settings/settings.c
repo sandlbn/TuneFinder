@@ -149,7 +149,16 @@ BOOL LoadSettings(struct APISettings *settings) {
         LONG len = Read(file, settings->host, MAX_HOST_LEN-1);
         if (len > 0) {
             settings->host[len] = '\0';
-            hostLoaded = TRUE;
+            // Hand-edited files often end with a newline
+            while (len > 0 && (settings->host[len - 1] == '\n' ||
+                               settings->host[len - 1] == '\r' ||
+                               settings->host[len - 1] == ' ')) {
+                settings->host[--len] = '\0';
+            }
+            hostLoaded = len > 0;
+        }
+        if (!hostLoaded) {
+            strncpy(settings->host, API_HOST, MAX_HOST_LEN-1);
         }
         Close(file);
     } 
@@ -183,7 +192,9 @@ BOOL LoadSettings(struct APISettings *settings) {
         if (len > 0) {
             limitStr[len] = '\0';
             int tempLimit = 0;
-            if (sscanf(limitStr, "%d", &tempLimit) == 1 && tempLimit >= 0) {
+            // 0 would make the API send its whole directory
+            if (sscanf(limitStr, "%d", &tempLimit) == 1 && tempLimit > 0 &&
+                tempLimit <= MAX_LIMIT) {
                 settings->limit = tempLimit;
                 limitLoaded = TRUE;
             } else {
@@ -525,7 +536,7 @@ BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent) {
               // Validate limit
               int tempLimit;
               if (!limitStr || sscanf(limitStr, "%d", &tempLimit) != 1 ||
-                  tempLimit < 0) {
+                  tempLimit <= 0 || tempLimit > MAX_LIMIT) {
                 GetTFFormattedString(msg, sizeof(msg), MSG_INVALID_PORT,
                                      DEFAULT_LIMIT);
                 UpdateStatusMessage(msg);
@@ -581,85 +592,57 @@ cleanup:
 
   return success;
 }
-BOOL SaveCyclePreferences(LONG countryCode, LONG codec) {
+static BOOL WriteNumberFile(const char *name, LONG value) {
   char filepath[256];
-  char countryStr[8];
-  char codecStr[8];
+  char text[16];
   BPTR file;
-  BOOL success = FALSE;
+  LONG len;
+  BOOL ok;
 
-  if (!EnsureSettingsPath()) {
-    return FALSE;
-  }
-
-  // Save country
-  sprintf(filepath, TUNEFINDER_DIR ENV_COUNTRY);
+  snprintf(filepath, sizeof(filepath), TUNEFINDER_DIR "%s", name);
   file = Open(filepath, MODE_NEWFILE);
-  if (!file) {
-    return FALSE;
-  }
+  if (!file) return FALSE;
+  snprintf(text, sizeof(text), "%ld", (long)value);
+  len = strlen(text);
+  ok = Write(file, text, len) == len;
+  if (!Close(file)) ok = FALSE;
+  return ok;
+}
 
-  sprintf(countryStr, "%ld", countryCode);
-  LONG len = strlen(countryStr);
-  if (Write(file, countryStr, len) != len) {
-    Close(file);
-    return FALSE;
-  }
+static BOOL ReadNumberFile(const char *name, LONG *value) {
+  char filepath[256];
+  char buffer[16];
+  BPTR file;
+  LONG len;
+
+  snprintf(filepath, sizeof(filepath), TUNEFINDER_DIR "%s", name);
+  file = Open(filepath, MODE_OLDFILE);
+  if (!file) return FALSE;
+  len = Read(file, buffer, sizeof(buffer) - 1);
   Close(file);
-
-  // Save codec
-  sprintf(filepath, TUNEFINDER_DIR ENV_CODEC);
-  file = Open(filepath, MODE_NEWFILE);
-  if (!file) {
-    return FALSE;
-  }
-
-  sprintf(codecStr, "%ld", codec);
-  len = strlen(codecStr);
-  if (Write(file, codecStr, len) != len) {
-    Close(file);
-    return FALSE;
-  }
-  Close(file);
-
+  if (len <= 0 || buffer[0] < '0' || buffer[0] > '9') return FALSE;
+  buffer[len] = '\0';
+  *value = atol(buffer);
   return TRUE;
 }
 
-BOOL LoadCyclePreferences(LONG *countryCode, LONG *codec) {
-  char filepath[256];
-  char buffer[8];
-  BPTR file;
-  BOOL success = FALSE;
-
-  // Set defaults
-  *countryCode = 0;
-  *codec = 0;
-
-  // Load country
-  sprintf(filepath, TUNEFINDER_DIR ENV_COUNTRY);
-  file = Open(filepath, MODE_OLDFILE);
-  if (file) {
-    LONG len = Read(file, buffer, sizeof(buffer) - 1);
-    if (len > 0) {
-      buffer[len] = '\0';
-      *countryCode = atoi(buffer);
-      success = TRUE;
-    }
-    Close(file);
+BOOL SaveCyclePreferences(const struct CyclePreferences *prefs) {
+  if (!EnsureSettingsPath()) {
+    return FALSE;
   }
+  return WriteNumberFile(ENV_COUNTRY, prefs->country) &&
+         WriteNumberFile(ENV_CODEC, prefs->codec) &&
+         WriteNumberFile(ENV_HTTPS, prefs->httpsMode) &&
+         WriteNumberFile(ENV_SORT, prefs->sortMode);
+}
 
-  // Load codec
-  sprintf(filepath, TUNEFINDER_DIR ENV_CODEC);
-  file = Open(filepath, MODE_OLDFILE);
-  if (file) {
-    LONG len = Read(file, buffer, sizeof(buffer) - 1);
-    if (len > 0) {
-      buffer[len] = '\0';
-      *codec = atoi(buffer);
-      success = TRUE;
-    }
-    Close(file);
-  }
+BOOL LoadCyclePreferences(struct CyclePreferences *prefs) {
+  BOOL loaded;
 
-  return success;
+  memset(prefs, 0, sizeof(*prefs));
+  loaded = ReadNumberFile(ENV_COUNTRY, &prefs->country);
+  loaded |= ReadNumberFile(ENV_CODEC, &prefs->codec);
+  ReadNumberFile(ENV_HTTPS, &prefs->httpsMode);
+  ReadNumberFile(ENV_SORT, &prefs->sortMode);
+  return loaded;
 }

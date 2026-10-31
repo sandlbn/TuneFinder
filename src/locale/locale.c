@@ -80,6 +80,9 @@ static const char *built_in_strings[] = {
 
     // Error Messages - External Programs (90-91)
     "Failed to start playback", "AmigaAMP is not running", "Playback stopped",
+    "Connecting: %s", "HLS stream, AmigaAMP cannot play it",
+    "HTTPS", "All", "HTTPS only", "No HTTPS",
+    "Sort", "Votes", "Popular", "Random", "More",
     NULL  // Final terminator
 };
 BOOL InitLocaleSystem(void) {

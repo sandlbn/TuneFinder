@@ -2,8 +2,9 @@ Short:        Search and play online radio stations
 Author:       marcin@spoczynski.com (Marcin Spoczynski)
 Uploader:     marcin@spoczynski.com (Marcin Spoczynski)
 Type:         comm/misc
-Version:      1.3a
+Version:      1.5
 Architecture: m68k-amigaos >= 3.0
+Requires:     TCP/IP stack, AmigaAMP + mpega.library
 Distribution: Aminet
 Replaces: comm/misc/TuneFinder.lha 
 
@@ -23,6 +24,47 @@ Main features:
   compatible media players
 - Native AmigaOS GUI interface
 - Favorites management
+- Sort by name, votes, popularity, bitrate or random; "More" loads the
+  next page of results
+- HTTPS filter: all stations, HTTPS only, or no HTTPS (for systems
+  without AmiSSL)
+- Playback starts in the background; the status line shows Connecting
+  and then Playing, and the current track is shown while playing
+- HLS streams (not playable by AmigaAMP) and stations that failed their
+  last check are marked
+- ARexx port for scripting
+
+REQUIREMENTS
+------------
+
+- AmigaOS 3.0+, any 68000 or better (68040/68060 recommended for MP3)
+- TCP/IP stack with bsdsocket.library (Roadshow, AmiTCP, Miami, ...)
+- AmigaAMP and mpega.library (Aminet: util/libs/mpega_library.lha)
+  for playback
+- AmiSSL for HTTPS streams (optional, AmigaAMP side)
+
+AREXX
+-----
+
+The ARexx port is "TUNEFINDER". Commands:
+  SEARCH [NAME]        search (other filters as set in the window)
+  MORE                 load the next page of results
+  SORT NAME|VOTES|POPULAR|BITRATE|RANDOM
+  COUNT                number of stations in the list
+  SELECT INDEX         make a station active (0 = first)
+  ACTIVE               name|url|codec|country|bitrate of the active one
+  PLAY, STOP           playback in AmigaAMP
+  ADDFAV, REMOVEFAV    add/remove the active station
+  FAVORITES            show the favorites list
+  STATUS, TRACK        status line, current track
+  QUIT                 quit TuneFinder
+Commands that use the window fail with RC 10 while iconified.
+Example:
+  ADDRESS TUNEFINDER
+  OPTIONS RESULTS
+  SEARCH jazz
+  SELECT 0
+  PLAY
 
 ADDING NEW COUNTRIES
 -------------------
@@ -136,5 +178,31 @@ TuneFinder 1.3 (08.12.2024)
 TuneFinder 1.3a (09.12.2024)
 
 - Added Iconify AmigaAMP on start to automatically minimize AmigaAMP
+
+TuneFinder 1.5 (30.10.2026)
+
+- Fixed the Hide Broken and HTTPS Only filters, which had no effect
+- Fixed crashes: playing after a new search, quitting from the menu,
+  long stream URLs, and several memory leaks (iconify, favorites)
+- Searches with short names or tags (1-2 letters) and with accented
+  letters (umlauts, Polish letters, ...) now work
+- An empty search result is no longer reported as an error
+- Plays the direct stream address instead of a playlist URL, so more
+  stations start in AmigaAMP
+- Playback starts in the background with Connecting/Playing status
+- HLS streams are marked and not sent to AmigaAMP; stations that failed
+  their last check are shown in italics
+- Favorites with '|' in the name or an empty codec are stored correctly
+- Status and station details no longer show garbage after redraws
+- Connection and AmigaAMP timeouts, no system-wide freezes
+- Reports played stations to Radio Browser, as the service asks
+- Sorting (name, votes, popularity, bitrate, random) and a "More"
+  button for further results
+- HTTPS filter is now All / HTTPS only / No HTTPS
+- The current track is shown and updated while playing
+- More compact window: fits a 640x256 Workbench; the selected station
+  is shown on one line with codec, bitrate and full country name
+- ARexx port "TUNEFINDER"
+- Larger stack; Ctrl-C quits
 
 Special thanks to Flype, Thomas, Ponki1986, Samir, Alexander, Paluch and many others for their help testing TuneFinder!

@@ -14,10 +14,11 @@
 #define HTTPS_TRUE 1
 #define HTTPS_FALSE 0
 #define INITIAL_BUFFER_SIZE (64 * 1024)  // 64 kb :) 
-#define MAX_BUFFER_SIZE (64 * 1024 * 1024) // 4MB maximum
+#define MAX_BUFFER_SIZE (64 * 1024 * 1024) // 64MB maximum
 #define PREFERRED_BUFFER_SIZE (2 * 1024 * 1024) // 2MB preferred
 #define READ_CHUNK_SIZE (8 * 1024)         // Read 8KB at a time
-#define MAX_STATUS_MSG_LEN 256 
+#define MAX_STATUS_MSG_LEN 256
+#define VERSION_NUMBER "1.5"   // keep in sync with version.h
 #define PLS_HEADER "[playlist]\n"
 #define PLS_NUMBER_OF_ENTRIES "NumberOfEntries=%d\n"
 #define PLS_FILE_ENTRY "File%d=%s\n"
@@ -28,7 +29,9 @@
 #define NO_POSITION 0xFFFFFFFF
 
 #ifdef DEBUG_BUILD
-    #define DEBUG(msg, ...) printf("DEBUG [%s:%d]: " msg "\n", __func__, __LINE__, ##__VA_ARGS__)
+    #include <stdio.h>
+    // Flushed so the output survives a crash or a hang
+    #define DEBUG(msg, ...) (printf("DEBUG [%s:%d]: " msg "\n", __func__, __LINE__, ##__VA_ARGS__), fflush(stdout))
 #else
     #define DEBUG(msg, ...) ((void)0)  // Does nothing in release build
 #endif

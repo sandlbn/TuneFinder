@@ -294,3 +294,36 @@ MSG_STOPPING_PLAYBACK
 Restitution stoppée
 ; Playback stopped
 ;
+MSG_CONNECTING
+Connexion : %s
+;
+MSG_HLS_STATION
+Flux HLS, AmigaAMP ne peut pas le lire
+;
+MSG_HTTPS
+HTTPS
+;
+MSG_HTTPS_MODE_ALL
+Toutes
+;
+MSG_HTTPS_MODE_ONLY
+HTTPS seul
+;
+MSG_HTTPS_MODE_NONE
+Sans HTTPS
+;
+MSG_SORT
+Tri
+;
+MSG_SORT_VOTES
+Votes
+;
+MSG_SORT_POPULAR
+Populaires
+;
+MSG_SORT_RANDOM
+Hasard
+;
+MSG_MORE
+Plus
+;
