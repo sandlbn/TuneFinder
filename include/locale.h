@@ -90,6 +90,17 @@
 #define MSG_FAILED_START_PLAYBACK  90  // "Failed to start playback"
 #define MSG_AMIGAAMP_NOT_RUNNING   91  // "AmigaAMP is not running"
 #define MSG_STOPPING_PLAYBACK      92 // Playback stopped
+#define MSG_CONNECTING             93 // "Connecting: %s"
+#define MSG_HLS_STATION            94 // "HLS stream, AmigaAMP cannot play it"
+#define MSG_HTTPS                  95 // "HTTPS"
+#define MSG_HTTPS_MODE_ALL         96 // "All"
+#define MSG_HTTPS_MODE_ONLY        97 // "HTTPS only"
+#define MSG_HTTPS_MODE_NONE        98 // "No HTTPS"
+#define MSG_SORT                   99 // "Sort"
+#define MSG_SORT_VOTES             100 // "Votes"
+#define MSG_SORT_POPULAR           101 // "Popular"
+#define MSG_SORT_RANDOM            102 // "Random"
+#define MSG_MORE                   103 // "More"
 
 BOOL InitLocaleSystem(void);
 void CleanupLocaleSystem(void);

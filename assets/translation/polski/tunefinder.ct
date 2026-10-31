@@ -196,3 +196,36 @@ AmigaAMP nie jest uruchomiony
 MSG_STOPPING_PLAYBACK
 Odtwarzanie zatrzymane
 ;
+MSG_CONNECTING
+Laczenie: %s
+;
+MSG_HLS_STATION
+Strumien HLS, AmigaAMP nie moze go odtworzyc
+;
+MSG_HTTPS
+HTTPS
+;
+MSG_HTTPS_MODE_ALL
+Wszystkie
+;
+MSG_HTTPS_MODE_ONLY
+Tylko HTTPS
+;
+MSG_HTTPS_MODE_NONE
+Bez HTTPS
+;
+MSG_SORT
+Sortuj
+;
+MSG_SORT_VOTES
+Glosy
+;
+MSG_SORT_POPULAR
+Popularne
+;
+MSG_SORT_RANDOM
+Losowo
+;
+MSG_MORE
+Wiecej
+;

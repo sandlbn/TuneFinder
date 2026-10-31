@@ -18,6 +18,8 @@
 #define ENV_CODEC "codec"
 #define ENV_AUTOSTART "autostart"
 #define ENV_ICONIFY_AMIGAAMP "iconify_amigaamp"
+#define ENV_HTTPS "https_mode"
+#define ENV_SORT "sort"
 #define MAX_PATH_LEN 256
 
 struct APISettings {
@@ -33,7 +35,14 @@ struct APISettings {
 BOOL LoadSettings(struct APISettings *settings);
 BOOL SaveSettings(const struct APISettings *settings);
 BOOL CreateSettingsWindow(struct APISettings *settings, struct Window *parent);
-BOOL LoadCyclePreferences(LONG *countryCode, LONG *codec);
-BOOL SaveCyclePreferences(LONG countryCode, LONG codec);
+// Positions of the cycle gadgets, kept between sessions
+struct CyclePreferences {
+    LONG country;
+    LONG codec;
+    LONG httpsMode;   // HTTPS_MODE_*
+    LONG sortMode;    // SORT_*
+};
+BOOL LoadCyclePreferences(struct CyclePreferences *prefs);
+BOOL SaveCyclePreferences(const struct CyclePreferences *prefs);
 
 #endif /* SETTINGS_H */

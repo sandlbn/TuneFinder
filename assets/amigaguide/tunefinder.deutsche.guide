@@ -1,4 +1,5 @@
 @database TuneFinder.guide
+@$VER: TuneFinder.guide 1.5 (30.10.2026)
 @node Main "TuneFinder Benutzerhandbuch"
 @{fg shine}TuneFinder Benutzerhandbuch@{fg text}
 
@@ -6,12 +7,14 @@ TuneFinder ist ein AmigaOS 3.x Programm
 für das Suchen und Abspeichern von Internet-Radiosendern.
 
 @{b}Inhalt:@{ub}
+@{"Voraussetzungen" link REQUIREMENTS}
 @{"Grundlegende Verwendung" link BASIC}
 @{"Suchoptionen" link SEARCH}
 @{"Einstellungen" link SETTINGS}
 @{"Speichern von Sendern" link SAVING}
 @{"Übersetzungen" link TRANS}
 @{"Länder" link COUNTRIES}
+@{"ARexx" link AREXX}
 
 @endnode
 
@@ -113,4 +116,66 @@ Standardeinträge werden automatisch erstellt, wenn die Datei nicht vorhanden ist
 Die vollständige Liste der Länder mit ISO-Codes befindet sich im Beispielordner.
 
 @{"Zurück" link Main}
+@endnode
+
+@node REQUIREMENTS "Voraussetzungen"
+@{fg shine}Voraussetzungen@{fg text}
+
+- AmigaOS 3.0 oder neuer, 68000 oder besser
+  (68040/68060 für MP3-Wiedergabe empfohlen)
+- Ein TCP/IP-Stack mit bsdsocket.library
+  (Roadshow, AmiTCP, Miami, ...)
+- AmigaAMP zum Abspielen, mit mpega.library in LIBS:
+  (Aminet: util/libs/mpega_library.lha)
+- AmiSSL in AmigaAMP für HTTPS-Streams (optional)
+
+Die Wiedergabe startet im Hintergrund: die Statuszeile zeigt
+"Verbinde", bis AmigaAMP den Stream geöffnet hat, dann "Spielt".
+Während der Wiedergabe zeigt die Zeile unter dem Sender den
+aktuellen Titel.
+
+HTTPS: Alle, Nur HTTPS oder Kein HTTPS. "Kein HTTPS" wählen,
+wenn AmigaAMP kein AmiSSL hat.
+Sortierung: nach Name, Stimmen, Beliebtheit, Bitrate oder Zufall.
+"Mehr" unter der Liste lädt weitere Ergebnisse.
+@{i}Kursiv@{ui} dargestellte Sender haben die letzte Prüfung von
+Radio Browser nicht bestanden. Sender mit Codec "HLS" kann
+AmigaAMP nicht abspielen.
+
+@{"Zurück zum Inhalt" link Main}
+@endnode
+
+@node AREXX "ARexx"
+@{fg shine}ARexx@{fg text}
+
+TuneFinder hat den ARexx-Port "TUNEFINDER".
+
+@{b}SEARCH [NAME]@{ub}      Suchen; andere Filter wie im Fenster
+@{b}MORE@{ub}               Weitere Ergebnisse laden
+@{b}SORT MODE@{ub}          NAME, VOTES, POPULAR, BITRATE oder RANDOM
+@{b}COUNT@{ub}              Anzahl der Sender in der Liste
+@{b}SELECT INDEX@{ub}       Sender auswählen (0 ist der erste)
+@{b}ACTIVE@{ub}             Name|URL|Codec|Land|Bitrate des
+                    ausgewählten Senders
+@{b}PLAY@{ub}, @{b}STOP@{ub}         Wiedergabe in AmigaAMP steuern
+@{b}ADDFAV@{ub}, @{b}REMOVEFAV@{ub}  Ausgewählten Sender zu den Favoriten
+                    hinzufügen oder entfernen
+@{b}FAVORITES@{ub}          Favoritenliste anzeigen
+@{b}STATUS@{ub}             Statuszeile
+@{b}TRACK@{ub}              Aktueller Titel
+@{b}QUIT@{ub}               TuneFinder beenden
+
+Befehle, die das Fenster benutzen, liefern RC 10, solange
+TuneFinder ikonifiziert ist.
+
+Beispiel:
+
+  /* Den ersten Jazz-Sender abspielen */
+  ADDRESS TUNEFINDER
+  OPTIONS RESULTS
+  SEARCH jazz
+  SELECT 0
+  PLAY
+
+@{"Zurück zum Inhalt" link Main}
 @endnode

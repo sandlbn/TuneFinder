@@ -224,3 +224,36 @@ AmigaAMP is not running
 MSG_STOPPING_PLAYBACK (92//)
 Playback stopped
 ;
+MSG_CONNECTING (93//)
+Connecting: %s
+;
+MSG_HLS_STATION (94//)
+HLS stream, AmigaAMP cannot play it
+;
+MSG_HTTPS (95//)
+HTTPS
+;
+MSG_HTTPS_MODE_ALL (96//)
+All
+;
+MSG_HTTPS_MODE_ONLY (97//)
+HTTPS only
+;
+MSG_HTTPS_MODE_NONE (98//)
+No HTTPS
+;
+MSG_SORT (99//)
+Sort
+;
+MSG_SORT_VOTES (100//)
+Votes
+;
+MSG_SORT_POPULAR (101//)
+Popular
+;
+MSG_SORT_RANDOM (102//)
+Random
+;
+MSG_MORE (103//)
+More
+;
